@@ -108,7 +108,6 @@ Example:
 			}
 
 			token = string(responseData)
-			fmt.Println("TOKEN: " + token)
 
 		}
 
@@ -133,11 +132,11 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	loginCmd.Flags().StringVar(&token, "token", "", "The existing API token to use to connect to FME Server")
-	loginCmd.Flags().StringVar(&user, "user", "", "The FME Server user to generate an API token for.")
-	loginCmd.Flags().StringVar(&password, "password", "", "The FME Server password for the user to generate an API token for.")
-	loginCmd.Flags().StringVar(&expiration, "expiration", "30", "The length of time to generate the token for.")
-	loginCmd.Flags().StringVar(&timeunit, "timeunit", "day", "The timeunit for the expiration of the token.")
+	loginCmd.Flags().StringVarP(&token, "token", "t", "", "The existing API token to use to connect to FME Server")
+	loginCmd.Flags().StringVarP(&user, "user", "u", "", "The FME Server user to generate an API token for.")
+	loginCmd.Flags().StringVarP(&password, "password", "p", "", "The FME Server password for the user to generate an API token for.")
+	loginCmd.Flags().StringVarP(&expiration, "expiration", "e", "30", "The length of time to generate the token for.")
+	loginCmd.Flags().StringVarP(&timeunit, "timeunit", "t", "day", "The timeunit for the expiration of the token.")
 
 	// This isn't quite supported yet. Will work in next release of cobra
 	//loginCmd.MarkFlagsRequiredTogether("user", "password")
