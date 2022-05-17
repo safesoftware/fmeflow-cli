@@ -22,7 +22,7 @@ type Healthcheck struct {
 // healthcheckCmd represents the healthcheck command
 var healthcheckCmd = &cobra.Command{
 	Use:   "healthcheck",
-	Short: "Retrieves the health status of FME Server.",
+	Short: "Retrieves the health status of FME Server",
 	Long:  `Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. Load balancer or other systems can monitor FME Server using this endpoint without supplying token or password credentials.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http

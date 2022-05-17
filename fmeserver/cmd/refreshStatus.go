@@ -18,7 +18,7 @@ var refreshStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Check status of license refresh",
 	Long: `Check the status of a license refresh request.
-	
+    
 Example:
 fmeserver license refresh status`,
 	RunE: func(cmd *cobra.Command, args []string) error {
