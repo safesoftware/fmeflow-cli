@@ -23,10 +23,6 @@ import (
 	"golang.org/x/term"
 )
 
-type Healthcheck struct {
-	Status string `json:"status"`
-}
-
 var token string
 var user string
 var password string

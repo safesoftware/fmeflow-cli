@@ -57,8 +57,6 @@ var requestfileCmd = &cobra.Command{
 			return errors.New(response.Status)
 		}
 
-		//fmt.Println(response.Status)
-
 		// read the body which should be the contents of the file
 		d, err := ioutil.ReadAll(response.Body)
 		if err != nil {
