@@ -37,10 +37,13 @@ var timeunit string
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Save credentials for an FME Server",
-	Long: `Log in to an FME Server using a user and password. This will test the credentials to ensure the work correctly and then generate a token
+	Long: `Update the config file with the credentials to connect to FME Server. If just a URL is passed in, you will be prompted for a user and password for the FME Server. This will be used to generate an API token that will be saved to the config file for use connecting to FME Server.
+Use the --token flag to pass in an existing API token. It is not recommended to pass the password in on the command line in plaintext.
 This will overwrite any existing credentials saved.
 Example:
-  fmeserver login <URL>`,
+  fmeserver login <URL>
+  fmeserver login <URL> --token 5937391ad3a87f19ba14dc6082867373087d031b
+  fmeserver login <URL> --user admin --password passw0rd`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return errors.New("requires a URL")
@@ -75,7 +78,6 @@ Example:
 
 			}
 
-			// test if credentials work
 			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 			// make sure FME Server is up and ready
@@ -135,8 +137,8 @@ func init() {
 	loginCmd.Flags().StringVarP(&token, "token", "t", "", "The existing API token to use to connect to FME Server")
 	loginCmd.Flags().StringVarP(&user, "user", "u", "", "The FME Server user to generate an API token for.")
 	loginCmd.Flags().StringVarP(&password, "password", "p", "", "The FME Server password for the user to generate an API token for.")
-	loginCmd.Flags().StringVarP(&expiration, "expiration", "e", "30", "The length of time to generate the token for.")
-	loginCmd.Flags().StringVarP(&timeunit, "timeunit", "t", "day", "The timeunit for the expiration of the token.")
+	loginCmd.Flags().StringVar(&expiration, "expiration", "30", "The length of time to generate the token for.")
+	loginCmd.Flags().StringVar(&timeunit, "timeunit", "day", "The timeunit for the expiration of the token.")
 
 	// This isn't quite supported yet. Will work in next release of cobra
 	//loginCmd.MarkFlagsRequiredTogether("user", "password")
