@@ -5,7 +5,6 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,7 +24,7 @@ var serialNumber string
 var company string
 var wait bool
 
-type LicenseStatus struct {
+type RequestStatus struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
@@ -38,9 +37,8 @@ var requestCmd = &cobra.Command{
 If no serial number is passed in, a trial license will be requested.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// retrieve the URL from the config file
+		// set up http
 		client := &http.Client{}
-		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 		// add mandatory values
 		data := url.Values{
@@ -71,15 +69,24 @@ If no serial number is passed in, a trial license will be requested.
 			return errors.New(response.Status)
 		}
 
-		fmt.Println("License Request Successfully sent.")
+		if !jsonOutput {
+			fmt.Println("License Request Successfully sent.")
+		} else {
+			if !wait {
+				fmt.Println("{}")
+			}
+		}
 
 		if wait {
 			// check the license status until it is finished
 			complete := false
 			for {
-				fmt.Print(".")
+				if !jsonOutput {
+					fmt.Print(".")
+				}
+
 				time.Sleep(1 * time.Second)
-				// make sure FME Server is up and ready
+				// call the status endpoint to see if it is finished
 				request, err := buildFmeServerRequest("/fmerest/v3/licensing/request/status", "GET", nil)
 				if err != nil {
 					return err
@@ -94,12 +101,16 @@ If no serial number is passed in, a trial license will be requested.
 					return err
 				}
 
-				var result LicenseStatus
+				var result RequestStatus
 				if err := json.Unmarshal(responseData, &result); err != nil {
 					return err
 				} else if result.Status != "REQUESTING" {
 					complete = true
-					fmt.Println(result.Message)
+					if !jsonOutput {
+						fmt.Println(result.Message)
+					} else {
+						fmt.Println(string(responseData))
+					}
 				}
 
 				if complete {

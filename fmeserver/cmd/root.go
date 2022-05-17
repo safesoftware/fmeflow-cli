@@ -5,7 +5,8 @@ Copyright © 2022 Grant Arnold grant.arnold@safe.com
 package cmd
 
 import (
-	"fmt"
+	"crypto/tls"
+	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -13,6 +14,7 @@ import (
 )
 
 var cfgFile string
+var jsonOutput bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -40,12 +42,14 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.fmeserver-cli.yaml)")
+	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "Output JSON")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -68,17 +72,17 @@ func initConfig() {
 		viper.SetConfigName(".fmeserver-cli")
 
 	}
-	fmt.Println(viper.ConfigFileUsed())
+	//fmt.Println(viper.ConfigFileUsed())
 	//viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		//fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	} else {
 		// Find home directory.
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 		viper.SetConfigFile(home + "/.fmeserver-cli.yaml")
-		fmt.Fprintln(os.Stderr, "Using new config file:", viper.ConfigFileUsed())
+		//fmt.Fprintln(os.Stderr, "Using new config file:", viper.ConfigFileUsed())
 	}
 }
