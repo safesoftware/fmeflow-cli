@@ -57,12 +57,12 @@ var backupCmd = &cobra.Command{
 			fmt.Println("Downloading backup file...")
 
 			response, err := client.Do(&request)
-			defer response.Body.Close()
 			if err != nil {
 				return err
 			} else if response.StatusCode != 200 {
 				return errors.New(response.Status)
 			}
+			defer response.Body.Close()
 
 			// Create the output file
 			out, err := os.Create(outputBackupFile)
