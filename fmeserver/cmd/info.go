@@ -19,7 +19,7 @@ type FMEServerInfo struct {
 	LicenseManagement bool   `json:"licenseManagement"`
 	Build             string `json:"build"`
 	TimeZone          string `json:"timeZone"`
-	Version           int    `json:"version"`
+	Version           string `json:"version"`
 }
 
 // infoCmd represents the info command
@@ -32,7 +32,7 @@ var infoCmd = &cobra.Command{
 		client := &http.Client{}
 
 		// call the status endpoint to see if it is finished
-		request, err := buildFmeServerRequest("/fmerest/v3/licensing/license/status", "GET", nil)
+		request, err := buildFmeServerRequest("/fmerest/v3/info", "GET", nil)
 		if err != nil {
 			return err
 		}
@@ -46,7 +46,7 @@ var infoCmd = &cobra.Command{
 			return err
 		}
 
-		var result LicenseStatus
+		var result FMEServerInfo
 		if err := json.Unmarshal(responseData, &result); err != nil {
 			return err
 		} else {
