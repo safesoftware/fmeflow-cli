@@ -19,8 +19,17 @@ import (
 )
 
 type PublishedParameter struct {
-	Name  string `json:"name"`
+	Name string `json:"name"`
+}
+
+type SimpleParameter struct {
 	Value string `json:"value"`
+	PublishedParameter
+}
+
+type ListParameter struct {
+	Value []string `json:"value"`
+	PublishedParameter
 }
 
 type Directive struct {
@@ -33,7 +42,7 @@ type JobId struct {
 }
 
 type Job struct {
-	PublishedParameters []PublishedParameter `json:"publishedParameters,omitempty"`
+	PublishedParameters []interface{} `json:"publishedParameters,omitempty"`
 	TMDirectives        struct {
 		Rtc         bool   `json:"rtc"`
 		Ttc         int    `json:"ttc,omitempty"`
@@ -95,10 +104,18 @@ var runCmd = &cobra.Command{
 			// get published parameters
 			for _, parameter := range runPublishedParameter {
 				this_parameter := strings.Split(parameter, "=")
-				var a PublishedParameter
-				a.Name = this_parameter[0]
-				a.Value = this_parameter[1]
-				job.PublishedParameters = append(job.PublishedParameters, a)
+				if strings.Contains(this_parameter[1], ",") {
+					var a ListParameter
+					a.Name = this_parameter[0]
+					this_list := strings.Split(this_parameter[1], ",")
+					a.Value = this_list
+					job.PublishedParameters = append(job.PublishedParameters, a)
+				} else {
+					var a SimpleParameter
+					a.Name = this_parameter[0]
+					a.Value = this_parameter[1]
+					job.PublishedParameters = append(job.PublishedParameters, a)
+				}
 			}
 
 			// get node manager directives
@@ -131,7 +148,7 @@ var runCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			//fmt.Println(string(jobJson))
+			fmt.Println(string(jobJson))
 			submitEndpoint := "submit"
 			if runWait {
 				submitEndpoint = "transact"
@@ -230,6 +247,7 @@ var runCmd = &cobra.Command{
 				q.Add("opt_ttc", strconv.Itoa(runTtc))
 			}
 
+			// TODO: I'm not sure this is the correct way to pass published parameters in the query string
 			for _, parameter := range runPublishedParameter {
 				this_parameter := strings.Split(parameter, "=")
 				q.Add(this_parameter[0], this_parameter[1])
@@ -284,8 +302,8 @@ func init() {
 	runCmd.Flags().StringVar(&runDescription, "description", "", "Description of the request.")
 	runCmd.Flags().StringVar(&runSourceData, "file", "", "Upload a local file Source dataset to use to run the workspace.")
 
-	runCmd.Flags().StringSliceVar(&runSuccessTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
-	runCmd.Flags().StringSliceVar(&runFailureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
-	runCmd.Flags().StringSliceVar(&runPublishedParameter, "published-parameter", []string{}, "Workspace published parameters defined for this job. Specify as Key=Value. Can be passed in multiple times.")
-	runCmd.Flags().StringSliceVar(&runNodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times.")
+	runCmd.Flags().StringArrayVar(&runSuccessTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
+	runCmd.Flags().StringArrayVar(&runFailureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
+	runCmd.Flags().StringArrayVar(&runPublishedParameter, "published-parameter", []string{}, "Workspace published parameters defined for this job. Specify as Key=Value. Can be passed in multiple times. For list parameters, specify as Key=Value1,Value2. This means parameter values can't contain = or , at the moment. That should probably be fixed.")
+	runCmd.Flags().StringArrayVar(&runNodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times.")
 }
