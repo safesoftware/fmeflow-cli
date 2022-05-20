@@ -48,6 +48,8 @@ cobra-cli add new-command
 ```
 More details [here](https://github.com/spf13/cobra-cli/blob/main/README.md)
 
+A great resource for adding new structs to represent JSON returned from FME Server is this [JSON to Go converter](https://mholt.github.io/json-to-go/) which will create a Go struct for you from a JSON sample.
+
 ## Acknowledgments
 
 * Created using [cobra](https://github.com/spf13/cobra)
