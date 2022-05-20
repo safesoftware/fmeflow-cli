@@ -73,11 +73,5 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		//fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
-	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
-		viper.SetConfigFile(home + "/.fmeserver-cli.yaml")
-		//fmt.Fprintln(os.Stderr, "Using new config file:", viper.ConfigFileUsed())
 	}
 }

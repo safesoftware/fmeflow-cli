@@ -24,6 +24,7 @@ var whyCmd = &cobra.Command{
 		fmt.Println("- REST API is powerful, but writing REST calls is annoying")
 		fmt.Println("- Easier to run things locally to test before running in pipeline")
 		fmt.Println("- Can implement more complicated things that make multiple different API calls")
+		fmt.Println("")
 	},
 }
 

@@ -17,11 +17,12 @@ var whatCmd = &cobra.Command{
 	Short: "Outputs what this thing is",
 	Long:  `Outputs what this thing is`,
 	Run: func(cmd *cobra.Command, args []string) {
-		myFigure := figure.NewColorFigure("What is this thing?", "", "green", true)
+		myFigure := figure.NewColorFigure("What is this?", "", "green", true)
 		myFigure.Print()
 		fmt.Println("")
 		fmt.Println("- A Command Line Interface for FME Server")
 		fmt.Println("- Makes calls to FME Server REST API")
+		fmt.Println("")
 	},
 }
 

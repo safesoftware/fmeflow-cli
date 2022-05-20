@@ -98,6 +98,8 @@ Example:
 			response, err = http.Get(url + "/fmetoken/generate?user=" + user + "&password=" + password + "&expiration=" + expiration + "&timeunit=" + timeunit)
 			if err != nil {
 				return err
+			} else if response.StatusCode != 200 {
+				return errors.New(response.Status)
 			}
 
 			responseData, err = ioutil.ReadAll(response.Body)

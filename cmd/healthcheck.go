@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -41,6 +42,8 @@ var healthcheckCmd = &cobra.Command{
 		response, err := client.Do(&request)
 		if err != nil {
 			return err
+		} else if response.StatusCode != 200 {
+			return errors.New(response.Status)
 		}
 
 		responseData, err := ioutil.ReadAll(response.Body)
@@ -54,7 +57,17 @@ var healthcheckCmd = &cobra.Command{
 		} else {
 			if !jsonOutput {
 				// output all values returned by the JSON in a table
-				fmt.Printf(result.Status)
+				if result.Status == "ok" {
+					if ready {
+						fmt.Println("FME Server is running and ready to run jobs.")
+					} else {
+						fmt.Println("FME Server is running and ready to accept requests.")
+					}
+				} else {
+					fmt.Println("FME Server is not healthy.")
+					fmt.Println(result.Status)
+				}
+
 			} else {
 				fmt.Println(string(responseData))
 			}

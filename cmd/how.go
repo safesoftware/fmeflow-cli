@@ -22,6 +22,8 @@ var howCmd = &cobra.Command{
 		fmt.Println("")
 		fmt.Println("- Written in Go")
 		fmt.Println("- Uses a Go package called Cobra to help generate the CLI")
+		fmt.Println("- Can easily build for Linux, Mac and Windows")
+		fmt.Println("")
 	},
 }
 

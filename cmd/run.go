@@ -148,7 +148,7 @@ var runCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			fmt.Println(string(jobJson))
+			//fmt.Println(string(jobJson))
 			submitEndpoint := "submit"
 			if runWait {
 				submitEndpoint = "transact"
@@ -168,7 +168,7 @@ var runCmd = &cobra.Command{
 			response, err := client.Do(&request)
 			if err != nil {
 				return err
-			} else if response.StatusCode != 200 {
+			} else if response.StatusCode != 200 && response.StatusCode != 202 {
 				return errors.New(response.Status)
 			}
 
@@ -255,7 +255,7 @@ var runCmd = &cobra.Command{
 
 			request.URL.RawQuery = q.Encode()
 
-			fmt.Println(request.URL.String())
+			//fmt.Println(request.URL.String())
 
 			request.Header.Set("Content-Type", "application/octet-stream")
 

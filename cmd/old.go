@@ -7,7 +7,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/common-nighthawk/go-figure"
 	"github.com/spf13/cobra"
 )
 
@@ -22,13 +21,16 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		myFigure := figure.NewColorFigure("fmeserverconsole?", "", "green", true)
-		myFigure.Print()
+		//myFigure := figure.NewColorFigure("fmeserverconsole?", "", "green", true)
+		//myFigure.Print()
+		fmt.Println("")
+		fmt.Println("What about fmeserverconsole?")
 		fmt.Println("")
 		fmt.Println("- Not really maintained")
 		fmt.Println("- Old and clunky")
 		fmt.Println("- Very limited functionality")
 		fmt.Println("- Not very portable")
+		fmt.Println("")
 	},
 }
 
