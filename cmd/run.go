@@ -42,8 +42,9 @@ type JobId struct {
 }
 
 type Job struct {
-	PublishedParameters []interface{} `json:"publishedParameters,omitempty"`
-	TMDirectives        struct {
+	PublishedParameters    []interface{}     `json:"-"`
+	RawPublishedParameters []json.RawMessage `json:"publishedParameters,omitempty"`
+	TMDirectives           struct {
 		Rtc         bool   `json:"rtc"`
 		Ttc         int    `json:"ttc,omitempty"`
 		Description string `json:"description,omitempty"`
