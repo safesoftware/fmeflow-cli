@@ -6,27 +6,50 @@ package cmd
 
 import (
 	"bufio"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"crypto/tls"
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 
 	"golang.org/x/term"
 )
 
+type TokenRequest struct {
+	Restricted        bool   `json:"restricted"`
+	Name              string `json:"name"`
+	Description       string `json:"description"`
+	ExpirationTimeout int    `json:"expirationTimeout"`
+	User              string `json:"user"`
+	Enabled           bool   `json:"enabled"`
+}
+
+type TokenResponse struct {
+	LastSaveDate   time.Time `json:"lastSaveDate"`
+	CreatedDate    time.Time `json:"createdDate"`
+	Restricted     bool      `json:"restricted"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	Type           string    `json:"type"`
+	User           string    `json:"user"`
+	Enabled        bool      `json:"enabled"`
+	ExpirationDate time.Time `json:"expirationDate"`
+	Token          string    `json:"token"`
+}
+
 var token string
 var user string
 var password string
-var expiration string
+var expiration int
 var timeunit string
 
 // loginCmd represents the login command
@@ -74,12 +97,38 @@ Example:
 
 			}
 
-			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+			currentTime := time.Now()
 
-			// make sure FME Server is up and ready
-			response, err := http.Get(url + "/fmerest/v3/healthcheck?ready=false")
+			tokenRequest := TokenRequest{
+				Restricted:        false,
+				Name:              "fmeserver-cli-" + currentTime.Format("20060102150405"),
+				Description:       "Token generated for use with the fmeserver-cli.",
+				ExpirationTimeout: expiration,
+				User:              user,
+				Enabled:           true,
+			}
+
+			tokenJson, err := json.Marshal(tokenRequest)
 			if err != nil {
 				return err
+			}
+
+			auth := base64.StdEncoding.EncodeToString([]byte(user + ":" + password))
+
+			req, err := http.NewRequest("POST", url+"/fmerest/v3/tokens", strings.NewReader(string(tokenJson)))
+			if err != nil {
+				return err
+			}
+			req.Header.Set("Authorization", "Basic "+auth)
+			req.Header.Set("Content-Type", "application/json")
+
+			// create a token to store in config file
+			client := &http.Client{}
+			response, err := client.Do(req)
+			if err != nil {
+				return err
+			} else if response.StatusCode != 201 {
+				return errors.New(response.Status)
 			}
 
 			responseData, err := ioutil.ReadAll(response.Body)
@@ -87,27 +136,13 @@ Example:
 				return err
 			}
 
-			var result Healthcheck
-			if err := json.Unmarshal(responseData, &result); err != nil { // Parse []byte to the go struct pointer
+			var result TokenResponse
+			if err := json.Unmarshal(responseData, &result); err != nil {
 				return err
-			} else if result.Status != "ok" {
-				return errors.New("FME Server is not healthy: " + string(responseData))
+			} else {
+				token = result.Token
+				fmt.Println("Successfully generated new token.")
 			}
-
-			// create a token to store in config file
-			response, err = http.Get(url + "/fmetoken/generate?user=" + user + "&password=" + password + "&expiration=" + expiration + "&timeunit=" + timeunit)
-			if err != nil {
-				return err
-			} else if response.StatusCode != 200 {
-				return errors.New(response.Status)
-			}
-
-			responseData, err = ioutil.ReadAll(response.Body)
-			if err != nil {
-				return err
-			}
-
-			token = string(responseData)
 
 		}
 
@@ -115,6 +150,7 @@ Example:
 		viper.Set("url", url)
 		viper.Set("token", token)
 		viper.WriteConfig()
+		fmt.Println("Credentials written to " + viper.ConfigFileUsed())
 
 		return nil
 
@@ -135,8 +171,7 @@ func init() {
 	loginCmd.Flags().StringVarP(&token, "token", "t", "", "The existing API token to use to connect to FME Server")
 	loginCmd.Flags().StringVarP(&user, "user", "u", "", "The FME Server user to generate an API token for.")
 	loginCmd.Flags().StringVarP(&password, "password", "p", "", "The FME Server password for the user to generate an API token for.")
-	loginCmd.Flags().StringVar(&expiration, "expiration", "30", "The length of time to generate the token for.")
-	loginCmd.Flags().StringVar(&timeunit, "timeunit", "day", "The timeunit for the expiration of the token.")
+	loginCmd.Flags().IntVar(&expiration, "expiration", 2592000, "The length of time to generate the token for in seconds.")
 
 	// This isn't quite supported yet. Will work in next release of cobra
 	//loginCmd.MarkFlagsRequiredTogether("user", "password")
