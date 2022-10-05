@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 Grant Arnold grant.arnold@safe.com
-
 */
 package cmd
 
@@ -8,6 +7,7 @@ import (
 	"crypto/tls"
 	"net/http"
 	"os"
+	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -65,6 +65,7 @@ func initConfig() {
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".fmeserver-cli")
+		viper.SetConfigFile(path.Join(home, ".fmeserver-cli.yaml"))
 
 	}
 	//fmt.Println(viper.ConfigFileUsed())
