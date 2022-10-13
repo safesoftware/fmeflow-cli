@@ -1,6 +1,3 @@
-/*
-Copyright © 2022 Grant Arnold grant.arnold@safe.com
-*/
 package cmd
 
 import (
