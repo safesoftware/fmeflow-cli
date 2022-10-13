@@ -1,7 +1,3 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
@@ -41,13 +37,8 @@ type Engines struct {
 // enginesCmd represents the engines command
 var enginesCmd = &cobra.Command{
 	Use:   "engines",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Get information about the FME Engines",
+	Long:  `Gets information and status about FME Engines currently connected to FME Server`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
@@ -105,14 +96,4 @@ to quickly create a Cobra application.`,
 
 func init() {
 	rootCmd.AddCommand(enginesCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// enginesCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// enginesCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -1,7 +1,3 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
@@ -22,14 +18,4 @@ var migrationCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(migrationCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// migrationCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// migrationCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
