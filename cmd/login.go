@@ -59,7 +59,8 @@ var loginCmd = &cobra.Command{
 	Long: `Update the config file with the credentials to connect to FME Server. If just a URL is passed in, you will be prompted for a user and password for the FME Server. This will be used to generate an API token that will be saved to the config file for use connecting to FME Server.
 Use the --token flag to pass in an existing API token. It is not recommended to pass the password in on the command line in plaintext.
 This will overwrite any existing credentials saved.
-Example:
+
+Examples:
   fmeserver login <URL>
   fmeserver login <URL> --token 5937391ad3a87f19ba14dc6082867373087d031b
   fmeserver login <URL> --user admin --password passw0rd`,
@@ -160,21 +161,12 @@ Example:
 func init() {
 	rootCmd.AddCommand(loginCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// loginCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	loginCmd.Flags().StringVarP(&token, "token", "t", "", "The existing API token to use to connect to FME Server")
 	loginCmd.Flags().StringVarP(&user, "user", "u", "", "The FME Server user to generate an API token for.")
 	loginCmd.Flags().StringVarP(&password, "password", "p", "", "The FME Server password for the user to generate an API token for.")
 	loginCmd.Flags().IntVar(&expiration, "expiration", 2592000, "The length of time to generate the token for in seconds.")
 
-	// This isn't quite supported yet. Will work in next release of cobra
-	//loginCmd.MarkFlagsRequiredTogether("user", "password")
-	//loginCmd.MarkFlagsMutuallyExclusive("token", "user")
-	//loginCmd.MarkFlagsMutuallyExclusive("token", "password")
+	loginCmd.MarkFlagsRequiredTogether("user", "password")
+	loginCmd.MarkFlagsMutuallyExclusive("token", "user")
+	loginCmd.MarkFlagsMutuallyExclusive("token", "password")
 }

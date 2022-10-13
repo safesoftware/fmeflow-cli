@@ -28,7 +28,6 @@ func (f *Job) UnmarshalJSON(b []byte) error {
 	}
 
 	for _, raw := range f.RawPublishedParameters {
-		//var v map[string]interface{}
 		data := make(map[string]json.RawMessage)
 		err = json.Unmarshal(raw, &data)
 		if err != nil {
@@ -45,9 +44,6 @@ func (f *Job) UnmarshalJSON(b []byte) error {
 				}
 
 			}
-			//fmt.Println(string(k))
-			//fmt.Println(string(v))
-			//fmt.Println("----")
 		}
 
 		if i != nil {

@@ -189,14 +189,6 @@ var migrationTasksCmd = &cobra.Command{
 func init() {
 	migrationCmd.AddCommand(migrationTasksCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// migrationTasksCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	migrationTasksCmd.Flags().IntVar(&migrationTaskId, "id", -1, "Retrieves the record for a migration task according to the given ID.")
 	migrationTasksCmd.Flags().BoolVar(&migrationTaskLog, "log", false, "Downloads the log file of a migration task.")
 	migrationTasksCmd.Flags().StringVar(&migrationTaskFile, "file", "", "File to save the log to.")
