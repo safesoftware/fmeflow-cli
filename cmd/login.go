@@ -1,23 +1,19 @@
 package cmd
 
 import (
-	"bufio"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
-	"syscall"
 	"time"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"io/ioutil"
 	"net/http"
-
-	"golang.org/x/term"
 )
 
 type TokenRequest struct {
@@ -46,7 +42,6 @@ var token string
 var user string
 var password string
 var expiration int
-var timeunit string
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
@@ -57,9 +52,9 @@ Use the --token flag to pass in an existing API token. It is not recommended to 
 This will overwrite any existing credentials saved.
 
 Examples:
-  fmeserver login <URL>
-  fmeserver login <URL> --token 5937391ad3a87f19ba14dc6082867373087d031b
-  fmeserver login <URL> --user admin --password passw0rd`,
+  fmeserver login https://my-fmeserver.internal
+  fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
+  fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return errors.New("requires a URL")
@@ -75,23 +70,15 @@ Examples:
 		if token == "" {
 			if user == "" && password == "" {
 				// prompt for a user and password
-				reader := bufio.NewReader(os.Stdin)
-
-				fmt.Print("Enter Username: ")
-				username, err := reader.ReadString('\n')
-				if err != nil {
-					return err
+				promptUser := &survey.Input{
+					Message: "Username:",
 				}
+				survey.AskOne(promptUser, &user)
 
-				fmt.Print("Enter Password: ")
-				bytePassword, err := term.ReadPassword(int(syscall.Stdin))
-				if err != nil {
-					return err
+				promptPassword := &survey.Password{
+					Message: "Password:",
 				}
-
-				user = strings.TrimSpace(username)
-				password = string(bytePassword)
-
+				survey.AskOne(promptPassword, &password)
 			}
 
 			currentTime := time.Now()
