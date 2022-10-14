@@ -15,9 +15,10 @@ var jsonOutput bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "fmeserver",
-	Short: "A command line interface for interacting with FME Server.",
-	Long:  `A command line interface for interacting with FME Server.`,
+	Use:     "fmeserver",
+	Short:   "A command line interface for interacting with FME Server.",
+	Long:    `A command line interface for interacting with FME Server.`,
+	Version: "0.3",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
