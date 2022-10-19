@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -63,6 +64,10 @@ var migrationTasksCmd = &cobra.Command{
 	Long:  `Retrieves the records for all migration tasks.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
+		// --json overrides --output
+		if jsonOutput {
+			outputType = "json"
+		}
 		client := &http.Client{}
 
 		if migrationTaskId == -1 && !migrationTaskLog {
@@ -85,20 +90,84 @@ var migrationTasksCmd = &cobra.Command{
 			if err := json.Unmarshal(responseData, &result); err != nil {
 				return err
 			} else {
-				if !jsonOutput {
-					// TODO: Figure out a nice way of outputting all the tasks. For now always output json
+				if outputType == "table" {
+					/*first := true
+					t := table.NewWriter()
+					t.SetStyle(defaultStyle)
+					header := table.Row{}
+					for _, element := range result.Items {
 
-					// output all values returned by the JSON in a table
-					/*v := reflect.ValueOf(result)
-					typeOfS := v.Type()
+						// output all values returned by the JSON in a table
+						v := reflect.ValueOf(element)
+						typeOfS := v.Type()
 
-					for i := 0; i < v.NumField(); i++ {
-						fmt.Printf("%s:\t%v\n", typeOfS.Field(i).Name, v.Field(i).Interface())
-					}*/
-					//fmt.Printf("%+v\n", result)
-					fmt.Println(string(responseData))
+						row := table.Row{}
+						for i := 0; i < v.NumField(); i++ {
+							if first {
+								header = append(header, typeOfS.Field(i).Name)
+							}
+							row = append(row, v.Field(i).Interface())
+						}
+						first = false
+
+						t.AppendRow(row)
+					}
+					t.AppendHeader(header)
+					if noHeaders {
+						t.ResetHeaders()
+					}
+					fmt.Println(t.Render())*/
+
+					//fmt.Println(string(responseData))
+					t := table.NewWriter()
+					t.SetStyle(defaultStyle)
+
+					t.AppendHeader(table.Row{"ID", "Type", "Username", "Start Time", "End Time", "Status"})
+
+					for _, element := range result.Items {
+						t.AppendRow(table.Row{element.ID, element.Type, element.UserName, element.StartDate, element.FinishedDate, element.Status})
+					}
+					if noHeaders {
+						t.ResetHeaders()
+					}
+					fmt.Println(t.Render())
+					// output the raw json but formatted
+				} else if outputType == "json" {
+					prettyJSON, err := prettyPrintJSON(responseData)
+					if err != nil {
+						return err
+					}
+					fmt.Println(prettyJSON)
+				} else if strings.HasPrefix(outputType, "custom-columns=") {
+					// parse the columns and json queries
+					columnsString := outputType[len("custom-columns="):]
+					if len(columnsString) == 0 {
+						return errors.New("custom-columns format specified but no custom columns given")
+					}
+
+					// we have to marshal the Items array, then create an array of marshalled items
+					// to pass to the creation of the table.
+					marshalledItems := [][]byte{}
+					for _, element := range result.Items {
+						mJson, err := json.Marshal(element)
+						if err != nil {
+							return err
+						}
+
+						marshalledItems = append(marshalledItems, mJson)
+					}
+
+					columnsInput := strings.Split(columnsString, ",")
+					t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+					if err != nil {
+						return err
+					}
+					if noHeaders {
+						t.ResetHeaders()
+					}
+					fmt.Println(t.Render())
 				} else {
-					fmt.Println(string(responseData))
+					return errors.New("invalid output format specified")
 				}
 			}
 		} else if migrationTaskId != -1 && !migrationTaskLog {
@@ -188,4 +257,6 @@ func init() {
 	migrationTasksCmd.Flags().IntVar(&migrationTaskId, "id", -1, "Retrieves the record for a migration task according to the given ID.")
 	migrationTasksCmd.Flags().BoolVar(&migrationTaskLog, "log", false, "Downloads the log file of a migration task.")
 	migrationTasksCmd.Flags().StringVar(&migrationTaskFile, "file", "", "File to save the log to.")
+	migrationTasksCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	migrationTasksCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
 }

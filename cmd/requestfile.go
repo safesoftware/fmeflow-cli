@@ -37,6 +37,18 @@ var requestfileCmd = &cobra.Command{
 		if company != "" {
 			data.Add("company", company)
 		}
+		if industry != "" {
+			data.Add("industry", industry)
+		}
+		if category != "" {
+			data.Add("category", category)
+		}
+		if salesSource != "" {
+			data.Add("salesSource", salesSource)
+		}
+		if subscribeToUpdates {
+			data.Add("subscribeToUpdates", "true")
+		}
 
 		request, err := buildFmeServerRequest("/fmerest/v3/licensing/requestfile", "POST", strings.NewReader(data.Encode()))
 		if err != nil {
@@ -81,6 +93,10 @@ func init() {
 	requestfileCmd.Flags().StringVar(&email, "email", "", "Email address for license request.")
 	requestfileCmd.Flags().StringVar(&serialNumber, "serial-number", "", "Serial Number for the license request.")
 	requestfileCmd.Flags().StringVar(&company, "company", "", "Company for the licensing request")
+	requestfileCmd.Flags().StringVar(&industry, "industry", "", "Industry for the licensing request")
+	requestfileCmd.Flags().StringVar(&category, "category", "", "License Category")
+	requestfileCmd.Flags().StringVar(&salesSource, "sales-source", "", "Sales source")
+	requestfileCmd.Flags().BoolVar(&subscribeToUpdates, "subscribe-to-updates", false, "Subscribe to Updates")
 	requestfileCmd.Flags().StringVar(&outputLicenseFile, "file", "", "Path to file to output to.")
 	requestfileCmd.MarkFlagRequired("first-name")
 	requestfileCmd.MarkFlagRequired("last-name")

@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -91,7 +92,10 @@ var runCmd = &cobra.Command{
 	Short: "Run a workspace on FME Server",
 	Long:  `Run a workspace on FME Server`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-
+		// --json overrides --output
+		if jsonOutput {
+			outputType = "json"
+		}
 		// set up http
 		client := &http.Client{
 			// set a long timeout for jobs that are long running.
@@ -184,7 +188,11 @@ var runCmd = &cobra.Command{
 					if !jsonOutput {
 						fmt.Println("Job submitted with id: " + strconv.Itoa(result.Id))
 					} else {
-						fmt.Println(string(responseData))
+						prettyJSON, err := prettyPrintJSON(responseData)
+						if err != nil {
+							return err
+						}
+						fmt.Println(prettyJSON)
 					}
 				}
 			} else {
@@ -192,13 +200,55 @@ var runCmd = &cobra.Command{
 				if err := json.Unmarshal(responseData, &result); err != nil {
 					return err
 				} else {
-					if !jsonOutput {
-						fmt.Println("Job completed with id: " + strconv.Itoa(result.ID))
-						fmt.Println("Job Status: " + result.Status)
-						fmt.Println("Job Status Message: " + result.StatusMessage)
-						fmt.Println("Features Output: " + strconv.Itoa(result.NumFeaturesOutput))
+					if outputType == "table" {
+						t := table.NewWriter()
+						t.SetStyle(defaultStyle)
+
+						t.AppendHeader(table.Row{"ID", "Status", "Status Message", "Features Output"})
+
+						t.AppendRow(table.Row{result.ID, result.Status, result.StatusMessage, result.NumFeaturesOutput})
+
+						if noHeaders {
+							t.ResetHeaders()
+						}
+						fmt.Println(t.Render())
+
+					} else if outputType == "json" {
+						prettyJSON, err := prettyPrintJSON(responseData)
+						if err != nil {
+							return err
+						}
+						fmt.Println(prettyJSON)
+					} else if strings.HasPrefix(outputType, "custom-columns=") {
+						// parse the columns and json queries
+						columnsString := outputType[len("custom-columns="):]
+						if len(columnsString) == 0 {
+							return errors.New("custom-columns format specified but no custom columns given")
+						}
+
+						// we have to marshal the Items array, then create an array of marshalled items
+						// to pass to the creation of the table.
+						marshalledItems := [][]byte{}
+
+						mJson, err := json.Marshal(result)
+						if err != nil {
+							return err
+						}
+
+						marshalledItems = append(marshalledItems, mJson)
+
+						columnsInput := strings.Split(columnsString, ",")
+						t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+						if err != nil {
+							return err
+						}
+						if noHeaders {
+							t.ResetHeaders()
+						}
+						fmt.Println(t.Render())
+
 					} else {
-						fmt.Println(string(responseData))
+						return errors.New("invalid output format specified")
 					}
 				}
 			}
@@ -298,6 +348,8 @@ func init() {
 	runCmd.Flags().StringVar(&runTag, "tag", "", "The job routing tag for the request")
 	runCmd.Flags().StringVar(&runDescription, "description", "", "Description of the request.")
 	runCmd.Flags().StringVar(&runSourceData, "file", "", "Upload a local file Source dataset to use to run the workspace.")
+	runCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	runCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
 
 	runCmd.Flags().StringArrayVar(&runSuccessTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
 	runCmd.Flags().StringArrayVar(&runFailureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")

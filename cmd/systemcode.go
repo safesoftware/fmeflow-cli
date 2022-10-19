@@ -44,7 +44,11 @@ var systemcodeCmd = &cobra.Command{
 			if !jsonOutput {
 				fmt.Printf(result.SystemCode)
 			} else {
-				fmt.Println(string(responseData))
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
+				}
+				fmt.Println(prettyJSON)
 			}
 
 		}

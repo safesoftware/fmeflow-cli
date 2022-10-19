@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -41,10 +43,32 @@ fmeserver license request status`,
 			return err
 		} else {
 			if !jsonOutput {
-				fmt.Println(result.Status)
-				fmt.Println(result.Message)
+				// output all values returned by the JSON in a table
+				v := reflect.ValueOf(result)
+				typeOfS := v.Type()
+				header := table.Row{}
+				row := table.Row{}
+				for i := 0; i < v.NumField(); i++ {
+					header = append(header, typeOfS.Field(i).Name)
+					row = append(row, v.Field(i).Interface())
+				}
+
+				t := table.NewWriter()
+				t.SetStyle(defaultStyle)
+
+				t.AppendHeader(header)
+				t.AppendRow(row)
+
+				if noHeaders {
+					t.ResetHeaders()
+				}
+				fmt.Println(t.Render())
 			} else {
-				fmt.Println(string(responseData))
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
+				}
+				fmt.Println(prettyJSON)
 			}
 
 		}

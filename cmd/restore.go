@@ -79,7 +79,11 @@ var restoreCmd = &cobra.Command{
 			if !jsonOutput {
 				fmt.Println("Restore task submitted with id: " + strconv.Itoa(result.Id))
 			} else {
-				fmt.Println(string(responseData))
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
+				}
+				fmt.Println(prettyJSON)
 			}
 		}
 
