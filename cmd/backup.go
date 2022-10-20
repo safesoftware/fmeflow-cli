@@ -30,7 +30,15 @@ type BackupResource struct {
 var backupCmd = &cobra.Command{
 	Use:   "backup",
 	Short: "Backs up the FME Server configuration",
-	Long:  `Backs up the FME Server configuration`,
+	Long: `Backs up the FME Server configuration to a local file or to a shared resource location on the FME Server.
+
+Examples:
+# back up to a local file
+fmeserver backup -f my_local_backup.fsconfig
+
+# back up to the "Backup" folder in the FME Server Shared Resources with the file name my_fme_backup.fsconfig
+fmeserver backup --resource --export-package my_fme_backup.fsconfig
+	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}

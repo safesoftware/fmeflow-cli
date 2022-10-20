@@ -43,7 +43,21 @@ var count bool
 var enginesCmd = &cobra.Command{
 	Use:   "engines",
 	Short: "Get information about the FME Engines",
-	Long:  `Gets information and status about FME Engines currently connected to FME Server`,
+	Long: `Gets information and status about FME Engines currently connected to FME Server
+	
+Examples:
+
+# List all engines
+fmeserver engines
+
+# Output number of engines
+fmeserver engines --count
+
+# Output engines in json form
+fmeserver engines --json
+
+# Output just the names of the engines with no column headers
+fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
