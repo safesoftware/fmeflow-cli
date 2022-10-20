@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"unicode"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
@@ -100,4 +101,20 @@ func prettyPrintJSON(s []byte) (string, error) {
 		return "", err
 	}
 	return prettyJSON.String(), nil
+}
+
+func convertCamelCaseToTitleCase(s string) string {
+	result := ""
+	for i, c := range s {
+		if unicode.IsUpper(c) && i != 0 {
+			result += " " + string(c)
+		} else {
+			if i == 0 {
+				result += strings.ToUpper(string(c))
+			} else {
+				result += string(c)
+			}
+		}
+	}
+	return result
 }

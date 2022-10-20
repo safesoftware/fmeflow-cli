@@ -49,7 +49,7 @@ fmeserver license request status`,
 				header := table.Row{}
 				row := table.Row{}
 				for i := 0; i < v.NumField(); i++ {
-					header = append(header, typeOfS.Field(i).Name)
+					header = append(header, convertCamelCaseToTitleCase(typeOfS.Field(i).Name))
 					row = append(row, v.Field(i).Interface())
 				}
 
