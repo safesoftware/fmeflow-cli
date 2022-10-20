@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -8,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -175,7 +174,7 @@ var runCmd = &cobra.Command{
 				return errors.New(response.Status)
 			}
 
-			responseData, err := ioutil.ReadAll(response.Body)
+			responseData, err := io.ReadAll(response.Body)
 			if err != nil {
 				return err
 			}
@@ -313,7 +312,7 @@ var runCmd = &cobra.Command{
 				return errors.New(response.Status)
 			}
 
-			responseData, err := ioutil.ReadAll(response.Body)
+			responseData, err := io.ReadAll(response.Body)
 			if err != nil {
 				return err
 			}

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -70,7 +69,7 @@ var migrationTasksCmd = &cobra.Command{
 					return err
 				}
 
-				responseData, err = ioutil.ReadAll(response.Body)
+				responseData, err = io.ReadAll(response.Body)
 				if err != nil {
 					return err
 				}
@@ -94,7 +93,7 @@ var migrationTasksCmd = &cobra.Command{
 					return errors.New(response.Status)
 				}
 
-				responseData, err := ioutil.ReadAll(response.Body)
+				responseData, err := io.ReadAll(response.Body)
 				if err != nil {
 					return err
 				}
@@ -174,7 +173,7 @@ var migrationTasksCmd = &cobra.Command{
 				return errors.New(response.Status)
 			}
 
-			responseData, err := ioutil.ReadAll(response.Body)
+			responseData, err := io.ReadAll(response.Body)
 			if err != nil {
 				return err
 			}

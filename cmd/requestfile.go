@@ -3,7 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -66,7 +66,7 @@ var requestfileCmd = &cobra.Command{
 		}
 
 		// read the body which should be the contents of the file
-		d, err := ioutil.ReadAll(response.Body)
+		d, err := io.ReadAll(response.Body)
 		if err != nil {
 			return err
 		}

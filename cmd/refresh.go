@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -66,7 +66,7 @@ to quickly create a Cobra application.`,
 					return err
 				}
 
-				responseData, err := ioutil.ReadAll(response.Body)
+				responseData, err := io.ReadAll(response.Body)
 				if err != nil {
 					return err
 				}
