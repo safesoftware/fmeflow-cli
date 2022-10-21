@@ -14,12 +14,12 @@ import (
 )
 
 type LicenseStatus struct {
-	ExpiryDate        string `json:"expiryDate"`
-	MaximumEngines    int    `json:"maximumEngines"`
-	SerialNumber      string `json:"serialNumber"`
-	IsLicensedExpired bool   `json:"isLicenseExpired"`
-	IsLicensed        bool   `json:"isLicensed"`
-	MaximumAuthors    int    `json:"maximumAuthors"`
+	ExpiryDate       string `json:"expiryDate"`
+	MaximumEngines   int    `json:"maximumEngines"`
+	SerialNumber     string `json:"serialNumber"`
+	IsLicenseExpired bool   `json:"isLicenseExpired"`
+	IsLicensed       bool   `json:"isLicensed"`
+	MaximumAuthors   int    `json:"maximumAuthors"`
 }
 
 // licenseStatusCmd represents the licenseStatus command
