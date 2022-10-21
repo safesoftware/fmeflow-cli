@@ -102,6 +102,9 @@ var runCmd = &cobra.Command{
 			Timeout: 604800 * time.Second,
 		}
 
+		var result JobResult
+		var responseData []byte
+
 		if runSourceData == "" {
 			job := &Job{}
 
@@ -174,7 +177,7 @@ var runCmd = &cobra.Command{
 				return errors.New(response.Status)
 			}
 
-			responseData, err := io.ReadAll(response.Body)
+			responseData, err = io.ReadAll(response.Body)
 			if err != nil {
 				return err
 			}
@@ -195,60 +198,8 @@ var runCmd = &cobra.Command{
 					}
 				}
 			} else {
-				var result JobResult
 				if err := json.Unmarshal(responseData, &result); err != nil {
 					return err
-				} else {
-					if outputType == "table" {
-						t := table.NewWriter()
-						t.SetStyle(defaultStyle)
-
-						t.AppendHeader(table.Row{"ID", "Status", "Status Message", "Features Output"})
-
-						t.AppendRow(table.Row{result.ID, result.Status, result.StatusMessage, result.NumFeaturesOutput})
-
-						if noHeaders {
-							t.ResetHeaders()
-						}
-						fmt.Println(t.Render())
-
-					} else if outputType == "json" {
-						prettyJSON, err := prettyPrintJSON(responseData)
-						if err != nil {
-							return err
-						}
-						fmt.Println(prettyJSON)
-					} else if strings.HasPrefix(outputType, "custom-columns=") {
-						// parse the columns and json queries
-						columnsString := outputType[len("custom-columns="):]
-						if len(columnsString) == 0 {
-							return errors.New("custom-columns format specified but no custom columns given")
-						}
-
-						// we have to marshal the Items array, then create an array of marshalled items
-						// to pass to the creation of the table.
-						marshalledItems := [][]byte{}
-
-						mJson, err := json.Marshal(result)
-						if err != nil {
-							return err
-						}
-
-						marshalledItems = append(marshalledItems, mJson)
-
-						columnsInput := strings.Split(columnsString, ",")
-						t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
-						if err != nil {
-							return err
-						}
-						if noHeaders {
-							t.ResetHeaders()
-						}
-						fmt.Println(t.Render())
-
-					} else {
-						return errors.New("invalid output format specified")
-					}
 				}
 			}
 		} else {
@@ -312,23 +263,66 @@ var runCmd = &cobra.Command{
 				return errors.New(response.Status)
 			}
 
-			responseData, err := io.ReadAll(response.Body)
+			responseData, err = io.ReadAll(response.Body)
 			if err != nil {
 				return err
 			}
 
-			var result JobResult
 			if err := json.Unmarshal(responseData, &result); err != nil {
 				return err
-			} else {
-				if !jsonOutput {
-					fmt.Println("Job completed with id: " + strconv.Itoa(result.ID))
-					fmt.Println("Job Status: " + result.Status)
-					fmt.Println("Job Status Message: " + result.StatusMessage)
-					fmt.Println("Features Output: " + strconv.Itoa(result.NumFeaturesOutput))
-				} else {
-					fmt.Println(string(responseData))
+			}
+		}
+
+		if runWait {
+			if outputType == "table" {
+				t := table.NewWriter()
+				t.SetStyle(defaultStyle)
+
+				t.AppendHeader(table.Row{"ID", "Status", "Status Message", "Features Output"})
+
+				t.AppendRow(table.Row{result.ID, result.Status, result.StatusMessage, result.NumFeaturesOutput})
+
+				if noHeaders {
+					t.ResetHeaders()
 				}
+				fmt.Println(t.Render())
+
+			} else if outputType == "json" {
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
+				}
+				fmt.Println(prettyJSON)
+			} else if strings.HasPrefix(outputType, "custom-columns=") {
+				// parse the columns and json queries
+				columnsString := outputType[len("custom-columns="):]
+				if len(columnsString) == 0 {
+					return errors.New("custom-columns format specified but no custom columns given")
+				}
+
+				// we have to marshal the Items array, then create an array of marshalled items
+				// to pass to the creation of the table.
+				marshalledItems := [][]byte{}
+
+				mJson, err := json.Marshal(result)
+				if err != nil {
+					return err
+				}
+
+				marshalledItems = append(marshalledItems, mJson)
+
+				columnsInput := strings.Split(columnsString, ",")
+				t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+				if err != nil {
+					return err
+				}
+				if noHeaders {
+					t.ResetHeaders()
+				}
+				fmt.Println(t.Render())
+
+			} else {
+				return errors.New("invalid output format specified")
 			}
 		}
 		return nil
