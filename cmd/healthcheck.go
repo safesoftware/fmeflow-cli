@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -20,8 +20,19 @@ type Healthcheck struct {
 var healthcheckCmd = &cobra.Command{
 	Use:   "healthcheck",
 	Short: "Retrieves the health status of FME Server",
-	Long:  `Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. Load balancer or other systems can monitor FME Server using this endpoint without supplying token or password credentials.`,
+	Long: `Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. Load balancer or other systems can monitor FME Server using this endpoint without supplying token or password credentials.
+	
+Examples:
+# Check if the FME Server is healthy and accepting requests
+fmeserver healthcheck
+
+# Check if the FME Server is healthy and ready to run jobs
+fmeserver healthcheck --ready
+
+# Check if the FME Server is healthy and output in json
+fmeserver healthcheck --json`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+
 		// set up http
 		client := &http.Client{}
 
@@ -42,7 +53,7 @@ var healthcheckCmd = &cobra.Command{
 			return errors.New(response.Status)
 		}
 
-		responseData, err := ioutil.ReadAll(response.Body)
+		responseData, err := io.ReadAll(response.Body)
 		if err != nil {
 			return err
 		}
@@ -52,20 +63,15 @@ var healthcheckCmd = &cobra.Command{
 			return err
 		} else {
 			if !jsonOutput {
-				// output all values returned by the JSON in a table
-				if result.Status == "ok" {
-					if ready {
-						fmt.Println("FME Server is running and ready to run jobs.")
-					} else {
-						fmt.Println("FME Server is running and ready to accept requests.")
-					}
-				} else {
-					fmt.Println("FME Server is not healthy.")
-					fmt.Println(result.Status)
+				fmt.Println(result.Status)
+			} else if outputType == "json" {
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
 				}
-
+				fmt.Println(prettyJSON)
 			} else {
-				fmt.Println(string(responseData))
+				return errors.New("invalid output format specified")
 			}
 
 		}

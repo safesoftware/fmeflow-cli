@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -21,20 +20,7 @@ type migrationTasks struct {
 	Offset     int `json:"offset"`
 	Limit      int `json:"limit"`
 	TotalCount int `json:"totalCount"`
-	Items      []struct {
-		DisableProjectItems bool      `json:"disableProjectItems"`
-		Result              string    `json:"result"`
-		ImportMode          string    `json:"importMode"`
-		ProjectsImportMode  string    `json:"projectsImportMode"`
-		PauseNotifications  bool      `json:"pauseNotifications"`
-		ID                  int       `json:"id"`
-		Type                string    `json:"type"`
-		UserName            string    `json:"userName"`
-		ContentType         string    `json:"contentType"`
-		StartDate           time.Time `json:"startDate"`
-		FinishedDate        time.Time `json:"finishedDate"`
-		Status              string    `json:"status"`
-	} `json:"items"`
+	Items      []migrationTask
 }
 
 type migrationTask struct {
@@ -60,83 +46,143 @@ var migrationTaskFile string
 var migrationTasksCmd = &cobra.Command{
 	Use:   "tasks",
 	Short: "Retrieves the records for all migration tasks.",
-	Long:  `Retrieves the records for all migration tasks.`,
+	Long: `Retrieves the records for all migration tasks.
+	
+Examples:
+
+# Get all migration tasks
+fmeserver migration tasks
+
+# Get all migration tasks in json
+fmeserver migration tasks --json
+
+# Get the migration task for a given id
+fmeserver migration tasks --id 1
+
+# Output the migration log for a given id to the console
+fmeserver migration tasks --id 1 --log
+
+# Output the migration log for a given id to a local file
+fmeserver migration tasks --id 1 --log --file my-backup-log.txt
+
+# Output just the start and end time of the a given id
+fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,End Time:.finishedDate"`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if migrationTaskLog {
+			cmd.MarkFlagsRequiredTogether("id", "log")
+		}
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
+		// --json overrides --output
+		if jsonOutput {
+			outputType = "json"
+		}
 		client := &http.Client{}
 
-		if migrationTaskId == -1 && !migrationTaskLog {
+		var outputTasks []migrationTask
 
-			request, err := buildFmeServerRequest("/fmerest/v3/migration/tasks", "GET", nil)
-			if err != nil {
-				return err
-			}
-			response, err := client.Do(&request)
-			if err != nil {
-				return err
-			}
+		if !migrationTaskLog { // output one or more tasks
+			var responseData []byte
+			if migrationTaskId == -1 {
+				request, err := buildFmeServerRequest("/fmerest/v3/migration/tasks", "GET", nil)
+				if err != nil {
+					return err
+				}
+				response, err := client.Do(&request)
+				if err != nil {
+					return err
+				}
 
-			responseData, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				return err
-			}
+				responseData, err = io.ReadAll(response.Body)
+				if err != nil {
+					return err
+				}
 
-			var result migrationTasks
-			if err := json.Unmarshal(responseData, &result); err != nil {
-				return err
-			} else {
-				if !jsonOutput {
-					// TODO: Figure out a nice way of outputting all the tasks. For now always output json
-
-					// output all values returned by the JSON in a table
-					/*v := reflect.ValueOf(result)
-					typeOfS := v.Type()
-
-					for i := 0; i < v.NumField(); i++ {
-						fmt.Printf("%s:\t%v\n", typeOfS.Field(i).Name, v.Field(i).Interface())
-					}*/
-					//fmt.Printf("%+v\n", result)
-					fmt.Println(string(responseData))
+				var result migrationTasks
+				if err := json.Unmarshal(responseData, &result); err != nil {
+					return err
 				} else {
-					fmt.Println(string(responseData))
+					outputTasks = result.Items
+				}
+			} else {
+				endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(migrationTaskId)
+				request, err := buildFmeServerRequest(endpoint, "GET", nil)
+				if err != nil {
+					return err
+				}
+				response, err := client.Do(&request)
+				if err != nil {
+					return err
+				} else if response.StatusCode != 200 {
+					return errors.New(response.Status)
+				}
+
+				responseData, err := io.ReadAll(response.Body)
+				if err != nil {
+					return err
+				}
+
+				var result migrationTask
+				if err := json.Unmarshal(responseData, &result); err != nil {
+					return err
+				} else {
+					outputTasks = []migrationTask{result}
 				}
 			}
-		} else if migrationTaskId != -1 && !migrationTaskLog {
-			endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(migrationTaskId)
-			request, err := buildFmeServerRequest(endpoint, "GET", nil)
-			if err != nil {
-				return err
-			}
-			response, err := client.Do(&request)
-			if err != nil {
-				return err
-			} else if response.StatusCode != 200 {
-				return errors.New(response.Status)
-			}
 
-			responseData, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				return err
-			}
+			if outputType == "table" {
+				t := table.NewWriter()
+				t.SetStyle(defaultStyle)
 
-			var result migrationTask
-			if err := json.Unmarshal(responseData, &result); err != nil {
-				return err
-			} else {
-				if !jsonOutput {
-					// output all values returned by the JSON in a table
-					v := reflect.ValueOf(result)
-					typeOfS := v.Type()
+				t.AppendHeader(table.Row{"ID", "Type", "Username", "Start Time", "End Time", "Status"})
 
-					for i := 0; i < v.NumField(); i++ {
-						fmt.Printf("%s:\t%v\n", typeOfS.Field(i).Name, v.Field(i).Interface())
+				for _, element := range outputTasks {
+					t.AppendRow(table.Row{element.ID, element.Type, element.UserName, element.StartDate, element.FinishedDate, element.Status})
+				}
+				if noHeaders {
+					t.ResetHeaders()
+				}
+				fmt.Println(t.Render())
+				// output the raw json but formatted
+			} else if outputType == "json" {
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
+				}
+				fmt.Println(prettyJSON)
+			} else if strings.HasPrefix(outputType, "custom-columns=") {
+				// parse the columns and json queries
+				columnsString := outputType[len("custom-columns="):]
+				if len(columnsString) == 0 {
+					return errors.New("custom-columns format specified but no custom columns given")
+				}
+
+				// we have to marshal the Items array, then create an array of marshalled items
+				// to pass to the creation of the table.
+				marshalledItems := [][]byte{}
+				for _, element := range outputTasks {
+					mJson, err := json.Marshal(element)
+					if err != nil {
+						return err
 					}
-					//fmt.Printf("%+v\n", result)
-					//fmt.Println(string(responseData))
-				} else {
-					fmt.Println(string(responseData))
+
+					marshalledItems = append(marshalledItems, mJson)
 				}
+
+				columnsInput := strings.Split(columnsString, ",")
+				t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+				if err != nil {
+					return err
+				}
+				if noHeaders {
+					t.ResetHeaders()
+				}
+				fmt.Println(t.Render())
+			} else {
+				return errors.New("invalid output format specified")
 			}
+
 		} else if migrationTaskId != -1 && migrationTaskLog {
 			endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(migrationTaskId) + "/log"
 			request, err := buildFmeServerRequest(endpoint, "GET", nil)
@@ -152,7 +198,7 @@ var migrationTasksCmd = &cobra.Command{
 				return errors.New(response.Status)
 			}
 
-			responseData, err := ioutil.ReadAll(response.Body)
+			responseData, err := io.ReadAll(response.Body)
 			if err != nil {
 				return err
 			}
@@ -188,4 +234,7 @@ func init() {
 	migrationTasksCmd.Flags().IntVar(&migrationTaskId, "id", -1, "Retrieves the record for a migration task according to the given ID.")
 	migrationTasksCmd.Flags().BoolVar(&migrationTaskLog, "log", false, "Downloads the log file of a migration task.")
 	migrationTasksCmd.Flags().StringVar(&migrationTaskFile, "file", "", "File to save the log to.")
+	migrationTasksCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	migrationTasksCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
+
 }

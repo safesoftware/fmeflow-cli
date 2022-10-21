@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -8,13 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -89,15 +89,40 @@ var runNodeManagerDirective []string
 var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run a workspace on FME Server",
-	Long:  `Run a workspace on FME Server`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Long: `Run a workspace on FME Server
+	
+Examples:
+# Submit a job asynchronously
+fmeserver run --repository Samples --workspace austinApartments.fmw
 
+# Submit a job and wait for it to complete
+fmeserver run --repository Samples --workspace austinApartments.fmw --wait
+
+# Submit a job to a specific queue and set a time to live in the queue
+fmeserver run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
+
+# Submit a job and pass in a few published parameters
+fmeserver run --repository Samples --workspace austinDownload.fmw --published-parameter THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
+
+# Submit a job, wait for it to complete, and customize the output
+fmeserver run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
+
+# Upload a local file to use as the source data for the translation
+fmeserver run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// --json overrides --output
+		if jsonOutput {
+			outputType = "json"
+		}
 		// set up http
 		client := &http.Client{
 			// set a long timeout for jobs that are long running.
 			// maybe this should be a parameter?
 			Timeout: 604800 * time.Second,
 		}
+
+		var result JobResult
+		var responseData []byte
 
 		if runSourceData == "" {
 			job := &Job{}
@@ -171,7 +196,7 @@ var runCmd = &cobra.Command{
 				return errors.New(response.Status)
 			}
 
-			responseData, err := ioutil.ReadAll(response.Body)
+			responseData, err = io.ReadAll(response.Body)
 			if err != nil {
 				return err
 			}
@@ -184,22 +209,16 @@ var runCmd = &cobra.Command{
 					if !jsonOutput {
 						fmt.Println("Job submitted with id: " + strconv.Itoa(result.Id))
 					} else {
-						fmt.Println(string(responseData))
+						prettyJSON, err := prettyPrintJSON(responseData)
+						if err != nil {
+							return err
+						}
+						fmt.Println(prettyJSON)
 					}
 				}
 			} else {
-				var result JobResult
 				if err := json.Unmarshal(responseData, &result); err != nil {
 					return err
-				} else {
-					if !jsonOutput {
-						fmt.Println("Job completed with id: " + strconv.Itoa(result.ID))
-						fmt.Println("Job Status: " + result.Status)
-						fmt.Println("Job Status Message: " + result.StatusMessage)
-						fmt.Println("Features Output: " + strconv.Itoa(result.NumFeaturesOutput))
-					} else {
-						fmt.Println(string(responseData))
-					}
 				}
 			}
 		} else {
@@ -263,23 +282,66 @@ var runCmd = &cobra.Command{
 				return errors.New(response.Status)
 			}
 
-			responseData, err := ioutil.ReadAll(response.Body)
+			responseData, err = io.ReadAll(response.Body)
 			if err != nil {
 				return err
 			}
 
-			var result JobResult
 			if err := json.Unmarshal(responseData, &result); err != nil {
 				return err
-			} else {
-				if !jsonOutput {
-					fmt.Println("Job completed with id: " + strconv.Itoa(result.ID))
-					fmt.Println("Job Status: " + result.Status)
-					fmt.Println("Job Status Message: " + result.StatusMessage)
-					fmt.Println("Features Output: " + strconv.Itoa(result.NumFeaturesOutput))
-				} else {
-					fmt.Println(string(responseData))
+			}
+		}
+
+		if runWait {
+			if outputType == "table" {
+				t := table.NewWriter()
+				t.SetStyle(defaultStyle)
+
+				t.AppendHeader(table.Row{"ID", "Status", "Status Message", "Features Output"})
+
+				t.AppendRow(table.Row{result.ID, result.Status, result.StatusMessage, result.NumFeaturesOutput})
+
+				if noHeaders {
+					t.ResetHeaders()
 				}
+				fmt.Println(t.Render())
+
+			} else if outputType == "json" {
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
+				}
+				fmt.Println(prettyJSON)
+			} else if strings.HasPrefix(outputType, "custom-columns=") {
+				// parse the columns and json queries
+				columnsString := outputType[len("custom-columns="):]
+				if len(columnsString) == 0 {
+					return errors.New("custom-columns format specified but no custom columns given")
+				}
+
+				// we have to marshal the Items array, then create an array of marshalled items
+				// to pass to the creation of the table.
+				marshalledItems := [][]byte{}
+
+				mJson, err := json.Marshal(result)
+				if err != nil {
+					return err
+				}
+
+				marshalledItems = append(marshalledItems, mJson)
+
+				columnsInput := strings.Split(columnsString, ",")
+				t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+				if err != nil {
+					return err
+				}
+				if noHeaders {
+					t.ResetHeaders()
+				}
+				fmt.Println(t.Render())
+
+			} else {
+				return errors.New("invalid output format specified")
 			}
 		}
 		return nil
@@ -298,6 +360,8 @@ func init() {
 	runCmd.Flags().StringVar(&runTag, "tag", "", "The job routing tag for the request")
 	runCmd.Flags().StringVar(&runDescription, "description", "", "Description of the request.")
 	runCmd.Flags().StringVar(&runSourceData, "file", "", "Upload a local file Source dataset to use to run the workspace.")
+	runCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	runCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
 
 	runCmd.Flags().StringArrayVar(&runSuccessTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
 	runCmd.Flags().StringArrayVar(&runFailureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")

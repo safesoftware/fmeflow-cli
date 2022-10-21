@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -19,6 +20,10 @@ var machinekeyCmd = &cobra.Command{
 	Short: "Retrieves machine key of the machine running FME Server.",
 	Long:  `Retrieves machine key of the machine running FME Server.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// --json overrides --output
+		if jsonOutput {
+			outputType = "json"
+		}
 		// set up http
 		client := &http.Client{}
 
@@ -30,9 +35,11 @@ var machinekeyCmd = &cobra.Command{
 		response, err := client.Do(&request)
 		if err != nil {
 			return err
+		} else if response.StatusCode != 200 {
+			return errors.New(response.Status)
 		}
 
-		responseData, err := ioutil.ReadAll(response.Body)
+		responseData, err := io.ReadAll(response.Body)
 		if err != nil {
 			return err
 		}
@@ -42,11 +49,14 @@ var machinekeyCmd = &cobra.Command{
 			return err
 		} else {
 			if !jsonOutput {
-				fmt.Printf(result.MachineKey)
+				fmt.Println(result.MachineKey)
 			} else {
-				fmt.Println(string(responseData))
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
+				}
+				fmt.Println(prettyJSON)
 			}
-
 		}
 		return nil
 	},

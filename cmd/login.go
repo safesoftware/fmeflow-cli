@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"io/ioutil"
 	"net/http"
 )
 
@@ -52,9 +52,15 @@ Use the --token flag to pass in an existing API token. It is not recommended to 
 This will overwrite any existing credentials saved.
 
 Examples:
-  fmeserver login https://my-fmeserver.internal
-  fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
-  fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
+
+# Prompt for user and password for the given FME Server URL  
+fmeserver login https://my-fmeserver.internal
+
+# Login to an FME Server using a pre-generated token
+fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
+
+# Login to an FME Server using a passed in user and password
+fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return errors.New("requires a URL")
@@ -115,7 +121,7 @@ Examples:
 				return errors.New(response.Status)
 			}
 
-			responseData, err := ioutil.ReadAll(response.Body)
+			responseData, err := io.ReadAll(response.Body)
 			if err != nil {
 				return err
 			}

@@ -1,13 +1,35 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
+	"unicode"
 
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/spf13/viper"
 )
+
+// define the default style for all tables that are output
+var defaultStyle = table.Style{
+	Name: "Borderless",
+	Box:  table.StyleBoxLight,
+	Format: table.FormatOptions{
+		Footer: text.FormatUpper,
+		Header: text.FormatUpper,
+		Row:    text.FormatDefault,
+	},
+	Options: table.Options{
+		DrawBorder:      false,
+		SeparateColumns: false,
+		SeparateFooter:  false,
+		SeparateHeader:  false,
+		SeparateRows:    false,
+	},
+}
 
 func buildFmeServerRequest(endpoint string, method string, body io.Reader) (http.Request, error) {
 	// retrieve url and token
@@ -70,4 +92,29 @@ func (f *Job) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal((*job)(f))
+}
+
+func prettyPrintJSON(s []byte) (string, error) {
+	var prettyJSON bytes.Buffer
+	err := json.Indent(&prettyJSON, s, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return prettyJSON.String(), nil
+}
+
+func convertCamelCaseToTitleCase(s string) string {
+	result := ""
+	for i, c := range s {
+		if unicode.IsUpper(c) && i != 0 {
+			result += " " + string(c)
+		} else {
+			if i == 0 {
+				result += strings.ToUpper(string(c))
+			} else {
+				result += string(c)
+			}
+		}
+	}
+	return result
 }

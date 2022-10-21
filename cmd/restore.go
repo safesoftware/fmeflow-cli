@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -25,7 +25,15 @@ type RestoreResource struct {
 var restoreCmd = &cobra.Command{
 	Use:   "restore",
 	Short: "Restores the FME Server configuration from an import package",
-	Long:  `Restores the FME Server configuration from an import package`,
+	Long: `Restores the FME Server configuration from an import package
+	
+Examples:
+
+# Restore from a backup in a local file
+fmeserver restore --file .\ServerConfigPackage.fsconfig
+
+# Restore from a backup in a local file using UPDATE mode
+fmeserver restore --file .\ServerConfigPackage.fsconfig --import-mode UPDATE`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client := &http.Client{}
 
@@ -67,7 +75,7 @@ var restoreCmd = &cobra.Command{
 			return errors.New(response.Status)
 		}
 
-		responseData, err := ioutil.ReadAll(response.Body)
+		responseData, err := io.ReadAll(response.Body)
 		if err != nil {
 			return err
 		}
@@ -79,7 +87,11 @@ var restoreCmd = &cobra.Command{
 			if !jsonOutput {
 				fmt.Println("Restore task submitted with id: " + strconv.Itoa(result.Id))
 			} else {
-				fmt.Println(string(responseData))
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
+				}
+				fmt.Println(prettyJSON)
 			}
 		}
 
@@ -93,4 +105,5 @@ func init() {
 	restoreCmd.Flags().StringVar(&restoreImportMode, "import-mode", "INSERT", "To import only items in the import package that do not exist on the current instance, specify INSERT. To overwrite items on the current instance with those in the import package, specify UPDATE. Default is INSERT.")
 	restoreCmd.Flags().BoolVar(&restorePauseNotifications, "pause-notifications", true, "Disable notifications for the duration of the restore.")
 	restoreCmd.Flags().StringVar(&restoreProjectsImportMode, "projects-import-mode", "", "Import mode for projects. To import only projects in the import package that do not exist on the current instance, specify INSERT. To overwrite projects on the current instance with those in the import package, specify UPDATE. If not supplied, importMode will be used.")
+	restoreCmd.MarkFlagRequired("file")
 }

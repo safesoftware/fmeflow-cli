@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -18,6 +18,10 @@ var lastName string
 var email string
 var serialNumber string
 var company string
+var industry string
+var category string
+var salesSource string
+var subscribeToUpdates bool
 var wait bool
 
 type RequestStatus struct {
@@ -31,6 +35,14 @@ var requestCmd = &cobra.Command{
 	Short: "Request a license from the FME Server licensing server",
 	Long: `Request a license file from the FME Server licensing server. First name, Last name and email are required for requesting a license file.
 If no serial number is passed in, a trial license will be requested.
+
+Examples:
+
+# Request a trial license and wait for it to be downloaded and installed
+fmeserver license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --wait
+
+# Request a license with a serial number
+fmeserver license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --serial-number "AAAA-BBBB-CCCC"
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
@@ -49,6 +61,18 @@ If no serial number is passed in, a trial license will be requested.
 		}
 		if company != "" {
 			data.Add("company", company)
+		}
+		if industry != "" {
+			data.Add("industry", industry)
+		}
+		if category != "" {
+			data.Add("category", category)
+		}
+		if salesSource != "" {
+			data.Add("salesSource", salesSource)
+		}
+		if subscribeToUpdates {
+			data.Add("subscribeToUpdates", "true")
 		}
 
 		request, err := buildFmeServerRequest("/fmerest/v3/licensing/request", "POST", strings.NewReader(data.Encode()))
@@ -92,7 +116,7 @@ If no serial number is passed in, a trial license will be requested.
 					return err
 				}
 
-				responseData, err := ioutil.ReadAll(response.Body)
+				responseData, err := io.ReadAll(response.Body)
 				if err != nil {
 					return err
 				}
@@ -105,7 +129,11 @@ If no serial number is passed in, a trial license will be requested.
 					if !jsonOutput {
 						fmt.Println(result.Message)
 					} else {
-						fmt.Println(string(responseData))
+						prettyJSON, err := prettyPrintJSON(responseData)
+						if err != nil {
+							return err
+						}
+						fmt.Println(prettyJSON)
 					}
 				}
 
@@ -127,6 +155,10 @@ func init() {
 	requestCmd.Flags().StringVar(&email, "email", "", "Email address for license request.")
 	requestCmd.Flags().StringVar(&serialNumber, "serial-number", "", "Serial Number for the license request.")
 	requestCmd.Flags().StringVar(&company, "company", "", "Company for the licensing request")
+	requestCmd.Flags().StringVar(&industry, "industry", "", "Industry for the licensing request")
+	requestCmd.Flags().StringVar(&category, "category", "", "License Category")
+	requestCmd.Flags().StringVar(&salesSource, "sales-source", "", "Sales source")
+	requestCmd.Flags().BoolVar(&subscribeToUpdates, "subscribe-to-updates", false, "Subscribe to Updates")
 	requestCmd.Flags().BoolVar(&wait, "wait", false, "Wait for licensing request to finish")
 	requestCmd.MarkFlagRequired("first-name")
 	requestCmd.MarkFlagRequired("last-name")

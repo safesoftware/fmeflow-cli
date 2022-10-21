@@ -12,6 +12,8 @@ import (
 
 var cfgFile string
 var jsonOutput bool
+var outputType string
+var noHeaders bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
