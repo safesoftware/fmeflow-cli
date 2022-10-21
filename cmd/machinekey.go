@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -50,36 +48,14 @@ var machinekeyCmd = &cobra.Command{
 		if err := json.Unmarshal(responseData, &result); err != nil {
 			return err
 		} else {
-			if outputType == "table" {
-				// output all values returned by the JSON in a table
-				v := reflect.ValueOf(result)
-				typeOfS := v.Type()
-				header := table.Row{}
-				row := table.Row{}
-				for i := 0; i < v.NumField(); i++ {
-					header = append(header, convertCamelCaseToTitleCase(typeOfS.Field(i).Name))
-					row = append(row, v.Field(i).Interface())
-				}
-
-				t := table.NewWriter()
-				t.SetStyle(defaultStyle)
-
-				t.AppendHeader(header)
-				t.AppendRow(row)
-
-				if noHeaders {
-					t.ResetHeaders()
-				}
-				fmt.Println(t.Render())
-
-			} else if outputType == "json" {
+			if !jsonOutput {
+				fmt.Println(result.MachineKey)
+			} else {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
 				fmt.Println(prettyJSON)
-			} else {
-				return errors.New("invalid output format specified")
 			}
 		}
 		return nil
@@ -88,6 +64,4 @@ var machinekeyCmd = &cobra.Command{
 
 func init() {
 	licenseCmd.AddCommand(machinekeyCmd)
-	machinekeyCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table or json")
-	machinekeyCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
 }
