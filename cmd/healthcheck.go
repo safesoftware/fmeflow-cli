@@ -6,14 +6,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"reflect"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
 var ready bool
 
-type Healthcheck struct {
+type HealthcheckV3 struct {
 	Status string `json:"status"`
+}
+
+type HealthcheckV4 struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 // healthcheckCmd represents the healthcheck command
@@ -36,9 +44,21 @@ fmeserver healthcheck --json`,
 		// set up http
 		client := &http.Client{}
 
-		endpoint := "/fmerest/v3/healthcheck"
-		if ready {
-			endpoint += "?ready=true"
+		// This should dynamically be set somehow
+		useV4 := true
+		endpoint := ""
+		if useV4 {
+			endpoint = "/fmeapiv4/healthcheck"
+			if ready {
+				endpoint += "/readiness"
+			} else {
+				endpoint += "/liveness"
+			}
+		} else {
+			endpoint = "/fmerest/v3/healthcheck"
+			if ready {
+				endpoint += "?ready=true"
+			}
 		}
 
 		// call the status endpoint to see if it is finished
@@ -49,7 +69,7 @@ fmeserver healthcheck --json`,
 		response, err := client.Do(&request)
 		if err != nil {
 			return err
-		} else if response.StatusCode != 200 {
+		} else if response.StatusCode != 200 && response.StatusCode != 503 {
 			return errors.New(response.Status)
 		}
 
@@ -57,23 +77,65 @@ fmeserver healthcheck --json`,
 		if err != nil {
 			return err
 		}
+		var resultV3 HealthcheckV3
+		var resultV4 HealthcheckV4
+		status := ""
 
-		var result Healthcheck
-		if err := json.Unmarshal(responseData, &result); err != nil {
-			return err
-		} else {
-			if !jsonOutput {
-				fmt.Println(result.Status)
-			} else if outputType == "json" {
-				prettyJSON, err := prettyPrintJSON(responseData)
-				if err != nil {
-					return err
-				}
-				fmt.Println(prettyJSON)
-			} else {
-				return errors.New("invalid output format specified")
+		if useV4 {
+			if err := json.Unmarshal(responseData, &resultV4); err != nil {
+				return err
 			}
+			status = resultV4.Status
+		} else {
+			if err := json.Unmarshal(responseData, &resultV3); err != nil {
+				return err
+			}
+			status = resultV3.Status
+		}
 
+		if !jsonOutput {
+			if useV4 {
+				// output all values returned by the JSON in a table
+				v := reflect.ValueOf(resultV4)
+				typeOfS := v.Type()
+				header := table.Row{}
+				row := table.Row{}
+				for i := 0; i < v.NumField(); i++ {
+					header = append(header, convertCamelCaseToTitleCase(typeOfS.Field(i).Name))
+					row = append(row, v.Field(i).Interface())
+				}
+
+				t := table.NewWriter()
+				t.SetStyle(defaultStyle)
+
+				t.AppendHeader(header)
+				t.AppendRow(row)
+
+				if noHeaders {
+					t.ResetHeaders()
+				}
+				fmt.Println(t.Render())
+			} else {
+				fmt.Println(status)
+			}
+		} else if outputType == "json" {
+			prettyJSON, err := prettyPrintJSON(responseData)
+			if err != nil {
+				return err
+			}
+			fmt.Println(prettyJSON)
+		} else {
+			return errors.New("invalid output format specified")
+		}
+		// if the server is unhealthy, make sure we exit with a non-zero error code
+		if useV4 {
+			if response.StatusCode == 503 {
+				os.Exit(1)
+			}
+		} else {
+			if status != "ok" {
+				os.Exit(1)
+			}
 		}
 		return nil
 	},
