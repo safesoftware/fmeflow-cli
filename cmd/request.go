@@ -35,6 +35,14 @@ var requestCmd = &cobra.Command{
 	Short: "Request a license from the FME Server licensing server",
 	Long: `Request a license file from the FME Server licensing server. First name, Last name and email are required for requesting a license file.
 If no serial number is passed in, a trial license will be requested.
+
+Examples:
+
+# Request a trial license and wait for it to be downloaded and installed
+fmeserver license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --wait
+
+# Request a license with a serial number
+fmeserver license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --serial-number "AAAA-BBBB-CCCC"
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http

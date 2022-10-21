@@ -22,13 +22,11 @@ var refreshWait bool
 // refreshCmd represents the refresh command
 var refreshCmd = &cobra.Command{
 	Use:   "refresh",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Refreshes the installed license file with a current license from Safe Software.",
+	Long: `Refreshes the installed license file with a current license from Safe Software.
+	
+Example:
+fmeserver license refresh`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}

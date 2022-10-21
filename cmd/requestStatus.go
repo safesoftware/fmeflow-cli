@@ -17,8 +17,13 @@ var requestStatusCmd = &cobra.Command{
 	Short: "Check status of license request",
 	Long: `Check the status of a license request.
     
-Example:
-fmeserver license request status`,
+Examples:
+
+# Output the license request status as a table
+fmeserver license request status
+
+# Output the license Request status in json
+fmeserver license request status --json`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}

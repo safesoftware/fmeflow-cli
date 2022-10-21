@@ -46,7 +46,32 @@ var migrationTaskFile string
 var migrationTasksCmd = &cobra.Command{
 	Use:   "tasks",
 	Short: "Retrieves the records for all migration tasks.",
-	Long:  `Retrieves the records for all migration tasks.`,
+	Long: `Retrieves the records for all migration tasks.
+	
+Examples:
+
+# Get all migration tasks
+fmeserver migration tasks
+
+# Get all migration tasks in json
+fmeserver migration tasks --json
+
+# Get the migration task for a given id
+fmeserver migration tasks --id 1
+
+# Output the migration log for a given id to the console
+fmeserver migration tasks --id 1 --log
+
+# Output the migration log for a given id to a local file
+fmeserver migration tasks --id 1 --log --file my-backup-log.txt
+
+# Output just the start and end time of the a given id
+fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,End Time:.finishedDate"`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if migrationTaskLog {
+			cmd.MarkFlagsRequiredTogether("id", "log")
+		}
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		// --json overrides --output
@@ -211,5 +236,5 @@ func init() {
 	migrationTasksCmd.Flags().StringVar(&migrationTaskFile, "file", "", "File to save the log to.")
 	migrationTasksCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	migrationTasksCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
-	migrationTasksCmd.MarkFlagsRequiredTogether("id", "log")
+
 }

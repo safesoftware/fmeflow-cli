@@ -25,7 +25,19 @@ type FMEServerInfo struct {
 var infoCmd = &cobra.Command{
 	Use:   "info",
 	Short: "Retrieves build, version and time information about FME Server",
-	Long:  `Retrieves build, version and time information about FME Server`,
+	Long: `Retrieves build, version and time information about FME Server
+
+Examples:
+
+# Output FME Server information in a table
+fmeserver info
+
+# Output FME Server information in json
+fmeserver info --json
+
+# Output just the build string with no column headers
+fmeserver info --output=custom-columns="BUILD:.build" --no-headers
+`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {

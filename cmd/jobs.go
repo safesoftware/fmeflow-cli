@@ -58,11 +58,41 @@ var jobsSourceType string
 var jobsCmd = &cobra.Command{
 	Use:   "jobs",
 	Short: "Lists jobs on FME Server",
-	Long:  `Lists jobs on FME Server`,
+	Long: `Lists jobs on FME Server
+	
+Examples:
+
+# List all jobs (currently limited to the most recent 1000)
+fmeserver jobs --all
+
+# List all running jobs
+fmeserver jobs --running
+
+# List all jobs from a given repository
+fmeserver jobs --repository Samples
+
+# List all jobs that ran a given workspace
+fmeserver jobs --repository Samples --workspace austinApartments.fmw
+
+# List all jobs in JSON format
+fmeserver jobs --json
+
+# List the workspace, CPU time and peak memory usage for a given repository
+fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
+`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if jobsWorkspace != "" {
+			cmd.MarkFlagRequired("repository")
+		}
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
 			outputType = "json"
+		}
+		if !jobsActive && !jobsCompleted && !jobsQueued && !jobsRunning && !jobsAll {
+			// if no filter is passed in, show all jobs
+			jobsAll = true
 		}
 		var allJobs Jobs
 		if jobsActive || jobsAll {
@@ -172,7 +202,6 @@ func init() {
 	jobsCmd.Flags().StringVar(&jobsSourceType, "source-type", "", "If specified, only jobs run by this source type will be returned.")
 	jobsCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	jobsCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
-	jobsCmd.Flags().BoolVar(&count, "count", false, "Prints the total count of engines.")
 	jobsCmd.MarkFlagsMutuallyExclusive("queued", "active")
 	jobsCmd.MarkFlagsMutuallyExclusive("running", "active")
 }

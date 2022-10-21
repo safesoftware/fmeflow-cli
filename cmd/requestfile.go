@@ -18,7 +18,15 @@ var outputLicenseFile string
 var requestfileCmd = &cobra.Command{
 	Use:   "requestfile",
 	Short: "Generates a JSON file for requesting a FME Server license file.",
-	Long:  `Generates a JSON file for requesting a FME Server license file.`,
+	Long: `Generates a JSON file for requesting a FME Server license file.
+	
+Example:
+
+# Generate a license request file and output to the console
+fmeserver license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc."
+
+# Generate a license request file and output to a local file
+fmeserver license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --file my-request-file.json`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
