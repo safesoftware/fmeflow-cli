@@ -120,8 +120,10 @@ func convertCamelCaseToTitleCase(s string) string {
 	return result
 }
 
+// Pass in a struct that represents a JSON result and return a single row table
+// with column headers set to the JSON attribute name
 func createTableWithDefaultColumns(s any) table.Writer {
-	// output all values returned by the JSON in a table
+
 	v := reflect.ValueOf(s)
 	typeOfS := v.Type()
 	header := table.Row{}
