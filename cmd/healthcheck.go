@@ -7,9 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"reflect"
 
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -95,21 +93,7 @@ fmeserver healthcheck --json`,
 
 		if !jsonOutput {
 			if useV4 {
-				// output all values returned by the JSON in a table
-				v := reflect.ValueOf(resultV4)
-				typeOfS := v.Type()
-				header := table.Row{}
-				row := table.Row{}
-				for i := 0; i < v.NumField(); i++ {
-					header = append(header, convertCamelCaseToTitleCase(typeOfS.Field(i).Name))
-					row = append(row, v.Field(i).Interface())
-				}
-
-				t := table.NewWriter()
-				t.SetStyle(defaultStyle)
-
-				t.AppendHeader(header)
-				t.AppendRow(row)
+				t := createTableWithDefaultColumns(resultV4)
 
 				if noHeaders {
 					t.ResetHeaders()

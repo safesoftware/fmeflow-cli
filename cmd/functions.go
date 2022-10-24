@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"reflect"
 	"strings"
 	"unicode"
 
@@ -117,4 +118,24 @@ func convertCamelCaseToTitleCase(s string) string {
 		}
 	}
 	return result
+}
+
+func createTableWithDefaultColumns(s any) table.Writer {
+	// output all values returned by the JSON in a table
+	v := reflect.ValueOf(s)
+	typeOfS := v.Type()
+	header := table.Row{}
+	row := table.Row{}
+	for i := 0; i < v.NumField(); i++ {
+		header = append(header, convertCamelCaseToTitleCase(typeOfS.Field(i).Name))
+		row = append(row, v.Field(i).Interface())
+	}
+
+	t := table.NewWriter()
+	t.SetStyle(defaultStyle)
+
+	t.AppendHeader(header)
+	t.AppendRow(row)
+
+	return t
 }

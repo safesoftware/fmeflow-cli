@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"strings"
 
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -56,20 +54,7 @@ var licenseStatusCmd = &cobra.Command{
 		} else {
 			if outputType == "table" {
 				// output all values returned by the JSON in a table
-				v := reflect.ValueOf(result)
-				typeOfS := v.Type()
-				header := table.Row{}
-				row := table.Row{}
-				for i := 0; i < v.NumField(); i++ {
-					header = append(header, convertCamelCaseToTitleCase(typeOfS.Field(i).Name))
-					row = append(row, v.Field(i).Interface())
-				}
-
-				t := table.NewWriter()
-				t.SetStyle(defaultStyle)
-
-				t.AppendHeader(header)
-				t.AppendRow(row)
+				t := createTableWithDefaultColumns(result)
 
 				if noHeaders {
 					t.ResetHeaders()
