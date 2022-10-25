@@ -1,7 +1,17 @@
 package main
 
-import "github.com/safesoftare/fmeserver-cli/cmd"
+import (
+	"fmt"
+	"os"
+
+	"github.com/safesoftare/fmeserver-cli/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		if err != cmd.ErrSilent {
+			fmt.Fprintln(os.Stderr, fmt.Errorf("ERROR: %w", err))
+		}
+		os.Exit(1)
+	}
 }

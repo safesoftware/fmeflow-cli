@@ -67,6 +67,7 @@ fmeserver migration tasks --id 1 --log --file my-backup-log.txt
 
 # Output just the start and end time of the a given id
 fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,End Time:.finishedDate"`,
+	Args: NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if migrationTaskLog {
 			cmd.MarkFlagsRequiredTogether("id", "log")
@@ -151,9 +152,13 @@ fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,
 					return err
 				}
 				fmt.Println(prettyJSON)
-			} else if strings.HasPrefix(outputType, "custom-columns=") {
+			} else if strings.HasPrefix(outputType, "custom-columns") {
 				// parse the columns and json queries
-				columnsString := outputType[len("custom-columns="):]
+				columnsString := ""
+				if strings.HasPrefix(outputType, "custom-columns=") {
+					columnsString = outputType[len("custom-columns="):]
+				}
+
 				if len(columnsString) == 0 {
 					return errors.New("custom-columns format specified but no custom columns given")
 				}

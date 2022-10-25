@@ -37,6 +37,7 @@ fmeserver healthcheck --ready
 
 # Check if the FME Server is healthy and output in json
 fmeserver healthcheck --json`,
+	Args: NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		// set up http

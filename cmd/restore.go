@@ -34,6 +34,7 @@ fmeserver restore --file .\ServerConfigPackage.fsconfig
 
 # Restore from a backup in a local file using UPDATE mode
 fmeserver restore --file .\ServerConfigPackage.fsconfig --import-mode UPDATE`,
+	Args: NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client := &http.Client{}
 

@@ -44,6 +44,7 @@ fmeserver license request --first-name "Billy" --last-name "Bob" --email "billy.
 # Request a license with a serial number
 fmeserver license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --serial-number "AAAA-BBBB-CCCC"
 `,
+	Args: NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}

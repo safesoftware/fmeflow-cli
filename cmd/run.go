@@ -109,6 +109,7 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --wait --out
 
 # Upload a local file to use as the source data for the translation
 fmeserver run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait`,
+	Args: NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
@@ -190,10 +191,17 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 			request.Header.Add("Content-Type", "application/json")
 
 			response, err := client.Do(&request)
+
 			if err != nil {
 				return err
 			} else if response.StatusCode != 200 && response.StatusCode != 202 {
-				return errors.New(response.Status)
+				if response.StatusCode == 404 {
+					return fmt.Errorf("%w: check that the specified workspace and repository exist", errors.New(response.Status))
+				} else if response.StatusCode == 422 {
+					return fmt.Errorf("%w: either job failed or published parameters are invalid", errors.New(response.Status))
+				} else {
+					return errors.New(response.Status)
+				}
 			}
 
 			responseData, err = io.ReadAll(response.Body)
@@ -279,7 +287,12 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 			if err != nil {
 				return err
 			} else if response.StatusCode != 200 {
-				return errors.New(response.Status)
+				if response.StatusCode == 404 {
+					return fmt.Errorf("%w: check that the specified workspace and repository exist", errors.New(response.Status))
+				} else {
+					return errors.New(response.Status)
+				}
+
 			}
 
 			responseData, err = io.ReadAll(response.Body)
@@ -312,9 +325,12 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 					return err
 				}
 				fmt.Println(prettyJSON)
-			} else if strings.HasPrefix(outputType, "custom-columns=") {
+			} else if strings.HasPrefix(outputType, "custom-columns") {
 				// parse the columns and json queries
-				columnsString := outputType[len("custom-columns="):]
+				columnsString := ""
+				if strings.HasPrefix(outputType, "custom-columns=") {
+					columnsString = outputType[len("custom-columns="):]
+				}
 				if len(columnsString) == 0 {
 					return errors.New("custom-columns format specified but no custom columns given")
 				}
@@ -367,4 +383,7 @@ func init() {
 	runCmd.Flags().StringArrayVar(&runFailureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
 	runCmd.Flags().StringArrayVar(&runPublishedParameter, "published-parameter", []string{}, "Workspace published parameters defined for this job. Specify as Key=Value. Can be passed in multiple times. For list parameters, specify as Key=Value1,Value2. This means parameter values can't contain = or , at the moment. That should probably be fixed.")
 	runCmd.Flags().StringArrayVar(&runNodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times.")
+
+	runCmd.MarkFlagRequired("repository")
+	runCmd.MarkFlagRequired("workspace")
 }

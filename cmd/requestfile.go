@@ -27,6 +27,7 @@ fmeserver license requestfile --first-name "Billy" --last-name "Bob" --email "bi
 
 # Generate a license request file and output to a local file
 fmeserver license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --file my-request-file.json`,
+	Args: NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}

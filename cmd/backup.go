@@ -37,7 +37,8 @@ fmeserver backup -f my_local_backup.fsconfig
 
 # back up to the "Backup" folder in the FME Server Shared Resources with the file name my_fme_backup.fsconfig
 fmeserver backup --resource --export-package my_fme_backup.fsconfig
-	`,
+`,
+	Args: NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
