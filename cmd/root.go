@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 
@@ -27,6 +28,28 @@ var rootCmd = &cobra.Command{
 	Version:       "0.4",
 	SilenceErrors: true,
 	SilenceUsage:  true,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		// make sure the config file is set up correctly
+		_, err := os.Stat(viper.ConfigFileUsed())
+		if err != nil {
+			return fmt.Errorf("could not open the config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+		}
+		fmeserverUrl := viper.GetString("url")
+
+		// check the fme server URL is valid
+		_, err = url.ParseRequestURI(fmeserverUrl)
+		if err != nil {
+			return fmt.Errorf("invalid FME Server url in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+		}
+
+		// check there is a token to use for auth
+		fmeserverToken := viper.GetString("token")
+		if fmeserverToken == "" {
+			return fmt.Errorf("no token found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+		}
+
+		return nil
+	},
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -81,8 +104,8 @@ func initConfig() {
 	//viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	err := viper.ReadInConfig()
-	cobra.CheckErr(err)
+	viper.ReadInConfig()
+
 }
 
 // Function for commands that provide no arguments. This will turn usage back on
