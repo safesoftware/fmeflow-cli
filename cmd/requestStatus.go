@@ -22,6 +22,7 @@ fmeserver license request status
 
 # Output the license Request status in json
 fmeserver license request status --json`,
+	Args: NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}

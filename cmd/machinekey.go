@@ -19,6 +19,7 @@ var machinekeyCmd = &cobra.Command{
 	Use:   "machinekey",
 	Short: "Retrieves machine key of the machine running FME Server.",
 	Long:  `Retrieves machine key of the machine running FME Server.`,
+	Args:  NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {

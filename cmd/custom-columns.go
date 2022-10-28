@@ -25,6 +25,9 @@ func createTableFromCustomColumns(jsonItems [][]byte, columnsInput []string) (ta
 		row := table.Row{}
 		// for each column
 		for _, column := range columnsInput {
+			if !strings.Contains(column, ":") {
+				return nil, errors.New("custom column \"" + column + "\" syntax invalid")
+			}
 			headerQueryArr := strings.Split(column, ":")
 			columnHeader := headerQueryArr[0]
 			columnQuery, err := massageQuery(headerQueryArr[1])

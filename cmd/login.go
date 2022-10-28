@@ -45,7 +45,7 @@ var expiration int
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
-	Use:   "login",
+	Use:   "login [URL]",
 	Short: "Save credentials for an FME Server",
 	Long: `Update the config file with the credentials to connect to FME Server. If just a URL is passed in, you will be prompted for a user and password for the FME Server. This will be used to generate an API token that will be saved to the config file for use connecting to FME Server.
 Use the --token flag to pass in an existing API token. It is not recommended to pass the password in on the command line in plaintext.
@@ -63,6 +63,7 @@ fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082
 fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
+			rootCmd.SilenceUsage = false
 			return errors.New("requires a URL")
 		}
 		if !(strings.HasPrefix(args[0], "http") || strings.HasPrefix(args[0], "https")) {

@@ -80,6 +80,7 @@ fmeserver jobs --json
 # List the workspace, CPU time and peak memory usage for a given repository
 fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
 `,
+	Args: NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if jobsWorkspace != "" {
 			cmd.MarkFlagRequired("repository")
@@ -152,9 +153,12 @@ fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspac
 			}
 			fmt.Println(prettyJSON)
 
-		} else if strings.HasPrefix(outputType, "custom-columns=") {
+		} else if strings.HasPrefix(outputType, "custom-columns") {
 			// parse the columns and json queries
-			columnsString := outputType[len("custom-columns="):]
+			columnsString := ""
+			if strings.HasPrefix(outputType, "custom-columns=") {
+				columnsString = outputType[len("custom-columns="):]
+			}
 			if len(columnsString) == 0 {
 				return errors.New("custom-columns format specified but no custom columns given")
 			}

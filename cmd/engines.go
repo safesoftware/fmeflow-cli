@@ -58,6 +58,7 @@ fmeserver engines --json
 
 # Output just the names of the engines with no column headers
 fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
+	Args: NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
@@ -111,9 +112,12 @@ fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
 				}
 				fmt.Println(prettyJSON)
 
-			} else if strings.HasPrefix(outputType, "custom-columns=") {
+			} else if strings.HasPrefix(outputType, "custom-columns") {
 				// parse the columns and json queries
-				columnsString := outputType[len("custom-columns="):]
+				columnsString := ""
+				if strings.HasPrefix(outputType, "custom-columns=") {
+					columnsString = outputType[len("custom-columns="):]
+				}
 				if len(columnsString) == 0 {
 					return errors.New("custom-columns format specified but no custom columns given")
 				}

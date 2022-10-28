@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"crypto/tls"
+	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -15,12 +17,16 @@ var jsonOutput bool
 var outputType string
 var noHeaders bool
 
+var ErrSilent = errors.New("ErrSilent")
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:     "fmeserver",
-	Short:   "A command line interface for interacting with FME Server.",
-	Long:    `A command line interface for interacting with FME Server.`,
-	Version: "0.3",
+	Use:           "fmeserver",
+	Short:         "A command line interface for interacting with FME Server.",
+	Long:          `A command line interface for interacting with FME Server.`,
+	Version:       "0.4",
+	SilenceErrors: true,
+	SilenceUsage:  true,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -28,14 +34,17 @@ var rootCmd = &cobra.Command{
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute() error {
 	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
+	return err
 }
 
 func init() {
+	rootCmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		cmd.Println(err)
+		cmd.Println(cmd.UsageString())
+		return ErrSilent
+	})
 	cobra.OnInitialize(initConfig)
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
@@ -74,4 +83,14 @@ func initConfig() {
 	// If a config file is found, read it in.
 	err := viper.ReadInConfig()
 	cobra.CheckErr(err)
+}
+
+// Function for commands that provide no arguments. This will turn usage back on
+// so that it will be output if a user tries to pass in an argument when they should not
+func NoArgs(cmd *cobra.Command, args []string) error {
+	if len(args) > 0 {
+		rootCmd.SilenceUsage = false
+		return fmt.Errorf("unknown command %q for %q", args[0], cmd.CommandPath())
+	}
+	return nil
 }

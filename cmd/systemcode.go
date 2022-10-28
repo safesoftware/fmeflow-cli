@@ -18,6 +18,7 @@ var systemcodeCmd = &cobra.Command{
 	Use:   "systemcode",
 	Short: "Retrieves system code of the machine running FME Server.",
 	Long:  `Retrieves system code of the machine running FME Server.`,
+	Args:  NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}

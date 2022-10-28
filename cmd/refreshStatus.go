@@ -17,6 +17,7 @@ var refreshStatusCmd = &cobra.Command{
     
 Example:
 fmeserver license refresh status`,
+	Args: NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}

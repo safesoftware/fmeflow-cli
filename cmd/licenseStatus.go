@@ -25,6 +25,7 @@ var licenseStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Retrieves status of the installed FME Server license.",
 	Long:  `Retrieves status of the installed FME Server license.`,
+	Args:  NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
@@ -66,9 +67,12 @@ var licenseStatusCmd = &cobra.Command{
 					return err
 				}
 				fmt.Println(prettyJSON)
-			} else if strings.HasPrefix(outputType, "custom-columns=") {
+			} else if strings.HasPrefix(outputType, "custom-columns") {
 				// parse the columns and json queries
-				columnsString := outputType[len("custom-columns="):]
+				columnsString := ""
+				if strings.HasPrefix(outputType, "custom-columns=") {
+					columnsString = outputType[len("custom-columns="):]
+				}
 				if len(columnsString) == 0 {
 					return errors.New("custom-columns format specified but no custom columns given")
 				}
