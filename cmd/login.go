@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -68,7 +70,11 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			rootCmd.SilenceUsage = false
-			return errors.New("requires a URL")
+			return fmt.Errorf("requires a URL")
+		}
+		if len(args) > 1 {
+			rootCmd.SilenceUsage = false
+			return fmt.Errorf("accepts at most 1 argument, received %d", len(args))
 		}
 		urlErrorMsg := "invalid FME Server URL specified. URL should be of the form https://myfmeserverhostname.com"
 		url, err := url.ParseRequestURI(args[0])
@@ -149,7 +155,15 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 		// write to config file
 		viper.Set("url", url)
 		viper.Set("token", token)
-		viper.WriteConfig()
+		// ensure directory where config file is supposed to live exists
+		err := os.MkdirAll(filepath.Dir(viper.ConfigFileUsed()), 0600)
+		if err != nil {
+			return err
+		}
+		err = viper.WriteConfig()
+		if err != nil {
+			return err
+		}
 		fmt.Println("Credentials written to " + viper.ConfigFileUsed())
 
 		return nil

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -50,9 +50,6 @@ var rootCmd = &cobra.Command{
 
 		return nil
 	},
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -71,16 +68,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.fmeserver-cli.yaml)")
 	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "Output JSON")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -88,16 +77,19 @@ func initConfig() {
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
+	} else if configFilePath := os.Getenv("FMESERVER_CLI_CONFIG"); configFilePath != "" {
+		// use path from FMESERVER_CLI_CONFIG if set
+		viper.SetConfigFile(configFilePath)
 	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
+		// check if XDG_CONFIG_HOME is set
+		defaultConfigDirectory := os.Getenv("XDG_CONFIG_HOME")
+		if defaultConfigDirectory == "" {
+			home, err := os.UserHomeDir()
+			cobra.CheckErr(err)
+			defaultConfigDirectory = filepath.Join(home, ".config")
+		}
 
-		// Search config in home directory with name ".fmeserver-cli" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigType("yaml")
-		viper.SetConfigName(".fmeserver-cli")
-		viper.SetConfigFile(path.Join(home, ".fmeserver-cli.yaml"))
+		viper.SetConfigFile(filepath.Join(defaultConfigDirectory, ".fmeserver-cli.yaml"))
 
 	}
 	//fmt.Println(viper.ConfigFileUsed())
