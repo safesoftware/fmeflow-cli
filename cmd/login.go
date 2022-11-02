@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 
 	"net/http"
+	"net/url"
 )
 
 type TokenRequest struct {
@@ -61,13 +62,21 @@ fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082
 
 # Login to an FME Server using a passed in user and password
 fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		return nil
+	},
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			rootCmd.SilenceUsage = false
 			return errors.New("requires a URL")
 		}
-		if !(strings.HasPrefix(args[0], "http") || strings.HasPrefix(args[0], "https")) {
-			return errors.New("url must start with http or https")
+		urlErrorMsg := "invalid FME Server URL specified. URL should be of the form https://myfmeserverhostname.com"
+		url, err := url.ParseRequestURI(args[0])
+		if err != nil {
+			return fmt.Errorf(urlErrorMsg)
+		}
+		if url.Path != "" {
+			return fmt.Errorf(urlErrorMsg)
 		}
 		return nil
 	},
