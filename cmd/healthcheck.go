@@ -49,7 +49,7 @@ fmeserver healthcheck --json`,
 		// FME Server 2023.0 and later can use v4. Otherwise fall back to v3
 		if apiVersion == "" {
 			fmeserverBuild := viper.GetInt("build")
-			if fmeserverBuild < 23000 {
+			if fmeserverBuild < 23139 {
 				apiVersion = apiVersionFlagV3
 			} else {
 				apiVersion = apiVersionFlagV4
