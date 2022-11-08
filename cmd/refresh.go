@@ -17,18 +17,30 @@ type RefreshStatus struct {
 	Message string `json:"message"`
 }
 
-var refreshWait bool
+type refreshFlags struct {
+	wait bool
+}
 
-// refreshCmd represents the refresh command
-var refreshCmd = &cobra.Command{
-	Use:   "refresh",
-	Short: "Refreshes the installed license file with a current license from Safe Software.",
-	Long: `Refreshes the installed license file with a current license from Safe Software.
-	
-Example:
-fmeserver license refresh`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func newRefreshCmd() *cobra.Command {
+	f := refreshFlags{}
+	cmd := &cobra.Command{
+		Use:   "refresh",
+		Short: "Refreshes the installed license file with a current license from Safe Software.",
+		Long:  "Refreshes the installed license file with a current license from Safe Software.",
+		Example: `
+  # Refresh the license
+  fmeserver license refresh`,
+		Args: NoArgs,
+		RunE: refreshRun(&f),
+	}
+	cmd.Flags().BoolVar(&f.wait, "wait", false, "Wait for licensing refresh to finish")
+	cmd.AddCommand(newRefreshStatusCmd())
+	return cmd
+
+}
+
+func refreshRun(f *refreshFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
@@ -49,7 +61,7 @@ fmeserver license refresh`,
 
 		fmt.Println("License Refresh Successfully sent.")
 
-		if refreshWait {
+		if f.wait {
 			// check the license refresh status until it is finished
 			complete := false
 			for {
@@ -85,10 +97,5 @@ fmeserver license refresh`,
 		}
 
 		return nil
-	},
-}
-
-func init() {
-	licenseCmd.AddCommand(refreshCmd)
-	refreshCmd.Flags().BoolVar(&refreshWait, "wait", false, "Wait for licensing refresh to finish")
+	}
 }

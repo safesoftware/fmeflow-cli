@@ -38,54 +38,72 @@ type migrationTask struct {
 	Status              string    `json:"status"`
 }
 
-var migrationTaskId int
-var migrationTaskLog bool
-var migrationTaskFile string
+type migrationTasksFlags struct {
+	migrationTaskId   int
+	migrationTaskLog  bool
+	migrationTaskFile string
+	outputType        string
+	noHeaders         bool
+}
 
-// migrationTasksCmd represents the migrationTasks command
-var migrationTasksCmd = &cobra.Command{
-	Use:   "tasks",
-	Short: "Retrieves the records for all migration tasks.",
-	Long: `Retrieves the records for all migration tasks.
+func newMigrationTasksCmd() *cobra.Command {
+	f := migrationTasksFlags{}
+	cmd := &cobra.Command{
+		Use:   "tasks",
+		Short: "Retrieves the records for all migration tasks.",
+		Long:  "Retrieves the records for all migration tasks.",
+		Example: `
+  # Get all migration tasks
+  fmeserver migration tasks
 	
-Examples:
+  # Get all migration tasks in json
+  fmeserver migration tasks --json
+	
+  # Get the migration task for a given id
+  fmeserver migration tasks --id 1
+	
+  # Output the migration log for a given id to the console
+  fmeserver migration tasks --id 1 --log
+	
+  # Output the migration log for a given id to a local file
+  fmeserver migration tasks --id 1 --log --file my-backup-log.txt
+	
+  # Output just the start and end time of the a given id
+  fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,End Time:.finishedDate"`,
+		Args: NoArgs,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if f.migrationTaskLog {
+				cmd.MarkFlagsRequiredTogether("id", "log")
+			}
+		},
+		RunE: migrationTasksRun(&f),
+	}
 
-# Get all migration tasks
-fmeserver migration tasks
+	cmd.Flags().IntVar(&f.migrationTaskId, "id", -1, "Retrieves the record for a migration task according to the given ID.")
+	cmd.Flags().BoolVar(&f.migrationTaskLog, "log", false, "Downloads the log file of a migration task.")
+	cmd.Flags().StringVar(&f.migrationTaskFile, "file", "", "File to save the log to.")
+	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 
-# Get all migration tasks in json
-fmeserver migration tasks --json
+	return cmd
+}
 
-# Get the migration task for a given id
-fmeserver migration tasks --id 1
+func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 
-# Output the migration log for a given id to the console
-fmeserver migration tasks --id 1 --log
-
-# Output the migration log for a given id to a local file
-fmeserver migration tasks --id 1 --log --file my-backup-log.txt
-
-# Output just the start and end time of the a given id
-fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,End Time:.finishedDate"`,
-	Args: NoArgs,
-	PreRun: func(cmd *cobra.Command, args []string) {
-		if migrationTaskLog {
-			cmd.MarkFlagsRequiredTogether("id", "log")
-		}
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// set up http
 		// --json overrides --output
 		if jsonOutput {
-			outputType = "json"
+			f.outputType = "json"
 		}
+
+		// set up http
 		client := &http.Client{}
 
 		var outputTasks []migrationTask
 
-		if !migrationTaskLog { // output one or more tasks
+		if !f.migrationTaskLog { // output one or more tasks
 			var responseData []byte
-			if migrationTaskId == -1 {
+			if f.migrationTaskId == -1 {
 				request, err := buildFmeServerRequest("/fmerest/v3/migration/tasks", "GET", nil)
 				if err != nil {
 					return err
@@ -107,7 +125,7 @@ fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,
 					outputTasks = result.Items
 				}
 			} else {
-				endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(migrationTaskId)
+				endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(f.migrationTaskId)
 				request, err := buildFmeServerRequest(endpoint, "GET", nil)
 				if err != nil {
 					return err
@@ -132,7 +150,7 @@ fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,
 				}
 			}
 
-			if outputType == "table" {
+			if f.outputType == "table" {
 				t := table.NewWriter()
 				t.SetStyle(defaultStyle)
 
@@ -141,22 +159,22 @@ fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,
 				for _, element := range outputTasks {
 					t.AppendRow(table.Row{element.ID, element.Type, element.UserName, element.StartDate, element.FinishedDate, element.Status})
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Println(t.Render())
 				// output the raw json but formatted
-			} else if outputType == "json" {
+			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
 				fmt.Println(prettyJSON)
-			} else if strings.HasPrefix(outputType, "custom-columns") {
+			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
-				if strings.HasPrefix(outputType, "custom-columns=") {
-					columnsString = outputType[len("custom-columns="):]
+				if strings.HasPrefix(f.outputType, "custom-columns=") {
+					columnsString = f.outputType[len("custom-columns="):]
 				}
 
 				if len(columnsString) == 0 {
@@ -180,7 +198,7 @@ fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,
 				if err != nil {
 					return err
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Println(t.Render())
@@ -188,8 +206,8 @@ fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,
 				return errors.New("invalid output format specified")
 			}
 
-		} else if migrationTaskId != -1 && migrationTaskLog {
-			endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(migrationTaskId) + "/log"
+		} else if f.migrationTaskId != -1 && f.migrationTaskLog {
+			endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(f.migrationTaskId) + "/log"
 			request, err := buildFmeServerRequest(endpoint, "GET", nil)
 			if err != nil {
 				return err
@@ -208,11 +226,11 @@ fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,
 				return err
 			}
 
-			if migrationTaskFile == "" {
+			if f.migrationTaskFile == "" {
 				fmt.Println(string(responseData))
 			} else {
 				// Create the output file
-				out, err := os.Create(migrationTaskFile)
+				out, err := os.Create(f.migrationTaskFile)
 				if err != nil {
 					return err
 				}
@@ -224,22 +242,11 @@ fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,
 					return err
 				}
 
-				fmt.Println("Log file downloaded to " + migrationTaskFile)
+				fmt.Println("Log file downloaded to " + f.migrationTaskFile)
 			}
 
 		}
 
 		return nil
-	},
-}
-
-func init() {
-	migrationCmd.AddCommand(migrationTasksCmd)
-
-	migrationTasksCmd.Flags().IntVar(&migrationTaskId, "id", -1, "Retrieves the record for a migration task according to the given ID.")
-	migrationTasksCmd.Flags().BoolVar(&migrationTaskLog, "log", false, "Downloads the log file of a migration task.")
-	migrationTasksCmd.Flags().StringVar(&migrationTaskFile, "file", "", "File to save the log to.")
-	migrationTasksCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
-	migrationTasksCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
-
+	}
 }

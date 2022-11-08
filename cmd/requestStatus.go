@@ -9,21 +9,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// requestStatusCmd represents the requestStatus command
-var requestStatusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Check status of license request",
-	Long: `Check the status of a license request.
-    
-Examples:
+func newLicenseRequestStatusCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "status",
+		Short: "Check status of license request",
+		Long: `Check the status of a license request.
+		
+	Examples:
+	
+	# Output the license request status as a table
+	fmeserver license request status
+	
+	# Output the license Request status in json
+	fmeserver license request status --json`,
+		Args: NoArgs,
+		RunE: licenseRequestStatusRun(),
+	}
+	return cmd
+}
 
-# Output the license request status as a table
-fmeserver license request status
-
-# Output the license Request status in json
-fmeserver license request status --json`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func licenseRequestStatusRun() func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
 
@@ -65,9 +71,5 @@ fmeserver license request status --json`,
 		}
 		return nil
 
-	},
-}
-
-func init() {
-	requestCmd.AddCommand(requestStatusCmd)
+	}
 }

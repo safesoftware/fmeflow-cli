@@ -13,13 +13,19 @@ type SystemCode struct {
 	SystemCode string `json:"systemCode"`
 }
 
-// systemcodeCmd represents the systemcode command
-var systemcodeCmd = &cobra.Command{
-	Use:   "systemcode",
-	Short: "Retrieves system code of the machine running FME Server.",
-	Long:  `Retrieves system code of the machine running FME Server.`,
-	Args:  NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func newSystemCodeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "systemcode",
+		Short: "Retrieves system code of the machine running FME Server.",
+		Long:  `Retrieves system code of the machine running FME Server.`,
+		Args:  NoArgs,
+		RunE:  systemCodeRun(),
+	}
+	return cmd
+}
+
+func systemCodeRun() func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
 
@@ -54,9 +60,5 @@ var systemcodeCmd = &cobra.Command{
 
 		}
 		return nil
-	},
-}
-
-func init() {
-	licenseCmd.AddCommand(systemcodeCmd)
+	}
 }

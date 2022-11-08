@@ -14,13 +14,18 @@ type MachineKey struct {
 	MachineKey string `json:"machineKey"`
 }
 
-// machinekeyCmd represents the machinekey command
-var machinekeyCmd = &cobra.Command{
-	Use:   "machinekey",
-	Short: "Retrieves machine key of the machine running FME Server.",
-	Long:  `Retrieves machine key of the machine running FME Server.`,
-	Args:  NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func newMachineKeyCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "machinekey",
+		Short: "Retrieves machine key of the machine running FME Server.",
+		Long:  `Retrieves machine key of the machine running FME Server.`,
+		Args:  NoArgs,
+		RunE:  machineKeyRun(),
+	}
+}
+
+func machineKeyRun() func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
 			outputType = "json"
@@ -60,9 +65,5 @@ var machinekeyCmd = &cobra.Command{
 			}
 		}
 		return nil
-	},
-}
-
-func init() {
-	licenseCmd.AddCommand(machinekeyCmd)
+	}
 }

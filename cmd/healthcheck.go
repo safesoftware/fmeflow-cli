@@ -32,17 +32,16 @@ func newHealthcheckCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "healthcheck",
 		Short: "Retrieves the health status of FME Server",
-		Long: `Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. Load balancer or other systems can monitor FME Server using this endpoint without supplying token or password credentials.
+		Long:  "Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. Load balancer or other systems can monitor FME Server using this endpoint without supplying token or password credentials.",
+		Example: `
+  # Check if the FME Server is healthy and accepting requests
+  fmeserver healthcheck
 		
-	Examples:
-	# Check if the FME Server is healthy and accepting requests
-	fmeserver healthcheck
-	
-	# Check if the FME Server is healthy and ready to run jobs
-	fmeserver healthcheck --ready
-	
-	# Check if the FME Server is healthy and output in json
-	fmeserver healthcheck --json`,
+  # Check if the FME Server is healthy and ready to process jobs
+  fmeserver healthcheck --ready
+		
+  # Check if the FME Server is healthy and output in json
+  fmeserver healthcheck --json`,
 		Args: NoArgs,
 		RunE: healthcheckRun(&f),
 	}

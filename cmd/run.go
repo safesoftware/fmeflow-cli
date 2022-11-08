@@ -71,49 +71,81 @@ type JobResult struct {
 	Status              string    `json:"status"`
 }
 
-var runWorkspace string
-var runRepository string
-var runWait bool
-var runRtc bool
-var runTtc int
-var runTtl int
-var runTag string
-var runDescription string
-var runSourceData string
-var runSuccessTopics []string
-var runFailureTopics []string
-var runPublishedParameter []string
-var runNodeManagerDirective []string
+type runFlags struct {
+	runWorkspace            string
+	runRepository           string
+	runWait                 bool
+	runRtc                  bool
+	runTtc                  int
+	runTtl                  int
+	runTag                  string
+	runDescription          string
+	runSourceData           string
+	runSuccessTopics        []string
+	runFailureTopics        []string
+	runPublishedParameter   []string
+	runNodeManagerDirective []string
+	outputType              string
+	noHeaders               bool
+}
 
-// runCmd represents the run command
-var runCmd = &cobra.Command{
-	Use:   "run",
-	Short: "Run a workspace on FME Server",
-	Long: `Run a workspace on FME Server
+func newRunCmd() *cobra.Command {
+	f := runFlags{}
+	cmd := &cobra.Command{
+		Use:   "run",
+		Short: "Run a workspace on FME Server",
+		Long: `Run a workspace on FME Server
+		
+	Examples:
+	# Submit a job asynchronously
+	fmeserver run --repository Samples --workspace austinApartments.fmw
 	
-Examples:
-# Submit a job asynchronously
-fmeserver run --repository Samples --workspace austinApartments.fmw
+	# Submit a job and wait for it to complete
+	fmeserver run --repository Samples --workspace austinApartments.fmw --wait
+	
+	# Submit a job to a specific queue and set a time to live in the queue
+	fmeserver run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
+	
+	# Submit a job and pass in a few published parameters
+	fmeserver run --repository Samples --workspace austinDownload.fmw --published-parameter THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
+	
+	# Submit a job, wait for it to complete, and customize the output
+	fmeserver run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
+	
+	# Upload a local file to use as the source data for the translation
+	fmeserver run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait`,
+		Args: NoArgs,
+		RunE: runRun(&f),
+	}
 
-# Submit a job and wait for it to complete
-fmeserver run --repository Samples --workspace austinApartments.fmw --wait
+	cmd.Flags().StringVar(&f.runRepository, "repository", "", "The name of the repository containing the workspace to run.")
+	cmd.Flags().StringVar(&f.runWorkspace, "workspace", "", "The name of the workspace to run.")
+	cmd.Flags().BoolVar(&f.runWait, "wait", false, "Submit job and wait for it to finish.")
+	cmd.Flags().BoolVar(&f.runRtc, "run-until-canceled", false, "Runs a job until it is explicitly canceled. The job will run again regardless of whether the job completed successfully, failed, or the server crashed or was shut down.")
+	cmd.Flags().IntVar(&f.runTtc, "time-until-canceled", -1, "Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored.")
+	cmd.Flags().IntVar(&f.runTtl, "time-to-live", -1, "Time to live in the job queue (in seconds)")
+	cmd.Flags().StringVar(&f.runTag, "tag", "", "The job routing tag for the request")
+	cmd.Flags().StringVar(&f.runDescription, "description", "", "Description of the request.")
+	cmd.Flags().StringVar(&f.runSourceData, "file", "", "Upload a local file Source dataset to use to run the workspace.")
+	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 
-# Submit a job to a specific queue and set a time to live in the queue
-fmeserver run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
+	cmd.Flags().StringArrayVar(&f.runSuccessTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
+	cmd.Flags().StringArrayVar(&f.runFailureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
+	cmd.Flags().StringArrayVar(&f.runPublishedParameter, "published-parameter", []string{}, "Workspace published parameters defined for this job. Specify as Key=Value. Can be passed in multiple times. For list parameters, specify as Key=Value1,Value2. This means parameter values can't contain = or , at the moment. That should probably be fixed.")
+	cmd.Flags().StringArrayVar(&f.runNodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times.")
 
-# Submit a job and pass in a few published parameters
-fmeserver run --repository Samples --workspace austinDownload.fmw --published-parameter THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
+	cmd.MarkFlagRequired("repository")
+	cmd.MarkFlagRequired("workspace")
 
-# Submit a job, wait for it to complete, and customize the output
-fmeserver run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
+	return cmd
+}
 
-# Upload a local file to use as the source data for the translation
-fmeserver run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
-			outputType = "json"
+			f.outputType = "json"
 		}
 		// set up http
 		client := &http.Client{
@@ -125,11 +157,11 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 		var result JobResult
 		var responseData []byte
 
-		if runSourceData == "" {
+		if f.runSourceData == "" {
 			job := &Job{}
 
 			// get published parameters
-			for _, parameter := range runPublishedParameter {
+			for _, parameter := range f.runPublishedParameter {
 				this_parameter := strings.Split(parameter, "=")
 				if strings.Contains(this_parameter[1], ",") {
 					var a ListParameter
@@ -146,7 +178,7 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 			}
 
 			// get node manager directives
-			for _, directive := range runNodeManagerDirective {
+			for _, directive := range f.runNodeManagerDirective {
 				this_directive := strings.Split(directive, "=")
 				var a Directive
 				a.Name = this_directive[0]
@@ -154,21 +186,21 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 				job.NMDirectives.Directives = append(job.NMDirectives.Directives, a)
 			}
 
-			if runTtc != -1 {
-				job.TMDirectives.Ttc = runTtc
+			if f.runTtc != -1 {
+				job.TMDirectives.Ttc = f.runTtc
 			}
-			if runTtl != -1 {
-				job.TMDirectives.TTL = runTtl
+			if f.runTtl != -1 {
+				job.TMDirectives.TTL = f.runTtl
 			}
 
-			job.TMDirectives.Rtc = runRtc
+			job.TMDirectives.Rtc = f.runRtc
 
 			// append slice to slice
-			job.NMDirectives.SuccessTopics = append(job.NMDirectives.SuccessTopics, runSuccessTopics...)
-			job.NMDirectives.FailureTopics = append(job.NMDirectives.FailureTopics, runFailureTopics...)
+			job.NMDirectives.SuccessTopics = append(job.NMDirectives.SuccessTopics, f.runSuccessTopics...)
+			job.NMDirectives.FailureTopics = append(job.NMDirectives.FailureTopics, f.runFailureTopics...)
 
-			if runDescription != "" {
-				job.TMDirectives.Description = runDescription
+			if f.runDescription != "" {
+				job.TMDirectives.Description = f.runDescription
 			}
 
 			jobJson, err := json.Marshal(job)
@@ -177,11 +209,11 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 			}
 
 			submitEndpoint := "submit"
-			if runWait {
+			if f.runWait {
 				submitEndpoint = "transact"
 			}
 
-			endpoint := "/fmerest/v3/transformations/" + submitEndpoint + "/" + runRepository + "/" + runWorkspace
+			endpoint := "/fmerest/v3/transformations/" + submitEndpoint + "/" + f.runRepository + "/" + f.runWorkspace
 
 			request, err := buildFmeServerRequest(endpoint, "POST", strings.NewReader(string(jobJson)))
 			if err != nil {
@@ -209,7 +241,7 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 				return err
 			}
 
-			if !runWait {
+			if !f.runWait {
 				var result JobId
 				if err := json.Unmarshal(responseData, &result); err != nil {
 					return err
@@ -231,13 +263,13 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 			}
 		} else {
 			// we are uploading a source file, so we want to send the file in the body as octet stream, and parameters as url parameters
-			file, err := os.Open(runSourceData)
+			file, err := os.Open(f.runSourceData)
 			if err != nil {
 				return err
 			}
 			defer file.Close()
 
-			endpoint := "/fmerest/v3/transformations/transactdata/" + runRepository + "/" + runWorkspace
+			endpoint := "/fmerest/v3/transformations/transactdata/" + f.runRepository + "/" + f.runWorkspace
 			request, err := buildFmeServerRequest(endpoint, "POST", file)
 			if err != nil {
 				return err
@@ -245,36 +277,36 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 
 			q := request.URL.Query()
 
-			if runDescription != "" {
-				q.Add("opt_description", runDescription)
+			if f.runDescription != "" {
+				q.Add("opt_description", f.runDescription)
 			}
 
-			for _, topic := range runSuccessTopics {
+			for _, topic := range f.runSuccessTopics {
 				q.Add("opt_successtopics", topic)
 			}
 
-			for _, topic := range runFailureTopics {
+			for _, topic := range f.runFailureTopics {
 				q.Add("opt_failuretopics", topic)
 			}
 
-			if runDescription != "" {
-				endpoint += "opt_description=" + runDescription
+			if f.runDescription != "" {
+				endpoint += "opt_description=" + f.runDescription
 			}
 
-			if runTag != "" {
-				q.Add("opt_tag", runTag)
+			if f.runTag != "" {
+				q.Add("opt_tag", f.runTag)
 			}
 
-			if runTtl != -1 {
-				q.Add("opt_ttl", strconv.Itoa(runTtl))
+			if f.runTtl != -1 {
+				q.Add("opt_ttl", strconv.Itoa(f.runTtl))
 			}
 
-			if runTtc != -1 {
-				q.Add("opt_ttc", strconv.Itoa(runTtc))
+			if f.runTtc != -1 {
+				q.Add("opt_ttc", strconv.Itoa(f.runTtc))
 			}
 
 			// TODO: I'm not sure this is the correct way to pass published parameters in the query string
-			for _, parameter := range runPublishedParameter {
+			for _, parameter := range f.runPublishedParameter {
 				this_parameter := strings.Split(parameter, "=")
 				q.Add(this_parameter[0], this_parameter[1])
 			}
@@ -305,8 +337,8 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 			}
 		}
 
-		if runWait {
-			if outputType == "table" {
+		if f.runWait {
+			if f.outputType == "table" {
 				t := table.NewWriter()
 				t.SetStyle(defaultStyle)
 
@@ -319,17 +351,17 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 				}
 				fmt.Println(t.Render())
 
-			} else if outputType == "json" {
+			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
 				fmt.Println(prettyJSON)
-			} else if strings.HasPrefix(outputType, "custom-columns") {
+			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
-				if strings.HasPrefix(outputType, "custom-columns=") {
-					columnsString = outputType[len("custom-columns="):]
+				if strings.HasPrefix(f.outputType, "custom-columns=") {
+					columnsString = f.outputType[len("custom-columns="):]
 				}
 				if len(columnsString) == 0 {
 					return errors.New("custom-columns format specified but no custom columns given")
@@ -351,7 +383,7 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 				if err != nil {
 					return err
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Println(t.Render())
@@ -361,29 +393,5 @@ fmeserver run --repository Samples --workspace austinApartments.fmw --file Landm
 			}
 		}
 		return nil
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(runCmd)
-
-	runCmd.Flags().StringVar(&runRepository, "repository", "", "The name of the repository containing the workspace to run.")
-	runCmd.Flags().StringVar(&runWorkspace, "workspace", "", "The name of the workspace to run.")
-	runCmd.Flags().BoolVar(&runWait, "wait", false, "Submit job and wait for it to finish.")
-	runCmd.Flags().BoolVar(&runRtc, "run-until-canceled", false, "Runs a job until it is explicitly canceled. The job will run again regardless of whether the job completed successfully, failed, or the server crashed or was shut down.")
-	runCmd.Flags().IntVar(&runTtc, "time-until-canceled", -1, "Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored.")
-	runCmd.Flags().IntVar(&runTtl, "time-to-live", -1, "Time to live in the job queue (in seconds)")
-	runCmd.Flags().StringVar(&runTag, "tag", "", "The job routing tag for the request")
-	runCmd.Flags().StringVar(&runDescription, "description", "", "Description of the request.")
-	runCmd.Flags().StringVar(&runSourceData, "file", "", "Upload a local file Source dataset to use to run the workspace.")
-	runCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
-	runCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
-
-	runCmd.Flags().StringArrayVar(&runSuccessTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
-	runCmd.Flags().StringArrayVar(&runFailureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
-	runCmd.Flags().StringArrayVar(&runPublishedParameter, "published-parameter", []string{}, "Workspace published parameters defined for this job. Specify as Key=Value. Can be passed in multiple times. For list parameters, specify as Key=Value1,Value2. This means parameter values can't contain = or , at the moment. That should probably be fixed.")
-	runCmd.Flags().StringArrayVar(&runNodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times.")
-
-	runCmd.MarkFlagRequired("repository")
-	runCmd.MarkFlagRequired("workspace")
+	}
 }

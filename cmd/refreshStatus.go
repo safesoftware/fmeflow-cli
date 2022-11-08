@@ -9,16 +9,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// refreshStatusCmd represents the refreshStatus command
-var refreshStatusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Check status of license refresh",
-	Long: `Check the status of a license refresh request.
-    
-Example:
-fmeserver license refresh status`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func newRefreshStatusCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "status",
+		Short: "Check status of license refresh",
+		Long:  "Check the status of a license refresh request.",
+		Example: `
+  fmeserver license refresh status`,
+		Args: NoArgs,
+		RunE: refreshStatusRun(),
+	}
+}
+
+func refreshStatusRun() func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
 
@@ -51,9 +55,5 @@ fmeserver license refresh status`,
 		}
 		return nil
 
-	},
-}
-
-func init() {
-	refreshCmd.AddCommand(refreshStatusCmd)
+	}
 }

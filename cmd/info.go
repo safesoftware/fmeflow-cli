@@ -19,25 +19,37 @@ type FMEServerInfo struct {
 	Version           string `json:"version"`
 }
 
-// infoCmd represents the info command
-var infoCmd = &cobra.Command{
-	Use:   "info",
-	Short: "Retrieves build, version and time information about FME Server",
-	Long: `Retrieves build, version and time information about FME Server
+type infoFlags struct {
+	outputType string
+	noHeaders  bool
+}
 
-Examples:
+func newInfoCmd() *cobra.Command {
+	f := infoFlags{}
+	cmd := &cobra.Command{
+		Use:   "info",
+		Short: "Retrieves build, version and time information about FME Server",
+		Long:  "Retrieves build, version and time information about FME Server",
+		Example: `
+  # Output FME Server information in a table
+  fmeserver info
 
-# Output FME Server information in a table
-fmeserver info
+  # Output FME Server information in json
+  fmeserver info --json
 
-# Output FME Server information in json
-fmeserver info --json
+  # Output just the build string with no column headers
+  fmeserver info --output=custom-columns="BUILD:.build" --no-headers
+	`,
+		Args: NoArgs,
+		RunE: infoRun(&f),
+	}
+	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	return cmd
+}
 
-# Output just the build string with no column headers
-fmeserver info --output=custom-columns="BUILD:.build" --no-headers
-`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
 			outputType = "json"
@@ -118,11 +130,5 @@ fmeserver info --output=custom-columns="BUILD:.build" --no-headers
 
 		}
 		return nil
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(infoCmd)
-	infoCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
-	infoCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
+	}
 }

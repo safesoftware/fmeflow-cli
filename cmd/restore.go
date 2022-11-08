@@ -12,54 +12,67 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var restoreBackupFile string
-var restoreImportMode string
-var restorePauseNotifications bool
-var restoreProjectsImportMode string
+type restoreFlags struct {
+	restoreBackupFile         string
+	restoreImportMode         string
+	restorePauseNotifications bool
+	restoreProjectsImportMode string
+}
 
 type RestoreResource struct {
 	Id int `json:"id"`
 }
 
-// restoreCmd represents the restore command
-var restoreCmd = &cobra.Command{
-	Use:   "restore",
-	Short: "Restores the FME Server configuration from an import package",
-	Long: `Restores the FME Server configuration from an import package
-	
-Examples:
+func newRestoreCmd() *cobra.Command {
+	f := restoreFlags{}
+	cmd := &cobra.Command{
+		Use:   "restore",
+		Short: "Restores the FME Server configuration from an import package",
+		Long:  "Restores the FME Server configuration from an import package",
+		Example: `
+  # Restore from a backup in a local file
+  fmeserver restore --file .\ServerConfigPackage.fsconfig
 
-# Restore from a backup in a local file
-fmeserver restore --file .\ServerConfigPackage.fsconfig
+  # Restore from a backup in a local file using UPDATE mode
+  fmeserver restore --file .\ServerConfigPackage.fsconfig --import-mode UPDATE`,
+		Args: NoArgs,
+		RunE: restoreRun(&f),
+	}
 
-# Restore from a backup in a local file using UPDATE mode
-fmeserver restore --file .\ServerConfigPackage.fsconfig --import-mode UPDATE`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	cmd.Flags().StringVarP(&f.restoreBackupFile, "file", "f", "", "Path to file to download the backup to.")
+	cmd.Flags().StringVar(&f.restoreImportMode, "import-mode", "INSERT", "To import only items in the import package that do not exist on the current instance, specify INSERT. To overwrite items on the current instance with those in the import package, specify UPDATE. Default is INSERT.")
+	cmd.Flags().BoolVar(&f.restorePauseNotifications, "pause-notifications", true, "Disable notifications for the duration of the restore.")
+	cmd.Flags().StringVar(&f.restoreProjectsImportMode, "projects-import-mode", "", "Import mode for projects. To import only projects in the import package that do not exist on the current instance, specify INSERT. To overwrite projects on the current instance with those in the import package, specify UPDATE. If not supplied, importMode will be used.")
+	cmd.MarkFlagRequired("file")
+
+	return cmd
+}
+func restoreRun(f *restoreFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		client := &http.Client{}
 
-		file, err := os.Open(restoreBackupFile)
+		file, err := os.Open(f.restoreBackupFile)
 		if err != nil {
 			return err
 		}
 		defer file.Close()
 
 		// verify import mode is valid
-		if restoreImportMode != "UPDATE" && restoreImportMode != "INSERT" {
+		if f.restoreImportMode != "UPDATE" && f.restoreImportMode != "INSERT" {
 			return errors.New("invalid import-mode. Must be either UPDATE or INSERT")
 		}
 
 		// verify projects import mode is valid
-		if restoreProjectsImportMode != "UPDATE" && restoreProjectsImportMode != "INSERT" && restoreProjectsImportMode != "" {
+		if f.restoreProjectsImportMode != "UPDATE" && f.restoreProjectsImportMode != "INSERT" && f.restoreProjectsImportMode != "" {
 			return errors.New("invalid projects-import-mode. Must be either UPDATE or INSERT")
 		}
 
-		endpoint := "/fmerest/v3/migration/restore/upload?pauseNotifications=" + strconv.FormatBool(restorePauseNotifications)
-		if restoreImportMode != "" {
-			endpoint += "&importMode=" + restoreImportMode
+		endpoint := "/fmerest/v3/migration/restore/upload?pauseNotifications=" + strconv.FormatBool(f.restorePauseNotifications)
+		if f.restoreImportMode != "" {
+			endpoint += "&importMode=" + f.restoreImportMode
 		}
-		if restoreProjectsImportMode != "" {
-			endpoint += "&projectsImportMode=" + restoreProjectsImportMode
+		if f.restoreProjectsImportMode != "" {
+			endpoint += "&projectsImportMode=" + f.restoreProjectsImportMode
 		}
 
 		request, err := buildFmeServerRequest(endpoint, "POST", file)
@@ -97,14 +110,5 @@ fmeserver restore --file .\ServerConfigPackage.fsconfig --import-mode UPDATE`,
 		}
 
 		return nil
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(restoreCmd)
-	restoreCmd.Flags().StringVarP(&restoreBackupFile, "file", "f", "", "Path to file to download the backup to.")
-	restoreCmd.Flags().StringVar(&restoreImportMode, "import-mode", "INSERT", "To import only items in the import package that do not exist on the current instance, specify INSERT. To overwrite items on the current instance with those in the import package, specify UPDATE. Default is INSERT.")
-	restoreCmd.Flags().BoolVar(&restorePauseNotifications, "pause-notifications", true, "Disable notifications for the duration of the restore.")
-	restoreCmd.Flags().StringVar(&restoreProjectsImportMode, "projects-import-mode", "", "Import mode for projects. To import only projects in the import package that do not exist on the current instance, specify INSERT. To overwrite projects on the current instance with those in the import package, specify UPDATE. If not supplied, importMode will be used.")
-	restoreCmd.MarkFlagRequired("file")
+	}
 }

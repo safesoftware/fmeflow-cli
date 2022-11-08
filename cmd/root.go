@@ -62,6 +62,15 @@ func NewRootCommand() *cobra.Command {
 	}
 	cmds.ResetFlags()
 	cmds.AddCommand(newHealthcheckCmd())
+	cmds.AddCommand(newBackupCmd())
+	cmds.AddCommand(newEnginesCmd())
+	cmds.AddCommand(newJobsCmd())
+	cmds.AddCommand(newInfoCmd())
+	cmds.AddCommand(newLicenseCmd())
+	cmds.AddCommand(newLoginCmd())
+	cmds.AddCommand(newMigrationCmd())
+	cmds.AddCommand(newRestoreCmd())
+	cmds.AddCommand(newRunCmd())
 	cmds.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		cmd.Println(err)
 		cmd.Println(cmd.UsageString())
@@ -70,7 +79,7 @@ func NewRootCommand() *cobra.Command {
 	cobra.OnInitialize(initConfig)
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
-	cmds.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.fmeserver-cli.yaml)")
+	cmds.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/.fmeserver-cli.yaml)")
 	cmds.PersistentFlags().BoolVar(&jsonOutput, "json", false, "Output JSON")
 
 	return cmds

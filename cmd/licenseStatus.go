@@ -20,16 +20,30 @@ type LicenseStatus struct {
 	MaximumAuthors   int    `json:"maximumAuthors"`
 }
 
-// licenseStatusCmd represents the licenseStatus command
-var licenseStatusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Retrieves status of the installed FME Server license.",
-	Long:  `Retrieves status of the installed FME Server license.`,
-	Args:  NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+type licenseStatusFlags struct {
+	outputType string
+	noHeaders  bool
+}
+
+func newLicenseStatusCmd() *cobra.Command {
+	f := licenseStatusFlags{}
+	cmd := &cobra.Command{
+		Use:   "status",
+		Short: "Retrieves status of the installed FME Server license.",
+		Long:  `Retrieves status of the installed FME Server license.`,
+		Args:  NoArgs,
+		RunE:  licenseStatusRun(&f),
+	}
+	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	return cmd
+}
+
+func licenseStatusRun(f *licenseStatusFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
-			outputType = "json"
+			f.outputType = "json"
 		}
 		// set up http
 		client := &http.Client{}
@@ -57,21 +71,21 @@ var licenseStatusCmd = &cobra.Command{
 				// output all values returned by the JSON in a table
 				t := createTableWithDefaultColumns(result)
 
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Println(t.Render())
-			} else if outputType == "json" {
+			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
 				fmt.Println(prettyJSON)
-			} else if strings.HasPrefix(outputType, "custom-columns") {
+			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
-				if strings.HasPrefix(outputType, "custom-columns=") {
-					columnsString = outputType[len("custom-columns="):]
+				if strings.HasPrefix(f.outputType, "custom-columns=") {
+					columnsString = f.outputType[len("custom-columns="):]
 				}
 				if len(columnsString) == 0 {
 					return errors.New("custom-columns format specified but no custom columns given")
@@ -102,11 +116,5 @@ var licenseStatusCmd = &cobra.Command{
 		}
 		return nil
 
-	},
-}
-
-func init() {
-	licenseCmd.AddCommand(licenseStatusCmd)
-	licenseStatusCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
-	licenseStatusCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
+	}
 }
