@@ -1,14 +1,8 @@
 package cmd
 
 import (
-	"bytes"
 	"net/http"
-	"net/http/httptest"
-	"regexp"
 	"testing"
-
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/require"
 )
 
 func TestHealthcheck(t *testing.T) {
@@ -20,17 +14,8 @@ func TestHealthcheck(t *testing.T) {
 		"status": "ok",
 		"message": "FME Server is healthy."
 	  }`
-	// random token to use for testing
-	testToken := "57463e1b143db046ef3f4ae8ba1b0233e32ee9dd"
-	cases := []struct {
-		name           string // the name of the test
-		statusCode     int    // the http status code the test server should return
-		body           string // the body of the request that the test server should return
-		wantErrText    string // the expected error text to be returned
-		wantOutput     string // regex of the expected output to be returned
-		fmeserverBuild int
-		args           []string
-	}{
+
+	cases := []testCase{
 		{
 			name:        "unknown flag",
 			statusCode:  http.StatusOK,
@@ -100,55 +85,5 @@ func TestHealthcheck(t *testing.T) {
 			fmeserverBuild: 23200,
 		},
 	}
-	for _, tc := range cases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(tc.statusCode)
-				_, err := w.Write([]byte(tc.body))
-				require.NoError(t, err)
-			}))
-
-			defer testServer.Close()
-			// set up the config file
-			viper.Set("url", testServer.URL)
-			viper.Set("token", testToken)
-			if tc.fmeserverBuild != 0 {
-				viper.Set("build", tc.fmeserverBuild)
-			} else {
-				viper.Set("build", 23159)
-			}
-			cmd := newHealthcheckCmd()
-
-			// override the stdout and stderr
-			stdOut := bytes.NewBufferString("")
-			stdErr := bytes.NewBufferString("")
-			cmd.SetOut(stdOut)
-			cmd.SetErr(stdErr)
-
-			// set the arguments on the command
-			cmd.SetArgs(tc.args)
-
-			// execute
-			err := cmd.Execute()
-
-			if err != nil {
-				require.EqualValues(t, err.Error(), tc.wantErrText)
-			} else {
-				require.EqualValues(t, "", tc.wantErrText)
-			}
-			if tc.wantOutput != "" {
-				//require.Contains(t, stdOut.String(), tc.wantOutput)
-				require.Regexp(t, regexp.MustCompile(tc.wantOutput), stdOut.String())
-			}
-
-			//require.ErrorIs(t, err, tc.wantErr)
-
-			/*gotReleases, gotErr := rp.GetAvailableReleases()
-			require.ErrorIs(t, gotErr, tc.wantErr)
-			if gotErr == nil {
-				require.Len(t, gotReleases, tc.wantReleaseCount)
-			}*/
-		})
-	}
+	runTests(cases, newHealthcheckCmd, t)
 }

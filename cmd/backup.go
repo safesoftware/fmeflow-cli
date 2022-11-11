@@ -34,6 +34,10 @@ func newBackupCmd() *cobra.Command {
 		Use:   "backup",
 		Short: "Backs up the FME Server configuration",
 		Long:  "Backs up the FME Server configuration to a local file or to a shared resource location on the FME Server.",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+
+			return nil
+		},
 		Example: `
   # back up to a local file
   fmeserver backup -f my_local_backup.fsconfig
@@ -46,9 +50,14 @@ func newBackupCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&f.outputBackupFile, "file", "f", "ServerConfigPackage.fsconfig", "Path to file to download the backup to.")
 	cmd.Flags().BoolVar(&f.backupResource, "resource", false, "Backup to a shared resource instead of downloading.")
 	cmd.Flags().StringVar(&f.backupResourceName, "resource-name", "FME_SHAREDRESOURCE_BACKUP", "Shared Resource Name where the exported package is saved.")
-	cmd.Flags().StringVar(&f.backupExportPackage, "export-package", "/ServerConfigPackage.fsconfig", "Path and name of the export package.")
+	cmd.Flags().StringVar(&f.backupExportPackage, "export-package", "ServerConfigPackage.fsconfig", "Path and name of the export package.")
 	cmd.Flags().StringVar(&f.backupFailureTopic, "failure-topic", "", "Topic to notify on failure of the backup. Default is MIGRATION_ASYNC_JOB_FAILURE")
 	cmd.Flags().StringVar(&f.backupSuccessTopic, "success-topic", "", "Topic to notify on success of the backup. Default is MIGRATION_ASYNC_JOB_SUCCESS")
+	cmd.MarkFlagsMutuallyExclusive("file", "resource")
+	cmd.MarkFlagsMutuallyExclusive("file", "resource-name")
+	cmd.MarkFlagsMutuallyExclusive("file", "export-package")
+	cmd.MarkFlagsMutuallyExclusive("file", "failure-topic")
+	cmd.MarkFlagsMutuallyExclusive("file", "success-topic")
 	return cmd
 }
 
@@ -72,7 +81,7 @@ func backupRun(f *backupFlags) func(cmd *cobra.Command, args []string) error {
 			request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 			request.Header.Add("Accept", "application/octet-stream")
 
-			fmt.Println("Downloading backup file...")
+			fmt.Fprintln(cmd.OutOrStdout(), "Downloading backup file...")
 
 			response, err := client.Do(&request)
 			if err != nil {
@@ -95,7 +104,7 @@ func backupRun(f *backupFlags) func(cmd *cobra.Command, args []string) error {
 				return err
 			}
 
-			fmt.Println("FME Server backed up to " + f.outputBackupFile)
+			fmt.Fprintln(cmd.OutOrStdout(), "FME Server backed up to "+f.outputBackupFile)
 		} else {
 			// backup to a resource
 			// add mandatory values
@@ -122,7 +131,7 @@ func backupRun(f *backupFlags) func(cmd *cobra.Command, args []string) error {
 			response, err := client.Do(&request)
 			if err != nil {
 				return err
-			} else if response.StatusCode != 202 {
+			} else if response.StatusCode != http.StatusAccepted {
 				return errors.New(response.Status)
 			}
 
@@ -136,9 +145,9 @@ func backupRun(f *backupFlags) func(cmd *cobra.Command, args []string) error {
 				return err
 			} else {
 				if !jsonOutput {
-					fmt.Println("Backup task submitted with id: " + strconv.Itoa(result.Id))
+					fmt.Fprintln(cmd.OutOrStdout(), "Backup task submitted with id: "+strconv.Itoa(result.Id))
 				} else {
-					fmt.Println(string(responseData))
+					fmt.Fprintln(cmd.OutOrStdout(), string(responseData))
 				}
 			}
 		}
