@@ -157,7 +157,6 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 		viper.Set("url", url)
 		viper.Set("token", token)
 
-		// call the status endpoint to see if it is finished
 		request, err := buildFmeServerRequest("/fmerest/v3/info", "GET", nil)
 		if err != nil {
 			return err
