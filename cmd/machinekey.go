@@ -55,13 +55,13 @@ func machineKeyRun() func(cmd *cobra.Command, args []string) error {
 			return err
 		} else {
 			if !jsonOutput {
-				fmt.Println(result.MachineKey)
+				fmt.Fprintln(cmd.OutOrStdout(), result.MachineKey)
 			} else {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			}
 		}
 		return nil

@@ -63,27 +63,26 @@ func newJobsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "jobs",
 		Short: "Lists jobs on FME Server",
-		Long: `Lists jobs on FME Server
-		
-	Examples:
+		Long:  "Lists jobs on FME Server",
+
+		Example: `
+  # List all jobs (currently limited to the most recent 1000)
+  fmeserver jobs --all
 	
-	# List all jobs (currently limited to the most recent 1000)
-	fmeserver jobs --all
+  # List all running jobs
+  fmeserver jobs --running
 	
-	# List all running jobs
-	fmeserver jobs --running
+  # List all jobs from a given repository
+  fmeserver jobs --repository Samples
 	
-	# List all jobs from a given repository
-	fmeserver jobs --repository Samples
+  # List all jobs that ran a given workspace
+  fmeserver jobs --repository Samples --workspace austinApartments.fmw
 	
-	# List all jobs that ran a given workspace
-	fmeserver jobs --repository Samples --workspace austinApartments.fmw
+  # List all jobs in JSON format
+  fmeserver jobs --json
 	
-	# List all jobs in JSON format
-	fmeserver jobs --json
-	
-	# List the workspace, CPU time and peak memory usage for a given repository
-	fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
+  # List the workspace, CPU time and peak memory usage for a given repository
+  fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
 	`,
 		Args: NoArgs,
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -163,7 +162,7 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 			if f.noHeaders {
 				t.ResetHeaders()
 			}
-			fmt.Println(t.Render())
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 		} else if f.outputType == "json" {
 			outputjson, err := json.Marshal(allJobs)
@@ -174,7 +173,7 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			fmt.Println(prettyJSON)
+			fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 
 		} else if strings.HasPrefix(f.outputType, "custom-columns") {
 			// parse the columns and json queries
@@ -206,7 +205,7 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 			if f.noHeaders {
 				t.ResetHeaders()
 			}
-			fmt.Println(t.Render())
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 		} else {
 			return errors.New("invalid output format specified")
@@ -254,6 +253,8 @@ func getJobs(endpoint string, allJobs *Jobs, f *jobsFlags) error {
 	responseData, err := io.ReadAll(response.Body)
 	if err != nil {
 		return err
+	} else if response.StatusCode != 200 {
+		return errors.New(response.Status)
 	}
 
 	var result Jobs

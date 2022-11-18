@@ -72,8 +72,8 @@ func NewRootCommand() *cobra.Command {
 	cmds.AddCommand(newRestoreCmd())
 	cmds.AddCommand(newRunCmd())
 	cmds.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
-		cmd.Println(err)
-		cmd.Println(cmd.UsageString())
+		cmd.PrintErrln(err)
+		cmd.PrintErrln(cmd.UsageString())
 		return ErrSilent
 	})
 	cobra.OnInitialize(initConfig)

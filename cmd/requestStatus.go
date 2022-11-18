@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -41,6 +42,8 @@ func licenseRequestStatusRun() func(cmd *cobra.Command, args []string) error {
 		response, err := client.Do(&request)
 		if err != nil {
 			return err
+		} else if response.StatusCode != 200 {
+			return errors.New(response.Status)
 		}
 
 		responseData, err := io.ReadAll(response.Body)
@@ -59,13 +62,13 @@ func licenseRequestStatusRun() func(cmd *cobra.Command, args []string) error {
 				if noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 			} else {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			}
 
 		}

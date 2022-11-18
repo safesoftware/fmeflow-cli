@@ -153,7 +153,7 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 			response, err := client.Do(req)
 			if err != nil {
 				return err
-			} else if response.StatusCode != 201 {
+			} else if response.StatusCode != http.StatusCreated {
 				return errors.New(response.Status)
 			}
 
@@ -167,7 +167,7 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 				return err
 			} else {
 				f.token = result.Token
-				fmt.Println("Successfully generated new token.")
+				fmt.Fprintln(cmd.OutOrStdout(), "Successfully generated new token.")
 			}
 
 		}
@@ -212,7 +212,7 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println("Credentials written to " + viper.ConfigFileUsed())
+		fmt.Fprintln(cmd.OutOrStdout(), "Credentials written to "+viper.ConfigFileUsed())
 
 		return nil
 

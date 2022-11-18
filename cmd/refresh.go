@@ -59,7 +59,7 @@ func refreshRun(f *refreshFlags) func(cmd *cobra.Command, args []string) error {
 			return errors.New(response.Status)
 		}
 
-		fmt.Println("License Refresh Successfully sent.")
+		fmt.Fprintln(cmd.OutOrStdout(), "License Refresh Successfully sent.")
 
 		if f.wait {
 			// check the license refresh status until it is finished
@@ -87,7 +87,7 @@ func refreshRun(f *refreshFlags) func(cmd *cobra.Command, args []string) error {
 					return err
 				} else if result.Status != "REQUESTING" {
 					complete = true
-					fmt.Println(result.Message)
+					fmt.Fprintln(cmd.OutOrStdout(), result.Message)
 				}
 
 				if complete {

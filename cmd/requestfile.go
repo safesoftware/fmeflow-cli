@@ -121,7 +121,7 @@ func licenseRequestFileRun(f *licenseRequestFileFlags) func(cmd *cobra.Command, 
 			defer tmpfile.Close()
 			tmpfile.Write(d)
 		} else {
-			fmt.Println(string(d))
+			fmt.Fprintln(cmd.OutOrStdout(), string(d))
 		}
 		return nil
 	}

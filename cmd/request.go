@@ -113,10 +113,10 @@ func licenseRequestRun(f *licenseRequestFlags) func(cmd *cobra.Command, args []s
 		}
 
 		if !jsonOutput {
-			fmt.Println("License Request Successfully sent.")
+			fmt.Fprintln(cmd.OutOrStdout(), "License Request Successfully sent.")
 		} else {
 			if !f.wait {
-				fmt.Println("{}")
+				fmt.Fprintln(cmd.OutOrStdout(), "{}")
 			}
 		}
 
@@ -150,13 +150,13 @@ func licenseRequestRun(f *licenseRequestFlags) func(cmd *cobra.Command, args []s
 				} else if result.Status != "REQUESTING" {
 					complete = true
 					if !jsonOutput {
-						fmt.Println(result.Message)
+						fmt.Fprintln(cmd.OutOrStdout(), result.Message)
 					} else {
 						prettyJSON, err := prettyPrintJSON(responseData)
 						if err != nil {
 							return err
 						}
-						fmt.Println(prettyJSON)
+						fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 					}
 				}
 

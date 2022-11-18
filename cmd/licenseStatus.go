@@ -56,6 +56,8 @@ func licenseStatusRun(f *licenseStatusFlags) func(cmd *cobra.Command, args []str
 		response, err := client.Do(&request)
 		if err != nil {
 			return err
+		} else if response.StatusCode != 200 {
+			return errors.New(response.Status)
 		}
 
 		responseData, err := io.ReadAll(response.Body)
@@ -67,20 +69,20 @@ func licenseStatusRun(f *licenseStatusFlags) func(cmd *cobra.Command, args []str
 		if err := json.Unmarshal(responseData, &result); err != nil {
 			return err
 		} else {
-			if outputType == "table" {
+			if f.outputType == "table" {
 				// output all values returned by the JSON in a table
 				t := createTableWithDefaultColumns(result)
 
 				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
@@ -108,9 +110,13 @@ func licenseStatusRun(f *licenseStatusFlags) func(cmd *cobra.Command, args []str
 				if noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 			} else {
-				fmt.Println(string(responseData))
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
+				}
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			}
 
 		}

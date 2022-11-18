@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -37,6 +38,8 @@ func systemCodeRun() func(cmd *cobra.Command, args []string) error {
 		response, err := client.Do(&request)
 		if err != nil {
 			return err
+		} else if response.StatusCode != 200 {
+			return errors.New(response.Status)
 		}
 
 		responseData, err := io.ReadAll(response.Body)
@@ -49,13 +52,13 @@ func systemCodeRun() func(cmd *cobra.Command, args []string) error {
 			return err
 		} else {
 			if !jsonOutput {
-				fmt.Printf(result.SystemCode)
+				fmt.Fprintln(cmd.OutOrStdout(), result.SystemCode)
 			} else {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			}
 
 		}

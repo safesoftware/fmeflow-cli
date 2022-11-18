@@ -39,7 +39,7 @@ func newRestoreCmd() *cobra.Command {
 		RunE: restoreRun(&f),
 	}
 
-	cmd.Flags().StringVarP(&f.restoreBackupFile, "file", "f", "", "Path to file to download the backup to.")
+	cmd.Flags().StringVarP(&f.restoreBackupFile, "file", "f", "", "Path to backup file to upload to restore.")
 	cmd.Flags().StringVar(&f.restoreImportMode, "import-mode", "INSERT", "To import only items in the import package that do not exist on the current instance, specify INSERT. To overwrite items on the current instance with those in the import package, specify UPDATE. Default is INSERT.")
 	cmd.Flags().BoolVar(&f.restorePauseNotifications, "pause-notifications", true, "Disable notifications for the duration of the restore.")
 	cmd.Flags().StringVar(&f.restoreProjectsImportMode, "projects-import-mode", "", "Import mode for projects. To import only projects in the import package that do not exist on the current instance, specify INSERT. To overwrite projects on the current instance with those in the import package, specify UPDATE. If not supplied, importMode will be used.")
@@ -99,13 +99,13 @@ func restoreRun(f *restoreFlags) func(cmd *cobra.Command, args []string) error {
 			return err
 		} else {
 			if !jsonOutput {
-				fmt.Println("Restore task submitted with id: " + strconv.Itoa(result.Id))
+				fmt.Fprintln(cmd.OutOrStdout(), "Restore task submitted with id: "+strconv.Itoa(result.Id))
 			} else {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			}
 		}
 

@@ -107,7 +107,7 @@ func enginesRun(f *engineFlags) func(cmd *cobra.Command, args []string) error {
 		} else {
 			if f.count {
 				// simply return the count of engines
-				fmt.Println(result.TotalCount)
+				fmt.Fprintln(cmd.OutOrStdout(), result.TotalCount)
 			} else if f.outputType == "table" { // output a table with some default fields selected
 				t := table.NewWriter()
 				t.SetStyle(defaultStyle)
@@ -120,16 +120,16 @@ func enginesRun(f *engineFlags) func(cmd *cobra.Command, args []string) error {
 				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 				// output the raw json but formatted
 			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 
-			} else if strings.HasPrefix(outputType, "custom-columns") {
+			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
 				if strings.HasPrefix(f.outputType, "custom-columns=") {
@@ -159,7 +159,7 @@ func enginesRun(f *engineFlags) func(cmd *cobra.Command, args []string) error {
 				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 			} else {
 				return errors.New("invalid output format specified")

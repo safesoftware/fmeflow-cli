@@ -24,18 +24,25 @@ type migrationTasks struct {
 }
 
 type migrationTask struct {
-	DisableProjectItems bool      `json:"disableProjectItems"`
-	Result              string    `json:"result"`
-	ImportMode          string    `json:"importMode"`
-	ProjectsImportMode  string    `json:"projectsImportMode"`
-	PauseNotifications  bool      `json:"pauseNotifications"`
-	ID                  int       `json:"id"`
-	Type                string    `json:"type"`
-	UserName            string    `json:"userName"`
-	ContentType         string    `json:"contentType"`
-	StartDate           time.Time `json:"startDate"`
-	FinishedDate        time.Time `json:"finishedDate"`
-	Status              string    `json:"status"`
+	DisableProjectItems  bool      `json:"disableProjectItems"`
+	Result               string    `json:"result"`
+	ImportMode           string    `json:"importMode"`
+	ProjectsImportMode   string    `json:"projectsImportMode"`
+	PauseNotifications   bool      `json:"pauseNotifications"`
+	ID                   int       `json:"id"`
+	Type                 string    `json:"type"`
+	UserName             string    `json:"userName"`
+	ContentType          string    `json:"contentType"`
+	StartDate            time.Time `json:"startDate"`
+	FinishedDate         time.Time `json:"finishedDate"`
+	Status               string    `json:"status"`
+	ExcludeSensitiveInfo bool      `json:"excludeSensitiveInfo"`
+	FailureTopic         string    `json:"failureTopic"`
+	SuccessTopic         string    `json:"successTopic"`
+	PackageName          string    `json:"packageName"`
+	PackagePath          string    `json:"packagePath"`
+	ProjectNames         []string  `json:"projectNames"`
+	ResourceName         string    `json:"resourceName"`
 }
 
 type migrationTasksFlags struct {
@@ -111,6 +118,8 @@ func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []s
 				response, err := client.Do(&request)
 				if err != nil {
 					return err
+				} else if response.StatusCode != 200 {
+					return errors.New(response.Status)
 				}
 
 				responseData, err = io.ReadAll(response.Body)
@@ -137,7 +146,7 @@ func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []s
 					return errors.New(response.Status)
 				}
 
-				responseData, err := io.ReadAll(response.Body)
+				responseData, err = io.ReadAll(response.Body)
 				if err != nil {
 					return err
 				}
@@ -162,14 +171,14 @@ func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []s
 				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 				// output the raw json but formatted
 			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
@@ -201,7 +210,7 @@ func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []s
 				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 			} else {
 				return errors.New("invalid output format specified")
 			}
@@ -227,7 +236,7 @@ func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []s
 			}
 
 			if f.migrationTaskFile == "" {
-				fmt.Println(string(responseData))
+				fmt.Fprintln(cmd.OutOrStdout(), string(responseData))
 			} else {
 				// Create the output file
 				out, err := os.Create(f.migrationTaskFile)
@@ -242,7 +251,7 @@ func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []s
 					return err
 				}
 
-				fmt.Println("Log file downloaded to " + f.migrationTaskFile)
+				fmt.Fprintln(cmd.OutOrStdout(), "Log file downloaded to "+f.migrationTaskFile)
 			}
 
 		}

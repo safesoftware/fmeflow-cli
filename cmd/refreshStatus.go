@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -34,6 +35,8 @@ func refreshStatusRun() func(cmd *cobra.Command, args []string) error {
 		response, err := client.Do(&request)
 		if err != nil {
 			return err
+		} else if response.StatusCode != 200 {
+			return errors.New(response.Status)
 		}
 
 		responseData, err := io.ReadAll(response.Body)
@@ -46,10 +49,19 @@ func refreshStatusRun() func(cmd *cobra.Command, args []string) error {
 			return err
 		} else {
 			if !jsonOutput {
-				fmt.Println(result.Status)
-				fmt.Println(result.Message)
+				// output all values returned by the JSON in a table
+				t := createTableWithDefaultColumns(result)
+
+				if noHeaders {
+					t.ResetHeaders()
+				}
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 			} else {
-				fmt.Println(string(responseData))
+				prettyJSON, err := prettyPrintJSON(responseData)
+				if err != nil {
+					return err
+				}
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			}
 
 		}

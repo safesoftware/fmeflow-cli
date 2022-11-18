@@ -52,7 +52,7 @@ func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
-			outputType = "json"
+			f.outputType = "json"
 		}
 
 		// set up http
@@ -79,7 +79,7 @@ func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
 		if err := json.Unmarshal(responseData, &result); err != nil {
 			return err
 		} else {
-			if outputType == "table" {
+			if f.outputType == "table" {
 
 				// output all values returned by the JSON in a table
 				t := createTableWithDefaultColumns(result)
@@ -87,19 +87,19 @@ func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
 				if noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
-			} else if outputType == "json" {
+			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
-			} else if strings.HasPrefix(outputType, "custom-columns") {
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
-				if strings.HasPrefix(outputType, "custom-columns=") {
-					columnsString = outputType[len("custom-columns="):]
+				if strings.HasPrefix(f.outputType, "custom-columns=") {
+					columnsString = f.outputType[len("custom-columns="):]
 				}
 				if len(columnsString) == 0 {
 					return errors.New("custom-columns format specified but no custom columns given")
@@ -122,7 +122,7 @@ func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
 				if noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 			} else {
 				return errors.New("invalid output format specified")
