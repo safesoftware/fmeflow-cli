@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -88,6 +89,7 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		url := args[0]
+		client := &http.Client{}
 
 		if token == "" {
 			if user == "" && password == "" {
@@ -129,7 +131,6 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 			req.Header.Set("Content-Type", "application/json")
 
 			// create a token to store in config file
-			client := &http.Client{}
 			response, err := client.Do(req)
 			if err != nil {
 				return err
@@ -152,11 +153,38 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 
 		}
 
-		// write to config file
+		// write token and url to config file
 		viper.Set("url", url)
 		viper.Set("token", token)
+
+		request, err := buildFmeServerRequest("/fmerest/v3/info", "GET", nil)
+		if err != nil {
+			return err
+		}
+		response, err := client.Do(&request)
+		if err != nil {
+			return err
+		} else if response.StatusCode != 200 {
+			return errors.New(response.Status)
+		}
+
+		responseData, err := io.ReadAll(response.Body)
+		if err != nil {
+			return err
+		}
+
+		var result FMEServerInfo
+		if err := json.Unmarshal(responseData, &result); err != nil {
+			return err
+		}
+
+		buildNum, err := parseFMEBuildString(result.Build)
+		if err != nil {
+			return err
+		}
+		viper.Set("build", buildNum)
 		// ensure directory where config file is supposed to live exists
-		err := os.MkdirAll(filepath.Dir(viper.ConfigFileUsed()), 0600)
+		err = os.MkdirAll(filepath.Dir(viper.ConfigFileUsed()), 0600)
 		if err != nil {
 			return err
 		}
@@ -182,4 +210,22 @@ func init() {
 	loginCmd.MarkFlagsRequiredTogether("user", "password")
 	loginCmd.MarkFlagsMutuallyExclusive("token", "user")
 	loginCmd.MarkFlagsMutuallyExclusive("token", "password")
+}
+
+func parseFMEBuildString(s string) (int, error) {
+	first := strings.Split(s, "-")
+	if len(first) < 3 {
+		return 0, fmt.Errorf("unable to parse build string")
+	}
+
+	second := strings.Split(strings.TrimSpace(first[1]), " ")
+	if len(second) < 2 {
+		return 0, fmt.Errorf("unable to parse build string")
+	}
+	buildNum, err := strconv.Atoi(second[1])
+	if err != nil {
+		return 0, fmt.Errorf("unable to parse build string: %w", err)
+	}
+	return buildNum, nil
+
 }

@@ -48,6 +48,12 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("no token found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
 		}
 
+		// check there is a build set in the config file
+		fmeserverBuild := viper.GetString("build")
+		if fmeserverBuild == "" {
+			return fmt.Errorf("no build found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+		}
+
 		return nil
 	},
 }

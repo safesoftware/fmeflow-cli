@@ -54,6 +54,8 @@ fmeserver info --output=custom-columns="BUILD:.build" --no-headers
 		response, err := client.Do(&request)
 		if err != nil {
 			return err
+		} else if response.StatusCode != 200 {
+			return errors.New(response.Status)
 		}
 
 		responseData, err := io.ReadAll(response.Body)
