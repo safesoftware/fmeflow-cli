@@ -176,7 +176,6 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 		viper.Set("url", url)
 		viper.Set("token", f.token)
 
-		// call the status endpoint to see if it is finished
 		request, err := buildFmeServerRequest("/fmerest/v3/info", "GET", nil)
 		if err != nil {
 			return err

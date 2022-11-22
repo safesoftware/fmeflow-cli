@@ -26,6 +26,8 @@ type HealthcheckV4 struct {
 	Message string `json:"message"`
 }
 
+var healthcheckV4BuildThreshold = 23139
+
 // healthcheckCmd represents the healthcheck command
 func newHealthcheckCmd() *cobra.Command {
 	f := healthcheckFlags{}
@@ -62,7 +64,7 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 		// FME Server 2023.0 and later can use v4. Otherwise fall back to v3
 		if f.apiVersion == "" {
 			fmeserverBuild := viper.GetInt("build")
-			if fmeserverBuild < 23139 {
+			if fmeserverBuild < healthcheckV4BuildThreshold {
 				f.apiVersion = apiVersionFlagV3
 			} else {
 				f.apiVersion = apiVersionFlagV4
@@ -78,7 +80,6 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 				endpoint += "/liveness"
 			}
 
-			// call the status endpoint to see if it is finished
 			request, err := buildFmeServerRequest(endpoint, "GET", nil)
 			if err != nil {
 				return err
