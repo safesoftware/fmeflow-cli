@@ -40,7 +40,7 @@ func TestEngines(t *testing.T) {
 		]
 	  }`
 
-	responseV34Engines := `{
+	responseV3FourEngines := `{
 		"offset": -1,
 		"limit": -1,
 		"totalCount": 4,
@@ -198,14 +198,14 @@ func TestEngines(t *testing.T) {
 		{
 			name:            "get engines count",
 			statusCode:      http.StatusOK,
-			body:            responseV34Engines,
+			body:            responseV3FourEngines,
 			args:            []string{"engines", "--count"},
 			wantOutputRegex: "4",
 		},
 		{
 			name:            "get engines custom columns",
 			statusCode:      http.StatusOK,
-			body:            responseV34Engines,
+			body:            responseV3FourEngines,
 			args:            []string{"engines", "--output=custom-columns=ENGINEMANAGER:.engineManagerNodeName,TRANSACTIONPORT:.transactionPort,CURRENTJOB:.currentJobID"},
 			wantOutputRegex: "[\\s]*ENGINEMANAGER[\\s]*TRANSACTIONPORT[\\s]*CURRENTJOB[\\s]*fmeservercore[\\s]*40935[\\s]*-1[\\s]*fmeservercore[\\s]*36883[\\s]*-1[\\s]*fmeservercore[\\s]*44089[\\s]*-1[\\s]*fmeservercore[\\s]*44795[\\s]*-1",
 		},
