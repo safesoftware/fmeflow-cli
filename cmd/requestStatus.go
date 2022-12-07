@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,21 +10,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// requestStatusCmd represents the requestStatus command
-var requestStatusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Check status of license request",
-	Long: `Check the status of a license request.
-    
-Examples:
+func newLicenseRequestStatusCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "status",
+		Short: "Check status of license request",
+		Long: `Check the status of a license request.
+		
+	Examples:
+	
+	# Output the license request status as a table
+	fmeserver license request status
+	
+	# Output the license Request status in json
+	fmeserver license request status --json`,
+		Args: NoArgs,
+		RunE: licenseRequestStatusRun(),
+	}
+	return cmd
+}
 
-# Output the license request status as a table
-fmeserver license request status
-
-# Output the license Request status in json
-fmeserver license request status --json`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func licenseRequestStatusRun() func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
 
@@ -35,6 +42,8 @@ fmeserver license request status --json`,
 		response, err := client.Do(&request)
 		if err != nil {
 			return err
+		} else if response.StatusCode != 200 {
+			return errors.New(response.Status)
 		}
 
 		responseData, err := io.ReadAll(response.Body)
@@ -53,21 +62,17 @@ fmeserver license request status --json`,
 				if noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 			} else {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			}
 
 		}
 		return nil
 
-	},
-}
-
-func init() {
-	requestCmd.AddCommand(requestStatusCmd)
+	}
 }

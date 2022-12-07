@@ -21,41 +21,68 @@ var noHeaders bool
 var ErrSilent = errors.New("ErrSilent")
 
 // rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:           "fmeserver",
-	Short:         "A command line interface for interacting with FME Server.",
-	Long:          `A command line interface for interacting with FME Server.`,
-	Version:       "0.4",
-	SilenceErrors: true,
-	SilenceUsage:  true,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		// make sure the config file is set up correctly
-		_, err := os.Stat(viper.ConfigFileUsed())
-		if err != nil {
-			return fmt.Errorf("could not open the config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
-		}
-		fmeserverUrl := viper.GetString("url")
+var rootCmd = NewRootCommand()
 
-		// check the fme server URL is valid
-		_, err = url.ParseRequestURI(fmeserverUrl)
-		if err != nil {
-			return fmt.Errorf("invalid FME Server url in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
-		}
+func NewRootCommand() *cobra.Command {
+	cmds := &cobra.Command{
+		Use:           "fmeserver",
+		Short:         "A command line interface for interacting with FME Server.",
+		Long:          `A command line interface for interacting with FME Server.`,
+		Version:       "0.4",
+		SilenceErrors: true,
+		SilenceUsage:  true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// make sure the config file is set up correctly
+			_, err := os.Stat(viper.ConfigFileUsed())
+			if err != nil {
+				return fmt.Errorf("could not open the config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+			}
+			fmeserverUrl := viper.GetString("url")
 
-		// check there is a token to use for auth
-		fmeserverToken := viper.GetString("token")
-		if fmeserverToken == "" {
-			return fmt.Errorf("no token found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
-		}
+			// check the fme server URL is valid
+			_, err = url.ParseRequestURI(fmeserverUrl)
+			if err != nil {
+				return fmt.Errorf("invalid FME Server url in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+			}
 
-		// check there is a build set in the config file
-		fmeserverBuild := viper.GetString("build")
-		if fmeserverBuild == "" {
-			return fmt.Errorf("no build found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
-		}
+			// check there is a token to use for auth
+			fmeserverToken := viper.GetString("token")
+			if fmeserverToken == "" {
+				return fmt.Errorf("no token found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+			}
 
-		return nil
-	},
+			// check there is a build set in the config file
+			fmeserverBuild := viper.GetString("build")
+			if fmeserverBuild == "" {
+				return fmt.Errorf("no build found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+			}
+
+			return nil
+		},
+	}
+	cmds.ResetFlags()
+	cmds.AddCommand(newHealthcheckCmd())
+	cmds.AddCommand(newBackupCmd())
+	cmds.AddCommand(newEnginesCmd())
+	cmds.AddCommand(newJobsCmd())
+	cmds.AddCommand(newInfoCmd())
+	cmds.AddCommand(newLicenseCmd())
+	cmds.AddCommand(newLoginCmd())
+	cmds.AddCommand(newMigrationCmd())
+	cmds.AddCommand(newRestoreCmd())
+	cmds.AddCommand(newRunCmd())
+	cmds.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		cmd.PrintErrln(err)
+		cmd.PrintErrln(cmd.UsageString())
+		return ErrSilent
+	})
+	cobra.OnInitialize(initConfig)
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	cmds.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/.fmeserver-cli.yaml)")
+	cmds.PersistentFlags().BoolVar(&jsonOutput, "json", false, "Output JSON")
+
+	return cmds
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -63,19 +90,6 @@ var rootCmd = &cobra.Command{
 func Execute() error {
 	err := rootCmd.Execute()
 	return err
-}
-
-func init() {
-	rootCmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
-		cmd.Println(err)
-		cmd.Println(cmd.UsageString())
-		return ErrSilent
-	})
-	cobra.OnInitialize(initConfig)
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.fmeserver-cli.yaml)")
-	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "Output JSON")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -110,7 +124,7 @@ func initConfig() {
 // so that it will be output if a user tries to pass in an argument when they should not
 func NoArgs(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
-		rootCmd.SilenceUsage = false
+		cmd.Usage()
 		return fmt.Errorf("unknown command %q for %q", args[0], cmd.CommandPath())
 	}
 	return nil

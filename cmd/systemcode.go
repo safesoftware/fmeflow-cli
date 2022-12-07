@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,13 +14,19 @@ type SystemCode struct {
 	SystemCode string `json:"systemCode"`
 }
 
-// systemcodeCmd represents the systemcode command
-var systemcodeCmd = &cobra.Command{
-	Use:   "systemcode",
-	Short: "Retrieves system code of the machine running FME Server.",
-	Long:  `Retrieves system code of the machine running FME Server.`,
-	Args:  NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func newSystemCodeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "systemcode",
+		Short: "Retrieves system code of the machine running FME Server.",
+		Long:  `Retrieves system code of the machine running FME Server.`,
+		Args:  NoArgs,
+		RunE:  systemCodeRun(),
+	}
+	return cmd
+}
+
+func systemCodeRun() func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
 
@@ -31,6 +38,8 @@ var systemcodeCmd = &cobra.Command{
 		response, err := client.Do(&request)
 		if err != nil {
 			return err
+		} else if response.StatusCode != 200 {
+			return errors.New(response.Status)
 		}
 
 		responseData, err := io.ReadAll(response.Body)
@@ -43,20 +52,16 @@ var systemcodeCmd = &cobra.Command{
 			return err
 		} else {
 			if !jsonOutput {
-				fmt.Printf(result.SystemCode)
+				fmt.Fprintln(cmd.OutOrStdout(), result.SystemCode)
 			} else {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			}
 
 		}
 		return nil
-	},
-}
-
-func init() {
-	licenseCmd.AddCommand(systemcodeCmd)
+	}
 }

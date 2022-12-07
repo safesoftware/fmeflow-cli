@@ -43,91 +43,113 @@ type Jobs struct {
 	} `json:"items"`
 }
 
-var jobsRunning bool
-var jobsCompleted bool
-var jobsActive bool
-var jobsAll bool
-var jobsQueued bool
-var jobsRepository string
-var jobsUserName string
-var jobsWorkspace string
-var jobsSourceID string
-var jobsSourceType string
+type jobsFlags struct {
+	outputType     string
+	noHeaders      bool
+	jobsRunning    bool
+	jobsCompleted  bool
+	jobsActive     bool
+	jobsAll        bool
+	jobsQueued     bool
+	jobsRepository string
+	jobsUserName   string
+	jobsWorkspace  string
+	jobsSourceID   string
+	jobsSourceType string
+}
 
-// jobsCmd represents the jobs command
-var jobsCmd = &cobra.Command{
-	Use:   "jobs",
-	Short: "Lists jobs on FME Server",
-	Long: `Lists jobs on FME Server
+func newJobsCmd() *cobra.Command {
+	f := jobsFlags{}
+	cmd := &cobra.Command{
+		Use:   "jobs",
+		Short: "Lists jobs on FME Server",
+		Long:  "Lists jobs on FME Server",
+
+		Example: `
+  # List all jobs (currently limited to the most recent 1000)
+  fmeserver jobs --all
 	
-Examples:
+  # List all running jobs
+  fmeserver jobs --running
+	
+  # List all jobs from a given repository
+  fmeserver jobs --repository Samples
+	
+  # List all jobs that ran a given workspace
+  fmeserver jobs --repository Samples --workspace austinApartments.fmw
+	
+  # List all jobs in JSON format
+  fmeserver jobs --json
+	
+  # List the workspace, CPU time and peak memory usage for a given repository
+  fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
+	`,
+		Args: NoArgs,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if f.jobsWorkspace != "" {
+				cmd.MarkFlagRequired("repository")
+			}
+		},
+		RunE: jobsRun(&f),
+	}
+	cmd.Flags().BoolVar(&f.jobsRunning, "running", false, "Retrieve running jobs")
+	cmd.Flags().BoolVar(&f.jobsCompleted, "completed", false, "Retrieve completed jobs")
+	cmd.Flags().BoolVar(&f.jobsQueued, "queued", false, "Retrieve queued jobs")
+	cmd.Flags().BoolVar(&f.jobsAll, "all", false, "Retrieve all jobs")
+	cmd.Flags().BoolVar(&f.jobsActive, "active", false, "Retrieve active jobs")
+	cmd.Flags().StringVar(&f.jobsRepository, "repository", "", "If specified, only jobs from the specified repository will be returned.")
+	cmd.Flags().StringVar(&f.jobsWorkspace, "workspace", "", "If specified along with repository, only jobs from the specified repository and workspace will be returned.")
+	cmd.Flags().StringVar(&f.jobsUserName, "user-name", "", "If specified, only jobs run by the specified user will be returned.")
+	cmd.Flags().StringVar(&f.jobsSourceID, "source-id", "", "If specified along with source type, only jobs from the specified type with the specified id will be returned. For Automations, the source id is the automation id. For WorkspaceSubscriber, the source id is the id of the subscription. For Scheduler, the source id is the category and name of the schedule separated by '/'. For example, 'Category/Name'.")
+	cmd.Flags().StringVar(&f.jobsSourceType, "source-type", "", "If specified, only jobs run by this source type will be returned.")
+	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	cmd.MarkFlagsMutuallyExclusive("queued", "active")
+	cmd.MarkFlagsMutuallyExclusive("running", "active")
+	return cmd
 
-# List all jobs (currently limited to the most recent 1000)
-fmeserver jobs --all
+}
 
-# List all running jobs
-fmeserver jobs --running
-
-# List all jobs from a given repository
-fmeserver jobs --repository Samples
-
-# List all jobs that ran a given workspace
-fmeserver jobs --repository Samples --workspace austinApartments.fmw
-
-# List all jobs in JSON format
-fmeserver jobs --json
-
-# List the workspace, CPU time and peak memory usage for a given repository
-fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
-`,
-	Args: NoArgs,
-	PreRun: func(cmd *cobra.Command, args []string) {
-		if jobsWorkspace != "" {
-			cmd.MarkFlagRequired("repository")
-		}
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
+func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
-			outputType = "json"
+			f.outputType = "json"
 		}
-		if !jobsActive && !jobsCompleted && !jobsQueued && !jobsRunning && !jobsAll {
+		if !f.jobsActive && !f.jobsCompleted && !f.jobsQueued && !f.jobsRunning && !f.jobsAll {
 			// if no filter is passed in, show all jobs
-			jobsAll = true
+			f.jobsAll = true
 		}
 		var allJobs Jobs
-		if jobsActive || jobsAll {
-			err := getJobs("/fmerest/v3/transformations/jobs/active", &allJobs)
+		if f.jobsActive || f.jobsAll {
+			err := getJobs("/fmerest/v3/transformations/jobs/active", &allJobs, f)
 			if err != nil {
 				return err
 			}
 		}
 
-		if jobsCompleted || jobsAll {
-			err := getJobs("/fmerest/v3/transformations/jobs/completed", &allJobs)
+		if f.jobsCompleted || f.jobsAll {
+			err := getJobs("/fmerest/v3/transformations/jobs/completed", &allJobs, f)
 			if err != nil {
 				return err
 			}
 		}
 
-		if jobsRunning {
-			err := getJobs("/fmerest/v3/transformations/jobs/running", &allJobs)
+		if f.jobsRunning {
+			err := getJobs("/fmerest/v3/transformations/jobs/running", &allJobs, f)
 			if err != nil {
 				return err
 			}
 		}
 
-		if jobsQueued {
-			err := getJobs("/fmerest/v3/transformations/jobs/queued", &allJobs)
+		if f.jobsQueued {
+			err := getJobs("/fmerest/v3/transformations/jobs/queued", &allJobs, f)
 			if err != nil {
 				return err
 			}
 		}
 
-		if count {
-			// simply return the count of engines
-			fmt.Println(allJobs.TotalCount)
-		} else if outputType == "table" {
+		if f.outputType == "table" {
 			// output all values returned by the JSON in a table
 			t := table.NewWriter()
 			t.SetStyle(defaultStyle)
@@ -137,12 +159,12 @@ fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspac
 			for _, job := range allJobs.Items {
 				t.AppendRow(table.Row{job.ID, job.EngineName, job.Workspace, job.Status})
 			}
-			if noHeaders {
+			if f.noHeaders {
 				t.ResetHeaders()
 			}
-			fmt.Println(t.Render())
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
-		} else if outputType == "json" {
+		} else if f.outputType == "json" {
 			outputjson, err := json.Marshal(allJobs)
 			if err != nil {
 				return err
@@ -151,13 +173,13 @@ fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspac
 			if err != nil {
 				return err
 			}
-			fmt.Println(prettyJSON)
+			fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 
-		} else if strings.HasPrefix(outputType, "custom-columns") {
+		} else if strings.HasPrefix(f.outputType, "custom-columns") {
 			// parse the columns and json queries
 			columnsString := ""
-			if strings.HasPrefix(outputType, "custom-columns=") {
-				columnsString = outputType[len("custom-columns="):]
+			if strings.HasPrefix(f.outputType, "custom-columns=") {
+				columnsString = f.outputType[len("custom-columns="):]
 			}
 			if len(columnsString) == 0 {
 				return errors.New("custom-columns format specified but no custom columns given")
@@ -180,37 +202,19 @@ fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspac
 			if err != nil {
 				return err
 			}
-			if noHeaders {
+			if f.noHeaders {
 				t.ResetHeaders()
 			}
-			fmt.Println(t.Render())
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 		} else {
 			return errors.New("invalid output format specified")
 		}
 		return nil
-	},
+	}
 }
 
-func init() {
-	rootCmd.AddCommand(jobsCmd)
-	jobsCmd.Flags().BoolVar(&jobsRunning, "running", false, "Retrieve running jobs")
-	jobsCmd.Flags().BoolVar(&jobsCompleted, "completed", false, "Retrieve completed jobs")
-	jobsCmd.Flags().BoolVar(&jobsQueued, "queued", false, "Retrieve queued jobs")
-	jobsCmd.Flags().BoolVar(&jobsAll, "all", false, "Retrieve all jobs")
-	jobsCmd.Flags().BoolVar(&jobsActive, "active", false, "Retrieve active jobs")
-	jobsCmd.Flags().StringVar(&jobsRepository, "repository", "", "If specified, only jobs from the specified repository will be returned.")
-	jobsCmd.Flags().StringVar(&jobsWorkspace, "workspace", "", "If specified along with repository, only jobs from the specified repository and workspace will be returned.")
-	jobsCmd.Flags().StringVar(&jobsUserName, "user-name", "", "If specified, only jobs run by the specified user will be returned.")
-	jobsCmd.Flags().StringVar(&jobsSourceID, "source-id", "", "If specified along with source type, only jobs from the specified type with the specified id will be returned. For Automations, the source id is the automation id. For WorkspaceSubscriber, the source id is the id of the subscription. For Scheduler, the source id is the category and name of the schedule separated by '/'. For example, 'Category/Name'.")
-	jobsCmd.Flags().StringVar(&jobsSourceType, "source-type", "", "If specified, only jobs run by this source type will be returned.")
-	jobsCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
-	jobsCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
-	jobsCmd.MarkFlagsMutuallyExclusive("queued", "active")
-	jobsCmd.MarkFlagsMutuallyExclusive("running", "active")
-}
-
-func getJobs(endpoint string, allJobs *Jobs) error {
+func getJobs(endpoint string, allJobs *Jobs, f *jobsFlags) error {
 	client := &http.Client{}
 	request, err := buildFmeServerRequest(endpoint, "GET", nil)
 	if err != nil {
@@ -219,24 +223,24 @@ func getJobs(endpoint string, allJobs *Jobs) error {
 
 	q := request.URL.Query()
 
-	if jobsRepository != "" {
-		q.Add("repository", jobsRepository)
+	if f.jobsRepository != "" {
+		q.Add("repository", f.jobsRepository)
 	}
 
-	if jobsWorkspace != "" {
-		q.Add("workspace", jobsWorkspace)
+	if f.jobsWorkspace != "" {
+		q.Add("workspace", f.jobsWorkspace)
 	}
 
-	if jobsUserName != "" {
-		q.Add("userName", jobsUserName)
+	if f.jobsUserName != "" {
+		q.Add("userName", f.jobsUserName)
 	}
 
-	if jobsSourceID != "" {
-		q.Add("sourceID", jobsSourceID)
+	if f.jobsSourceID != "" {
+		q.Add("sourceID", f.jobsSourceID)
 	}
 
-	if jobsSourceType != "" {
-		q.Add("sourceType", jobsSourceType)
+	if f.jobsSourceType != "" {
+		q.Add("sourceType", f.jobsSourceType)
 	}
 
 	request.URL.RawQuery = q.Encode()
@@ -249,6 +253,8 @@ func getJobs(endpoint string, allJobs *Jobs) error {
 	responseData, err := io.ReadAll(response.Body)
 	if err != nil {
 		return err
+	} else if response.StatusCode != 200 {
+		return errors.New(response.Status)
 	}
 
 	var result Jobs

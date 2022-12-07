@@ -42,67 +42,86 @@ type TokenResponse struct {
 	Token          string    `json:"token"`
 }
 
-var token string
-var user string
-var password string
-var expiration int
+type loginFlags struct {
+	token      string
+	user       string
+	password   string
+	expiration int
+}
 
-// loginCmd represents the login command
-var loginCmd = &cobra.Command{
-	Use:   "login [URL]",
-	Short: "Save credentials for an FME Server",
-	Long: `Update the config file with the credentials to connect to FME Server. If just a URL is passed in, you will be prompted for a user and password for the FME Server. This will be used to generate an API token that will be saved to the config file for use connecting to FME Server.
-Use the --token flag to pass in an existing API token. It is not recommended to pass the password in on the command line in plaintext.
-This will overwrite any existing credentials saved.
+func newLoginCmd() *cobra.Command {
+	f := loginFlags{}
+	cmd := &cobra.Command{
+		Use:   "login [URL]",
+		Short: "Save credentials for an FME Server",
+		Long: `Update the config file with the credentials to connect to FME Server. If just a URL is passed in, you will be prompted for a user and password for the FME Server. This will be used to generate an API token that will be saved to the config file for use connecting to FME Server.
+	Use the --token flag to pass in an existing API token. It is not recommended to pass the password in on the command line in plaintext.
+	This will overwrite any existing credentials saved.
+	
+	Examples:
+	
+	# Prompt for user and password for the given FME Server URL  
+	fmeserver login https://my-fmeserver.internal
+	
+	# Login to an FME Server using a pre-generated token
+	fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
+	
+	# Login to an FME Server using a passed in user and password
+	fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Usage()
+				return fmt.Errorf("requires a URL")
+			}
+			if len(args) > 1 {
+				cmd.Usage()
+				return fmt.Errorf("accepts at most 1 argument, received %d", len(args))
+			}
+			urlErrorMsg := "invalid FME Server URL specified. URL should be of the form https://myfmeserverhostname.com"
+			url, err := url.ParseRequestURI(args[0])
+			if err != nil {
+				return fmt.Errorf(urlErrorMsg)
+			}
+			if url.Path != "" {
+				return fmt.Errorf(urlErrorMsg)
+			}
+			return nil
+		},
+		RunE: loginRun(&f),
+	}
 
-Examples:
+	cmd.Flags().StringVarP(&f.token, "token", "t", "", "The existing API token to use to connect to FME Server")
+	cmd.Flags().StringVarP(&f.user, "user", "u", "", "The FME Server user to generate an API token for.")
+	cmd.Flags().StringVarP(&f.password, "password", "p", "", "The FME Server password for the user to generate an API token for.")
+	cmd.Flags().IntVar(&f.expiration, "expiration", 2592000, "The length of time to generate the token for in seconds.")
 
-# Prompt for user and password for the given FME Server URL  
-fmeserver login https://my-fmeserver.internal
+	cmd.MarkFlagsRequiredTogether("user", "password")
+	cmd.MarkFlagsMutuallyExclusive("token", "user")
+	cmd.MarkFlagsMutuallyExclusive("token", "password")
 
-# Login to an FME Server using a pre-generated token
-fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
+	return cmd
 
-# Login to an FME Server using a passed in user and password
-fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		return nil
-	},
-	Args: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 1 {
-			rootCmd.SilenceUsage = false
-			return fmt.Errorf("requires a URL")
-		}
-		if len(args) > 1 {
-			rootCmd.SilenceUsage = false
-			return fmt.Errorf("accepts at most 1 argument, received %d", len(args))
-		}
-		urlErrorMsg := "invalid FME Server URL specified. URL should be of the form https://myfmeserverhostname.com"
-		url, err := url.ParseRequestURI(args[0])
-		if err != nil {
-			return fmt.Errorf(urlErrorMsg)
-		}
-		if url.Path != "" {
-			return fmt.Errorf(urlErrorMsg)
-		}
-		return nil
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
+}
+func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		url := args[0]
 		client := &http.Client{}
 
-		if token == "" {
-			if user == "" && password == "" {
+		if f.token == "" {
+			if f.user == "" && f.password == "" {
 				// prompt for a user and password
 				promptUser := &survey.Input{
 					Message: "Username:",
 				}
-				survey.AskOne(promptUser, &user)
+				survey.AskOne(promptUser, &f.user)
 
 				promptPassword := &survey.Password{
 					Message: "Password:",
 				}
-				survey.AskOne(promptPassword, &password)
+				survey.AskOne(promptPassword, &f.password)
 			}
 
 			currentTime := time.Now()
@@ -111,8 +130,8 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 				Restricted:        false,
 				Name:              "fmeserver-cli-" + currentTime.Format("20060102150405"),
 				Description:       "Token generated for use with the fmeserver-cli.",
-				ExpirationTimeout: expiration,
-				User:              user,
+				ExpirationTimeout: f.expiration,
+				User:              f.user,
 				Enabled:           true,
 			}
 
@@ -121,7 +140,7 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 				return err
 			}
 
-			auth := base64.StdEncoding.EncodeToString([]byte(user + ":" + password))
+			auth := base64.StdEncoding.EncodeToString([]byte(f.user + ":" + f.password))
 
 			req, err := http.NewRequest("POST", url+"/fmerest/v3/tokens", strings.NewReader(string(tokenJson)))
 			if err != nil {
@@ -134,7 +153,7 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 			response, err := client.Do(req)
 			if err != nil {
 				return err
-			} else if response.StatusCode != 201 {
+			} else if response.StatusCode != http.StatusCreated {
 				return errors.New(response.Status)
 			}
 
@@ -147,15 +166,15 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 			if err := json.Unmarshal(responseData, &result); err != nil {
 				return err
 			} else {
-				token = result.Token
-				fmt.Println("Successfully generated new token.")
+				f.token = result.Token
+				fmt.Fprintln(cmd.OutOrStdout(), "Successfully generated new token.")
 			}
 
 		}
 
 		// write token and url to config file
 		viper.Set("url", url)
-		viper.Set("token", token)
+		viper.Set("token", f.token)
 
 		request, err := buildFmeServerRequest("/fmerest/v3/info", "GET", nil)
 		if err != nil {
@@ -192,24 +211,11 @@ fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 		if err != nil {
 			return err
 		}
-		fmt.Println("Credentials written to " + viper.ConfigFileUsed())
+		fmt.Fprintln(cmd.OutOrStdout(), "Credentials written to "+viper.ConfigFileUsed())
 
 		return nil
 
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(loginCmd)
-
-	loginCmd.Flags().StringVarP(&token, "token", "t", "", "The existing API token to use to connect to FME Server")
-	loginCmd.Flags().StringVarP(&user, "user", "u", "", "The FME Server user to generate an API token for.")
-	loginCmd.Flags().StringVarP(&password, "password", "p", "", "The FME Server password for the user to generate an API token for.")
-	loginCmd.Flags().IntVar(&expiration, "expiration", 2592000, "The length of time to generate the token for in seconds.")
-
-	loginCmd.MarkFlagsRequiredTogether("user", "password")
-	loginCmd.MarkFlagsMutuallyExclusive("token", "user")
-	loginCmd.MarkFlagsMutuallyExclusive("token", "password")
+	}
 }
 
 func parseFMEBuildString(s string) (int, error) {

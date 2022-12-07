@@ -14,40 +14,63 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var outputBackupFile string
-var backupResourceName string
-var backupExportPackage string
-var backupFailureTopic string
-var backupSuccessTopic string
-var backupResource bool
+type backupFlags struct {
+	outputBackupFile    string
+	backupResourceName  string
+	backupExportPackage string
+	backupFailureTopic  string
+	backupSuccessTopic  string
+	backupResource      bool
+}
 
 type BackupResource struct {
 	Id int `json:"id"`
 }
 
 // backupCmd represents the backup command
-var backupCmd = &cobra.Command{
-	Use:   "backup",
-	Short: "Backs up the FME Server configuration",
-	Long: `Backs up the FME Server configuration to a local file or to a shared resource location on the FME Server.
+func newBackupCmd() *cobra.Command {
+	f := backupFlags{}
+	cmd := &cobra.Command{
+		Use:   "backup",
+		Short: "Backs up the FME Server configuration",
+		Long:  "Backs up the FME Server configuration to a local file or to a shared resource location on the FME Server.",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 
-Examples:
-# back up to a local file
-fmeserver backup -f my_local_backup.fsconfig
+			return nil
+		},
+		Example: `
+  # back up to a local file
+  fmeserver backup -f my_local_backup.fsconfig
+	
+  # back up to the "Backup" folder in the FME Server Shared Resources with the file name my_fme_backup.fsconfig
+  fmeserver backup --resource --export-package my_fme_backup.fsconfig`,
+		Args: NoArgs,
+		RunE: backupRun(&f),
+	}
+	cmd.Flags().StringVarP(&f.outputBackupFile, "file", "f", "ServerConfigPackage.fsconfig", "Path to file to download the backup to.")
+	cmd.Flags().BoolVar(&f.backupResource, "resource", false, "Backup to a shared resource instead of downloading.")
+	cmd.Flags().StringVar(&f.backupResourceName, "resource-name", "FME_SHAREDRESOURCE_BACKUP", "Shared Resource Name where the exported package is saved.")
+	cmd.Flags().StringVar(&f.backupExportPackage, "export-package", "ServerConfigPackage.fsconfig", "Path and name of the export package.")
+	cmd.Flags().StringVar(&f.backupFailureTopic, "failure-topic", "", "Topic to notify on failure of the backup. Default is MIGRATION_ASYNC_JOB_FAILURE")
+	cmd.Flags().StringVar(&f.backupSuccessTopic, "success-topic", "", "Topic to notify on success of the backup. Default is MIGRATION_ASYNC_JOB_SUCCESS")
+	cmd.MarkFlagsMutuallyExclusive("file", "resource")
+	cmd.MarkFlagsMutuallyExclusive("file", "resource-name")
+	cmd.MarkFlagsMutuallyExclusive("file", "export-package")
+	cmd.MarkFlagsMutuallyExclusive("file", "failure-topic")
+	cmd.MarkFlagsMutuallyExclusive("file", "success-topic")
+	return cmd
+}
 
-# back up to the "Backup" folder in the FME Server Shared Resources with the file name my_fme_backup.fsconfig
-fmeserver backup --resource --export-package my_fme_backup.fsconfig
-`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func backupRun(f *backupFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
 
-		if !backupResource {
+		if !f.backupResource {
 
 			// add mandatory values
 			data := url.Values{
-				"exportPackageName": {outputBackupFile},
+				"exportPackageName": {f.outputBackupFile},
 			}
 
 			request, err := buildFmeServerRequest("/fmerest/v3/migration/backup/download", "POST", strings.NewReader(data.Encode()))
@@ -58,7 +81,7 @@ fmeserver backup --resource --export-package my_fme_backup.fsconfig
 			request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 			request.Header.Add("Accept", "application/octet-stream")
 
-			fmt.Println("Downloading backup file...")
+			fmt.Fprintln(cmd.OutOrStdout(), "Downloading backup file...")
 
 			response, err := client.Do(&request)
 			if err != nil {
@@ -69,7 +92,7 @@ fmeserver backup --resource --export-package my_fme_backup.fsconfig
 			defer response.Body.Close()
 
 			// Create the output file
-			out, err := os.Create(outputBackupFile)
+			out, err := os.Create(f.outputBackupFile)
 			if err != nil {
 				return err
 			}
@@ -81,21 +104,21 @@ fmeserver backup --resource --export-package my_fme_backup.fsconfig
 				return err
 			}
 
-			fmt.Println("FME Server backed up to " + outputBackupFile)
+			fmt.Fprintln(cmd.OutOrStdout(), "FME Server backed up to "+f.outputBackupFile)
 		} else {
 			// backup to a resource
 			// add mandatory values
 			data := url.Values{
-				"exportPackage": {backupExportPackage},
-				"resourceName":  {backupResourceName},
+				"exportPackage": {f.backupExportPackage},
+				"resourceName":  {f.backupResourceName},
 			}
 
 			// add optional values
-			if backupSuccessTopic != "" {
-				data.Add("successTopic", backupSuccessTopic)
+			if f.backupSuccessTopic != "" {
+				data.Add("successTopic", f.backupSuccessTopic)
 			}
-			if backupFailureTopic != "" {
-				data.Add("failureTopic", backupFailureTopic)
+			if f.backupFailureTopic != "" {
+				data.Add("failureTopic", f.backupFailureTopic)
 			}
 
 			request, err := buildFmeServerRequest("/fmerest/v3/migration/backup/resource", "POST", strings.NewReader(data.Encode()))
@@ -108,7 +131,7 @@ fmeserver backup --resource --export-package my_fme_backup.fsconfig
 			response, err := client.Do(&request)
 			if err != nil {
 				return err
-			} else if response.StatusCode != 202 {
+			} else if response.StatusCode != http.StatusAccepted {
 				return errors.New(response.Status)
 			}
 
@@ -122,24 +145,12 @@ fmeserver backup --resource --export-package my_fme_backup.fsconfig
 				return err
 			} else {
 				if !jsonOutput {
-					fmt.Println("Backup task submitted with id: " + strconv.Itoa(result.Id))
+					fmt.Fprintln(cmd.OutOrStdout(), "Backup task submitted with id: "+strconv.Itoa(result.Id))
 				} else {
-					fmt.Println(string(responseData))
+					fmt.Fprintln(cmd.OutOrStdout(), string(responseData))
 				}
 			}
 		}
-
 		return nil
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(backupCmd)
-	backupCmd.Flags().StringVarP(&outputBackupFile, "file", "f", "ServerConfigPackage.fsconfig", "Path to file to download the backup to.")
-	backupCmd.Flags().BoolVar(&backupResource, "resource", false, "Backup to a shared resource instead of downloading.")
-	backupCmd.Flags().StringVar(&backupResourceName, "resource-name", "FME_SHAREDRESOURCE_BACKUP", "Shared Resource Name where the exported package is saved.")
-	backupCmd.Flags().StringVar(&backupExportPackage, "export-package", "/ServerConfigPackage.fsconfig", "Path and name of the export package.")
-	backupCmd.Flags().StringVar(&backupFailureTopic, "failure-topic", "", "Topic to notify on failure of the backup. Default is MIGRATION_ASYNC_JOB_FAILURE")
-	backupCmd.Flags().StringVar(&backupSuccessTopic, "success-topic", "", "Topic to notify on success of the backup. Default is MIGRATION_ASYNC_JOB_SUCCESS")
-
+	}
 }

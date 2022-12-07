@@ -12,8 +12,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-var ready bool
-var apiVersion apiVersionFlag
+type healthcheckFlags struct {
+	ready      bool
+	apiVersion apiVersionFlag
+}
 
 type HealthcheckV3 struct {
 	Status string `json:"status"`
@@ -27,41 +29,52 @@ type HealthcheckV4 struct {
 var healthcheckV4BuildThreshold = 23139
 
 // healthcheckCmd represents the healthcheck command
-var healthcheckCmd = &cobra.Command{
-	Use:   "healthcheck",
-	Short: "Retrieves the health status of FME Server",
-	Long: `Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. Load balancer or other systems can monitor FME Server using this endpoint without supplying token or password credentials.
-	
-Examples:
-# Check if the FME Server is healthy and accepting requests
-fmeserver healthcheck
+func newHealthcheckCmd() *cobra.Command {
+	f := healthcheckFlags{}
+	cmd := &cobra.Command{
+		Use:   "healthcheck",
+		Short: "Retrieves the health status of FME Server",
+		Long:  "Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. Load balancer or other systems can monitor FME Server using this endpoint without supplying token or password credentials.",
+		Example: `
+  # Check if the FME Server is healthy and accepting requests
+  fmeserver healthcheck
+		
+  # Check if the FME Server is healthy and ready to process jobs
+  fmeserver healthcheck --ready
+		
+  # Check if the FME Server is healthy and output in json
+  fmeserver healthcheck --json`,
+		Args: NoArgs,
+		RunE: healthcheckRun(&f),
+	}
+	cmd.Flags().BoolVar(&f.ready, "ready", false, "The health check will report the status of FME Server if it is ready to process jobs.")
+	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
+	cmd.Flags().MarkHidden("api-version")
+	cmd.RegisterFlagCompletionFunc("api-version", apiVersionFlagCompletion)
+	return cmd
+}
 
-# Check if the FME Server is healthy and ready to run jobs
-fmeserver healthcheck --ready
-
-# Check if the FME Server is healthy and output in json
-fmeserver healthcheck --json`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 
 		// set up http
 		client := &http.Client{}
 
 		// get build to decide if we should use v3 or v4
 		// FME Server 2023.0 and later can use v4. Otherwise fall back to v3
-		if apiVersion == "" {
+		if f.apiVersion == "" {
 			fmeserverBuild := viper.GetInt("build")
 			if fmeserverBuild < healthcheckV4BuildThreshold {
-				apiVersion = apiVersionFlagV3
+				f.apiVersion = apiVersionFlagV3
 			} else {
-				apiVersion = apiVersionFlagV4
+				f.apiVersion = apiVersionFlagV4
 			}
 		}
 
 		endpoint := ""
-		if apiVersion == "v4" {
+		if f.apiVersion == "v4" {
 			endpoint = "/fmeapiv4/healthcheck"
-			if ready {
+			if f.ready {
 				endpoint += "/readiness"
 			} else {
 				endpoint += "/liveness"
@@ -93,14 +106,14 @@ fmeserver healthcheck --json`,
 				if noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 			} else if outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			} else {
 				return errors.New("invalid output format specified")
 			}
@@ -109,9 +122,9 @@ fmeserver healthcheck --json`,
 			}
 			return nil
 
-		} else if apiVersion == "v3" {
+		} else if f.apiVersion == "v3" {
 			endpoint = "/fmerest/v3/healthcheck"
-			if ready {
+			if f.ready {
 				endpoint += "?ready=true"
 			}
 
@@ -137,13 +150,13 @@ fmeserver healthcheck --json`,
 			}
 			status = resultV3.Status
 			if !jsonOutput {
-				fmt.Println(status)
+				fmt.Fprintln(cmd.OutOrStdout(), status)
 			} else if outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			} else {
 				return errors.New("invalid output format specified")
 			}
@@ -155,13 +168,5 @@ fmeserver healthcheck --json`,
 		} else {
 			return fmt.Errorf("invalid apiVersion")
 		}
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(healthcheckCmd)
-	healthcheckCmd.Flags().BoolVar(&ready, "ready", false, "The health check will report the status of FME Server if it is ready to process jobs.")
-	healthcheckCmd.Flags().Var(&apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
-	healthcheckCmd.Flags().MarkHidden("api-version")
-	healthcheckCmd.RegisterFlagCompletionFunc("api-version", apiVersionFlagCompletion)
+	}
 }

@@ -37,32 +37,49 @@ type Engines struct {
 	Items      []Engine `json:"items"`
 }
 
-var count bool
+type engineFlags struct {
+	count      bool
+	outputType string
+	noHeaders  bool
+}
 
 // enginesCmd represents the engines command
-var enginesCmd = &cobra.Command{
-	Use:   "engines",
-	Short: "Get information about the FME Engines",
-	Long: `Gets information and status about FME Engines currently connected to FME Server
+func newEnginesCmd() *cobra.Command {
+	f := engineFlags{}
+	cmd := &cobra.Command{
+		Use:   "engines",
+		Short: "Get information about the FME Engines",
+		Long:  "Gets information and status about FME Engines currently connected to FME Server",
+		Example: `
+  # List all engines
+  fmeserver engines
 	
-Examples:
+  # Output number of engines
+  fmeserver engines --count
+	
+  # Output engines in json form
+  fmeserver engines --json
+	
+  # Output just the names of the engines with no column headers
+  fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
+		Args: NoArgs,
+		RunE: enginesRun(&f),
+	}
+	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	cmd.Flags().BoolVar(&f.count, "count", false, "Prints the total count of engines.")
+	cmd.MarkFlagsMutuallyExclusive("output", "count")
+	cmd.MarkFlagsMutuallyExclusive("no-headers", "count")
+	//enginesCmd.MarkFlagsMutuallyExclusive("json", "count")
+	return cmd
 
-# List all engines
-fmeserver engines
+}
 
-# Output number of engines
-fmeserver engines --count
-
-# Output engines in json form
-fmeserver engines --json
-
-# Output just the names of the engines with no column headers
-fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func enginesRun(f *engineFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
-			outputType = "json"
+			f.outputType = "json"
 		}
 		// set up http
 		client := &http.Client{}
@@ -88,10 +105,10 @@ fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
 		if err := json.Unmarshal(responseData, &result); err != nil {
 			return err
 		} else {
-			if count {
+			if f.count {
 				// simply return the count of engines
-				fmt.Println(result.TotalCount)
-			} else if outputType == "table" { // output a table with some default fields selected
+				fmt.Fprintln(cmd.OutOrStdout(), result.TotalCount)
+			} else if f.outputType == "table" { // output a table with some default fields selected
 				t := table.NewWriter()
 				t.SetStyle(defaultStyle)
 
@@ -100,23 +117,23 @@ fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
 				for _, element := range result.Items {
 					t.AppendRow(table.Row{element.InstanceName, element.HostName, element.BuildNumber, element.Platform, element.Type, element.CurrentJobID, element.RegistrationProperties, element.AssignedQueues})
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 				// output the raw json but formatted
-			} else if outputType == "json" {
+			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 
-			} else if strings.HasPrefix(outputType, "custom-columns") {
+			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
-				if strings.HasPrefix(outputType, "custom-columns=") {
-					columnsString = outputType[len("custom-columns="):]
+				if strings.HasPrefix(f.outputType, "custom-columns=") {
+					columnsString = f.outputType[len("custom-columns="):]
 				}
 				if len(columnsString) == 0 {
 					return errors.New("custom-columns format specified but no custom columns given")
@@ -139,10 +156,10 @@ fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
 				if err != nil {
 					return err
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 			} else {
 				return errors.New("invalid output format specified")
@@ -150,15 +167,5 @@ fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
 
 		}
 		return nil
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(enginesCmd)
-	enginesCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
-	enginesCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
-	enginesCmd.Flags().BoolVar(&count, "count", false, "Prints the total count of engines.")
-	enginesCmd.MarkFlagsMutuallyExclusive("output", "count")
-	enginesCmd.MarkFlagsMutuallyExclusive("no-headers", "count")
-	//enginesCmd.MarkFlagsMutuallyExclusive("json", "count")
+	}
 }

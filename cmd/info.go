@@ -19,28 +19,40 @@ type FMEServerInfo struct {
 	Version           string `json:"version"`
 }
 
-// infoCmd represents the info command
-var infoCmd = &cobra.Command{
-	Use:   "info",
-	Short: "Retrieves build, version and time information about FME Server",
-	Long: `Retrieves build, version and time information about FME Server
+type infoFlags struct {
+	outputType string
+	noHeaders  bool
+}
 
-Examples:
+func newInfoCmd() *cobra.Command {
+	f := infoFlags{}
+	cmd := &cobra.Command{
+		Use:   "info",
+		Short: "Retrieves build, version and time information about FME Server",
+		Long:  "Retrieves build, version and time information about FME Server",
+		Example: `
+  # Output FME Server information in a table
+  fmeserver info
 
-# Output FME Server information in a table
-fmeserver info
+  # Output FME Server information in json
+  fmeserver info --json
 
-# Output FME Server information in json
-fmeserver info --json
+  # Output just the build string with no column headers
+  fmeserver info --output=custom-columns="BUILD:.build" --no-headers
+	`,
+		Args: NoArgs,
+		RunE: infoRun(&f),
+	}
+	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	return cmd
+}
 
-# Output just the build string with no column headers
-fmeserver info --output=custom-columns="BUILD:.build" --no-headers
-`,
-	Args: NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
 		if jsonOutput {
-			outputType = "json"
+			f.outputType = "json"
 		}
 
 		// set up http
@@ -67,7 +79,7 @@ fmeserver info --output=custom-columns="BUILD:.build" --no-headers
 		if err := json.Unmarshal(responseData, &result); err != nil {
 			return err
 		} else {
-			if outputType == "table" {
+			if f.outputType == "table" {
 
 				// output all values returned by the JSON in a table
 				t := createTableWithDefaultColumns(result)
@@ -75,19 +87,19 @@ fmeserver info --output=custom-columns="BUILD:.build" --no-headers
 				if noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
-			} else if outputType == "json" {
+			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
-			} else if strings.HasPrefix(outputType, "custom-columns") {
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
-				if strings.HasPrefix(outputType, "custom-columns=") {
-					columnsString = outputType[len("custom-columns="):]
+				if strings.HasPrefix(f.outputType, "custom-columns=") {
+					columnsString = f.outputType[len("custom-columns="):]
 				}
 				if len(columnsString) == 0 {
 					return errors.New("custom-columns format specified but no custom columns given")
@@ -110,7 +122,7 @@ fmeserver info --output=custom-columns="BUILD:.build" --no-headers
 				if noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 			} else {
 				return errors.New("invalid output format specified")
@@ -118,11 +130,5 @@ fmeserver info --output=custom-columns="BUILD:.build" --no-headers
 
 		}
 		return nil
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(infoCmd)
-	infoCmd.Flags().StringVarP(&outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
-	infoCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Don't print column headers")
+	}
 }
