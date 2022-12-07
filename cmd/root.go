@@ -18,6 +18,11 @@ var jsonOutput bool
 var outputType string
 var noHeaders bool
 
+const notSet string = "not set"
+
+// this information will be collected at build time, by `-ldflags "-X github.com/safesoftare/fmeserver-cli/cmd.appVersion=0.1"`
+var appVersion = notSet
+
 var ErrSilent = errors.New("ErrSilent")
 
 // rootCmd represents the base command when called without any subcommands
@@ -28,7 +33,7 @@ func NewRootCommand() *cobra.Command {
 		Use:           "fmeserver",
 		Short:         "A command line interface for interacting with FME Server.",
 		Long:          `A command line interface for interacting with FME Server.`,
-		Version:       "0.4",
+		Version:       appVersion,
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
