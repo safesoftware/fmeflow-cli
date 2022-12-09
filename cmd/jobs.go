@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,34 +14,36 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type JobStatus struct {
+	Request       JobRequest `json:"request"`
+	TimeDelivered time.Time  `json:"timeDelivered"`
+	Workspace     string     `json:"workspace"`
+	NumErrors     int        `json:"numErrors"`
+	NumLines      int        `json:"numLines"`
+	EngineHost    string     `json:"engineHost"`
+	TimeQueued    time.Time  `json:"timeQueued"`
+	CPUPct        float64    `json:"cpuPct"`
+	Description   string     `json:"description"`
+	TimeStarted   time.Time  `json:"timeStarted"`
+	Repository    string     `json:"repository"`
+	UserName      string     `json:"userName"`
+	Result        JobResult  `json:"result"`
+	CPUTime       int        `json:"cpuTime"`
+	ID            int        `json:"id"`
+	TimeFinished  time.Time  `json:"timeFinished"`
+	EngineName    string     `json:"engineName"`
+	NumWarnings   int        `json:"numWarnings"`
+	TimeSubmitted time.Time  `json:"timeSubmitted"`
+	ElapsedTime   int        `json:"elapsedTime"`
+	PeakMemUsage  int        `json:"peakMemUsage"`
+	Status        string     `json:"status"`
+}
+
 type Jobs struct {
-	Offset     int `json:"offset"`
-	Limit      int `json:"limit"`
-	TotalCount int `json:"totalCount"`
-	Items      []struct {
-		Request       Job       `json:"request"`
-		TimeDelivered time.Time `json:"timeDelivered"`
-		Workspace     string    `json:"workspace"`
-		NumErrors     int       `json:"numErrors"`
-		NumLines      int       `json:"numLines"`
-		EngineHost    string    `json:"engineHost"`
-		TimeQueued    time.Time `json:"timeQueued"`
-		CPUPct        float64   `json:"cpuPct"`
-		Description   string    `json:"description"`
-		TimeStarted   time.Time `json:"timeStarted"`
-		Repository    string    `json:"repository"`
-		UserName      string    `json:"userName"`
-		Result        JobResult `json:"result"`
-		CPUTime       int       `json:"cpuTime"`
-		ID            int       `json:"id"`
-		TimeFinished  time.Time `json:"timeFinished"`
-		EngineName    string    `json:"engineName"`
-		NumWarnings   int       `json:"numWarnings"`
-		TimeSubmitted time.Time `json:"timeSubmitted"`
-		ElapsedTime   int       `json:"elapsedTime"`
-		PeakMemUsage  int       `json:"peakMemUsage"`
-		Status        string    `json:"status"`
-	} `json:"items"`
+	Offset     int         `json:"offset"`
+	Limit      int         `json:"limit"`
+	TotalCount int         `json:"totalCount"`
+	Items      []JobStatus `json:"items"`
 }
 
 type jobsFlags struct {
@@ -56,6 +59,7 @@ type jobsFlags struct {
 	jobsWorkspace  string
 	jobsSourceID   string
 	jobsSourceType string
+	jobId          int
 }
 
 func newJobsCmd() *cobra.Command {
@@ -103,9 +107,20 @@ func newJobsCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.jobsSourceID, "source-id", "", "If specified along with source type, only jobs from the specified type with the specified id will be returned. For Automations, the source id is the automation id. For WorkspaceSubscriber, the source id is the id of the subscription. For Scheduler, the source id is the category and name of the schedule separated by '/'. For example, 'Category/Name'.")
 	cmd.Flags().StringVar(&f.jobsSourceType, "source-type", "", "If specified, only jobs run by this source type will be returned.")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	cmd.Flags().IntVar(&f.jobId, "id", -1, "Specify the job id to display")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 	cmd.MarkFlagsMutuallyExclusive("queued", "active")
 	cmd.MarkFlagsMutuallyExclusive("running", "active")
+	cmd.MarkFlagsMutuallyExclusive("id", "running")
+	cmd.MarkFlagsMutuallyExclusive("id", "completed")
+	cmd.MarkFlagsMutuallyExclusive("id", "queued")
+	cmd.MarkFlagsMutuallyExclusive("id", "all")
+	cmd.MarkFlagsMutuallyExclusive("id", "active")
+	cmd.MarkFlagsMutuallyExclusive("id", "repository")
+	cmd.MarkFlagsMutuallyExclusive("id", "workspace")
+	cmd.MarkFlagsMutuallyExclusive("id", "user-name")
+	cmd.MarkFlagsMutuallyExclusive("id", "source-id")
+	cmd.MarkFlagsMutuallyExclusive("id", "source-type")
 	return cmd
 
 }
@@ -116,7 +131,7 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 		if jsonOutput {
 			f.outputType = "json"
 		}
-		if !f.jobsActive && !f.jobsCompleted && !f.jobsQueued && !f.jobsRunning && !f.jobsAll {
+		if !f.jobsActive && !f.jobsCompleted && !f.jobsQueued && !f.jobsRunning && !f.jobsAll && f.jobId == -1 {
 			// if no filter is passed in, show all jobs
 			f.jobsAll = true
 		}
@@ -146,6 +161,34 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 			err := getJobs("/fmerest/v3/transformations/jobs/queued", &allJobs, f)
 			if err != nil {
 				return err
+			}
+		}
+
+		if f.jobId != -1 {
+			client := &http.Client{}
+			request, err := buildFmeServerRequest("/fmerest/v3/transformations/jobs/id/"+strconv.Itoa(f.jobId), "GET", nil)
+			if err != nil {
+				return err
+			}
+			response, err := client.Do(&request)
+			if err != nil {
+				return err
+			}
+
+			responseData, err := io.ReadAll(response.Body)
+			if err != nil {
+				return err
+			} else if response.StatusCode != 200 {
+				return errors.New(response.Status)
+			}
+
+			var result JobStatus
+			if err := json.Unmarshal(responseData, &result); err != nil {
+				return err
+			} else {
+				// merge with existing jobs
+				allJobs.TotalCount = 1
+				allJobs.Items = append(allJobs.Items, result)
 			}
 		}
 
