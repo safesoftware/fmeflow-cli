@@ -342,6 +342,101 @@ func TestJobs(t *testing.T) {
 		]
 	 }`
 
+	responseV3SingleJob := `{
+		"request": {
+			"TMDirectives": {
+			"rtc": false,
+			"ttc": -1,
+			"tag": "Default",
+			"ttl": -1
+			},
+			"NMDirectives": {}
+		},
+		"timeDelivered": "2022-12-07T21:23:12Z",
+		"workspace": "none2none.fmw",
+		"numErrors": 0,
+		"numLines": 0,
+		"engineHost": "145929514b24",
+		"timeQueued": "2022-12-07T21:22:48Z",
+		"cpuPct": 0,
+		"description": "",
+		"timeStarted": "2022-12-07T21:22:48Z",
+		"repository": "test",
+		"userName": "admin",
+		"result": {
+			"timeRequested": "2022-12-07T21:22:48Z",
+			"requesterResultPort": -1,
+			"numFeaturesOutput": 0,
+			"requesterHost": "172.19.0.5",
+			"timeStarted": "2022-12-07T21:22:48Z",
+			"id": 1,
+			"timeFinished": "2022-12-07T21:23:12Z",
+			"priority": -1,
+			"statusMessage": "Job cancelled. ",
+			"status": "ABORTED"
+		},
+		"cpuTime": 0,
+		"id": 1,
+		"timeFinished": "2022-12-07T21:23:12Z",
+		"engineName": "145929514b24",
+		"numWarnings": 0,
+		"timeSubmitted": "2022-12-07T21:22:48Z",
+		"elapsedTime": 0,
+		"peakMemUsage": 0,
+		"status": "ABORTED"
+	}`
+
+	responseV3SingleJobOutput := `{
+		"offset": 0,
+		"limit": 0,
+		"totalCount": 1,
+		"items": [
+		  {
+			"request": {
+			  "TMDirectives": {
+				"rtc": false,
+				"ttc": -1,
+				"tag": "Default",
+				"ttl": -1
+			  },
+			  "NMDirectives": {}
+			},
+			"timeDelivered": "2022-12-07T21:23:12Z",
+			"workspace": "none2none.fmw",
+			"numErrors": 0,
+			"numLines": 0,
+			"engineHost": "145929514b24",
+			"timeQueued": "2022-12-07T21:22:48Z",
+			"cpuPct": 0,
+			"description": "",
+			"timeStarted": "2022-12-07T21:22:48Z",
+			"repository": "test",
+			"userName": "admin",
+			"result": {
+			  "timeRequested": "2022-12-07T21:22:48Z",
+			  "requesterResultPort": -1,
+			  "numFeaturesOutput": 0,
+			  "requesterHost": "172.19.0.5",
+			  "timeStarted": "2022-12-07T21:22:48Z",
+			  "id": 1,
+			  "timeFinished": "2022-12-07T21:23:12Z",
+			  "priority": -1,
+			  "statusMessage": "Job cancelled. ",
+			  "status": "ABORTED"
+			},
+			"cpuTime": 0,
+			"id": 1,
+			"timeFinished": "2022-12-07T21:23:12Z",
+			"engineName": "145929514b24",
+			"numWarnings": 0,
+			"timeSubmitted": "2022-12-07T21:22:48Z",
+			"elapsedTime": 0,
+			"peakMemUsage": 0,
+			"status": "ABORTED"
+		  }
+		]
+	  }`
+
 	customHttpServerHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		if strings.Contains(r.URL.Path, "active") {
@@ -507,6 +602,26 @@ func TestJobs(t *testing.T) {
 			body:            responseV3Completed,
 			args:            []string{"jobs", "--completed", "--output", "custom-columns=CPU:.cpuTime,FEATURES OUTPUT:.result.numFeaturesOutput"},
 			wantOutputRegex: "^[\\s]*CPU[\\s]*FEATURES OUTPUT[\\s]*994[\\s]*49[\\s]*697[\\s]*0[\\s]*$",
+		},
+		{
+			name:            "get single job",
+			statusCode:      http.StatusOK,
+			args:            []string{"jobs", "--id", "1"},
+			body:            responseV3SingleJob,
+			wantOutputRegex: "^[\\s]*JOB ID[\\s]*ENGINE NAME[\\s]*WORKSPACE[\\s]*STATUS[\\s]*1[\\s]*145929514b24[\\s]*none2none.fmw[\\s]*ABORTED[\\s]*$",
+		},
+		{
+			name:           "get single job json",
+			statusCode:     http.StatusOK,
+			args:           []string{"jobs", "--id", "1", "--json"},
+			body:           responseV3SingleJob,
+			wantOutputJson: responseV3SingleJobOutput,
+		},
+		{
+			name:        "get single job does not exist",
+			statusCode:  http.StatusNotFound,
+			args:        []string{"jobs", "--id", "243"},
+			wantErrText: "404 Not Found",
 		},
 	}
 

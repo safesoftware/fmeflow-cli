@@ -41,7 +41,7 @@ type JobId struct {
 	Id int `json:"id"`
 }
 
-type Job struct {
+type JobRequest struct {
 	PublishedParameters    []interface{}     `json:"-"`
 	RawPublishedParameters []json.RawMessage `json:"publishedParameters,omitempty"`
 	TMDirectives           struct {
@@ -158,7 +158,7 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 		var responseData []byte
 
 		if f.runSourceData == "" {
-			job := &Job{}
+			job := &JobRequest{}
 
 			// get published parameters
 			for _, parameter := range f.runPublishedParameter {
