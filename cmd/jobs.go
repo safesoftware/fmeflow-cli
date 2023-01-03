@@ -165,30 +165,9 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 		}
 
 		if f.jobId != -1 {
-			client := &http.Client{}
-			request, err := buildFmeServerRequest("/fmerest/v3/transformations/jobs/id/"+strconv.Itoa(f.jobId), "GET", nil)
+			err := getJobs("/fmerest/v3/transformations/jobs/id/"+strconv.Itoa(f.jobId), &allJobs, f)
 			if err != nil {
 				return err
-			}
-			response, err := client.Do(&request)
-			if err != nil {
-				return err
-			}
-
-			responseData, err := io.ReadAll(response.Body)
-			if err != nil {
-				return err
-			} else if response.StatusCode != 200 {
-				return errors.New(response.Status)
-			}
-
-			var result JobStatus
-			if err := json.Unmarshal(responseData, &result); err != nil {
-				return err
-			} else {
-				// merge with existing jobs
-				allJobs.TotalCount = 1
-				allJobs.Items = append(allJobs.Items, result)
 			}
 		}
 
@@ -300,13 +279,24 @@ func getJobs(endpoint string, allJobs *Jobs, f *jobsFlags) error {
 		return errors.New(response.Status)
 	}
 
-	var result Jobs
-	if err := json.Unmarshal(responseData, &result); err != nil {
-		return err
+	if f.jobId == -1 {
+		var result Jobs
+		if err := json.Unmarshal(responseData, &result); err != nil {
+			return err
+		} else {
+			// merge with existing jobs
+			allJobs.TotalCount += result.TotalCount
+			allJobs.Items = append(allJobs.Items, result.Items...)
+		}
 	} else {
-		// merge with existing jobs
-		allJobs.TotalCount += result.TotalCount
-		allJobs.Items = append(allJobs.Items, result.Items...)
+		var result JobStatus
+		if err := json.Unmarshal(responseData, &result); err != nil {
+			return err
+		} else {
+			allJobs.TotalCount += 1
+			allJobs.Items = append(allJobs.Items, result)
+		}
 	}
+
 	return nil
 }
