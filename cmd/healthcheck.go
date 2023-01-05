@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -14,6 +15,8 @@ import (
 
 type healthcheckFlags struct {
 	ready      bool
+	outputType string
+	noHeaders  bool
 	apiVersion apiVersionFlag
 }
 
@@ -43,12 +46,17 @@ func newHealthcheckCmd() *cobra.Command {
   fmeserver healthcheck --ready
 		
   # Check if the FME Server is healthy and output in json
-  fmeserver healthcheck --json`,
+  fmeserver healthcheck --json
+  
+  # Check that the FME Server is healthy and output just the status
+  fmeserver healthcheck --output=custom-columns=STATUS:.status`,
 		Args: NoArgs,
 		RunE: healthcheckRun(&f),
 	}
 	cmd.Flags().BoolVar(&f.ready, "ready", false, "The health check will report the status of FME Server if it is ready to process jobs.")
 	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
+	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 	cmd.Flags().MarkHidden("api-version")
 	cmd.RegisterFlagCompletionFunc("api-version", apiVersionFlagCompletion)
 	return cmd
@@ -56,6 +64,10 @@ func newHealthcheckCmd() *cobra.Command {
 
 func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		// --json overrides --output
+		if jsonOutput {
+			f.outputType = "json"
+		}
 
 		// set up http
 		client := &http.Client{}
@@ -100,7 +112,7 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 			if err := json.Unmarshal(responseData, &resultV4); err != nil {
 				return err
 			}
-			if !jsonOutput {
+			if f.outputType == "table" {
 				t := createTableWithDefaultColumns(resultV4)
 
 				if noHeaders {
@@ -108,12 +120,41 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
-			} else if outputType == "json" {
+			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+			} else if strings.HasPrefix(f.outputType, "custom-columns") {
+				// parse the columns and json queries
+				columnsString := ""
+				if strings.HasPrefix(f.outputType, "custom-columns=") {
+					columnsString = f.outputType[len("custom-columns="):]
+				}
+				if len(columnsString) == 0 {
+					return errors.New("custom-columns format specified but no custom columns given")
+				}
+
+				// we have to marshal the Items array, then create an array of marshalled items
+				// to pass to the creation of the table.
+				marshalledItems := [][]byte{}
+				mJson, err := json.Marshal(resultV4)
+				if err != nil {
+					return err
+				}
+				marshalledItems = append(marshalledItems, mJson)
+
+				columnsInput := strings.Split(columnsString, ",")
+				t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+				if err != nil {
+					return err
+				}
+				if noHeaders {
+					t.ResetHeaders()
+				}
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+
 			} else {
 				return errors.New("invalid output format specified")
 			}
@@ -149,14 +190,17 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 				return err
 			}
 			status = resultV3.Status
-			if !jsonOutput {
+			if f.outputType == "table" {
 				fmt.Fprintln(cmd.OutOrStdout(), status)
-			} else if outputType == "json" {
+			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+			} else if strings.HasPrefix(f.outputType, "custom-columns") {
+				// since V3 only returns a single json parameter, we won't support the custom-columns output type
+				return errors.New("custom-columns format not valid with V3 API")
 			} else {
 				return errors.New("invalid output format specified")
 			}
