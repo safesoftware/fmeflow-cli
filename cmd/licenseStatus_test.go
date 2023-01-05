@@ -67,7 +67,7 @@ func TestLicenseStatus(t *testing.T) {
 			name:            "get license status custom columns",
 			statusCode:      http.StatusOK,
 			body:            responseV3,
-			args:            []string{"license", "status", "--output", "custom-columns=SERIAL:.serialNumber,LICENSED:.isLicensed"},
+			args:            []string{"license", "status", "--output", "custom-columns=SERIAL:$.serialNumber,LICENSED:$.isLicensed"},
 			wantOutputRegex: "^[\\s]*SERIAL[\\s]*LICENSED[\\s]*AAAA-AAAA-AAAA[\\s]*true[\\s]*$",
 		},
 	}

@@ -88,7 +88,7 @@ func TestRepositories(t *testing.T) {
 		{
 			name:            "get repositories custom columns",
 			statusCode:      http.StatusOK,
-			args:            []string{"repositories", "--output=custom-columns=NAME:.name"},
+			args:            []string{"repositories", "--output=custom-columns=NAME:$.name"},
 			body:            responseV3,
 			wantOutputRegex: "^[\\s]*NAME[\\s]*Dashboards[\\s]*Samples[\\s]*test[\\s]*Utilities[\\s]*$",
 		},

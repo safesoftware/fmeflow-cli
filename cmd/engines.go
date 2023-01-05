@@ -61,7 +61,7 @@ func newEnginesCmd() *cobra.Command {
   fmeserver engines --json
 	
   # Output just the names of the engines with no column headers
-  fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
+  fmeserver engines --output=custom-columns=NAME:$.instanceName --no-headers`,
 		Args: NoArgs,
 		RunE: enginesRun(&f),
 	}

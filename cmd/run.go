@@ -110,7 +110,7 @@ func newRunCmd() *cobra.Command {
 	fmeserver run --repository Samples --workspace austinDownload.fmw --published-parameter THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
 	
 	# Submit a job, wait for it to complete, and customize the output
-	fmeserver run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
+	fmeserver run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:$.timeRequested,Time Started:$.timeStarted,Time Finished:$.timeFinished"
 	
 	# Upload a local file to use as the source data for the translation
 	fmeserver run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait`,

@@ -600,7 +600,7 @@ func TestJobs(t *testing.T) {
 			name:            "get jobs completed custom columns",
 			statusCode:      http.StatusOK,
 			body:            responseV3Completed,
-			args:            []string{"jobs", "--completed", "--output", "custom-columns=CPU:.cpuTime,FEATURES OUTPUT:.result.numFeaturesOutput"},
+			args:            []string{"jobs", "--completed", "--output", "custom-columns=CPU:$.cpuTime,FEATURES OUTPUT:$.result.numFeaturesOutput"},
 			wantOutputRegex: "^[\\s]*CPU[\\s]*FEATURES OUTPUT[\\s]*994[\\s]*49[\\s]*697[\\s]*0[\\s]*$",
 		},
 		{

@@ -51,7 +51,7 @@ func newRepositoryCmd() *cobra.Command {
 	fmeserver repositories --name Samples
 	
 	# Output just the name of all the repositories
-	fmeserver repositories --output=custom-columns=NAME:.name --no-headers
+	fmeserver repositories --output=custom-columns=NAME:$.name --no-headers
 	
 	# Output all repositories in json format
 	fmeserver repositories --json`,

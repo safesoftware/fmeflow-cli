@@ -4,14 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
-
-var jsonRegexp = regexp.MustCompile(`^\{\.?([^{}]+)\}$|^\.?([^{}]+)$`)
 
 // This will create a table object and return it with the columns and queries specified by columnsInput
 // applied to the jsonItems array
@@ -28,12 +25,9 @@ func createTableFromCustomColumns(jsonItems [][]byte, columnsInput []string) (ta
 			if !strings.Contains(column, ":") {
 				return nil, errors.New("custom column \"" + column + "\" syntax invalid")
 			}
-			headerQueryArr := strings.Split(column, ":")
-			columnHeader := headerQueryArr[0]
-			columnQuery, err := massageQuery(headerQueryArr[1])
-			if err != nil {
-				return nil, err
-			}
+			// split on the first instance of ":"
+			columnHeader, columnQuery, _ := strings.Cut(column, ":")
+
 			if first {
 				headers = append(headers, columnHeader)
 			}
@@ -43,7 +37,7 @@ func createTableFromCustomColumns(jsonItems [][]byte, columnsInput []string) (ta
 
 			test, err := jsonpath.Get(columnQuery, v)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("error parsing JSON Query for custom column: %w", err)
 			}
 			row = append(row, test)
 		}
@@ -53,20 +47,4 @@ func createTableFromCustomColumns(jsonItems [][]byte, columnsInput []string) (ta
 	}
 	t.AppendHeader(headers)
 	return t, nil
-}
-func massageQuery(q string) (string, error) {
-	submatches := jsonRegexp.FindStringSubmatch(q)
-	if submatches == nil {
-		return "", errors.New("unexpected path string, expected a 'name1.name2' or '.name1.name2' or '{name1.name2}' or '{.name1.name2}'")
-	}
-	if len(submatches) != 3 {
-		return "", fmt.Errorf("unexpected submatch list: %v", submatches)
-	}
-	var fieldSpec string
-	if len(submatches[1]) != 0 {
-		fieldSpec = submatches[1]
-	} else {
-		fieldSpec = submatches[2]
-	}
-	return fieldSpec, nil
 }

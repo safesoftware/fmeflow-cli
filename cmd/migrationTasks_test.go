@@ -115,14 +115,14 @@ func TestMigrationTasks(t *testing.T) {
 			name:            "get migration by id custom columns",
 			statusCode:      http.StatusOK,
 			body:            responseV3One,
-			args:            []string{"migration", "tasks", "--id", "1", "--output", "custom-columns=PACKAGE:.packageName,CONTENT:.contentType"},
+			args:            []string{"migration", "tasks", "--id", "1", "--output", "custom-columns=PACKAGE:$.packageName,CONTENT:$.contentType"},
 			wantOutputRegex: "^[\\s]*PACKAGE[\\s]*CONTENT[\\s]*ServerConfigPackage.fsconfig[\\s]*SYSTEM[\\s]*$",
 		},
 		{
 			name:            "get migrations custom columns",
 			statusCode:      http.StatusOK,
 			body:            responseV3,
-			args:            []string{"migration", "tasks", "--output", "custom-columns=PACKAGE:.packageName,CONTENT:.contentType"},
+			args:            []string{"migration", "tasks", "--output", "custom-columns=PACKAGE:$.packageName,CONTENT:$.contentType"},
 			wantOutputRegex: "^[\\s]*PACKAGE[\\s]*CONTENT[\\s]*ServerConfigPackage.fsconfig[\\s]*SYSTEM[\\s]*ServerConfigPackage.fsconfig[\\s]*SYSTEM[\\s]*$",
 		},
 	}
