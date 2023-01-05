@@ -78,6 +78,7 @@ func NewRootCommand() *cobra.Command {
 	cmds.AddCommand(newRunCmd())
 	cmds.AddCommand(newCancelCmd())
 	cmds.AddCommand(newRepositoryCmd())
+	cmds.AddCommand(newWorkspaceCmd())
 	cmds.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		cmd.PrintErrln(err)
 		cmd.PrintErrln(cmd.UsageString())
