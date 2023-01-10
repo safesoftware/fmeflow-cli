@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type CancelMessage struct {
+type Message struct {
 	Message string `json:"message"`
 }
 
@@ -80,7 +80,7 @@ func runCancel(f *cancelFlags) func(cmd *cobra.Command, args []string) error {
 				responseData, err := io.ReadAll(response.Body)
 				if err == nil {
 
-					var responseMessage CancelMessage
+					var responseMessage Message
 					if err := json.Unmarshal(responseData, &responseMessage); err == nil {
 
 						// if json output is requested, output the JSON to stdout before erroring
