@@ -63,6 +63,7 @@ func newRepositoryCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.name, "name", "", "If specified, only the repository with that name will be returned")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	cmd.AddCommand(newRepositoryCreateCmd())
 	return cmd
 }
 
