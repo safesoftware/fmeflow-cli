@@ -206,7 +206,7 @@ func TestEngines(t *testing.T) {
 			name:            "get engines custom columns",
 			statusCode:      http.StatusOK,
 			body:            responseV3FourEngines,
-			args:            []string{"engines", "--output=custom-columns=ENGINEMANAGER:$.engineManagerNodeName,TRANSACTIONPORT:$.transactionPort,CURRENTJOB:$.currentJobID"},
+			args:            []string{"engines", "--output=custom-columns=ENGINEMANAGER:.engineManagerNodeName,TRANSACTIONPORT:.transactionPort,CURRENTJOB:.currentJobID"},
 			wantOutputRegex: "[\\s]*ENGINEMANAGER[\\s]*TRANSACTIONPORT[\\s]*CURRENTJOB[\\s]*fmeservercore[\\s]*40935[\\s]*-1[\\s]*fmeservercore[\\s]*36883[\\s]*-1[\\s]*fmeservercore[\\s]*44089[\\s]*-1[\\s]*fmeservercore[\\s]*44795[\\s]*-1",
 		},
 	}

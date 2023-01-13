@@ -6,7 +6,9 @@ import (
 )
 
 func TestRepositoriesCreate(t *testing.T) {
-
+	repoExistsBodyV4 := `{
+		"message": "MyRepo is not a valid name. A repository named Samples already exists."
+	  }`
 	cases := []testCase{
 		{
 			name:               "unknown flag",
@@ -26,21 +28,40 @@ func TestRepositoriesCreate(t *testing.T) {
 			args:        []string{"repositories", "create"},
 		},
 		{
-			name:            "create repository",
+			name:            "create repository V4",
 			statusCode:      http.StatusCreated,
-			args:            []string{"repositories", "create", "--name", "MyRepo"},
+			args:            []string{"repositories", "create", "--name", "MyRepo", "--api-version", "v4"},
 			wantOutputRegex: "^Repository successfully created.[\\s]*$",
 		},
 		{
-			name:            "create repository with description",
+			name:            "create repository with description V4",
 			statusCode:      http.StatusCreated,
-			args:            []string{"repositories", "create", "--name", "MyRepo", "--description", "My description"},
+			args:            []string{"repositories", "create", "--name", "MyRepo", "--description", "My description", "--api-version", "v4"},
 			wantOutputRegex: "^Repository successfully created.[\\s]*$",
 		},
 		{
-			name:        "repository already exists",
+			name:        "repository already exists V4",
 			statusCode:  http.StatusConflict,
-			args:        []string{"repositories", "create", "--name", "MyRepo"},
+			body:        repoExistsBodyV4,
+			args:        []string{"repositories", "create", "--name", "MyRepo", "--api-version", "v4"},
+			wantErrText: "MyRepo is not a valid name. A repository named Samples already exists.",
+		},
+		{
+			name:            "create repository V3",
+			statusCode:      http.StatusCreated,
+			args:            []string{"repositories", "create", "--name", "MyRepo", "--api-version", "v3"},
+			wantOutputRegex: "^Repository successfully created.[\\s]*$",
+		},
+		{
+			name:            "create repository with description V3",
+			statusCode:      http.StatusCreated,
+			args:            []string{"repositories", "create", "--name", "MyRepo", "--description", "My description", "--api-version", "v3"},
+			wantOutputRegex: "^Repository successfully created.[\\s]*$",
+		},
+		{
+			name:        "repository already exists V3",
+			statusCode:  http.StatusConflict,
+			args:        []string{"repositories", "create", "--name", "MyRepo", "--api-version", "v3"},
 			wantErrText: "409 Conflict: The repository already exists",
 		},
 	}

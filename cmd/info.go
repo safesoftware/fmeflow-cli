@@ -38,7 +38,7 @@ func newInfoCmd() *cobra.Command {
   fmeserver info --json
 
   # Output just the build string with no column headers
-  fmeserver info --output=custom-columns="BUILD:$.build" --no-headers
+  fmeserver info --output=custom-columns="BUILD:.build" --no-headers
 	`,
 		Args: NoArgs,
 		RunE: infoRun(&f),

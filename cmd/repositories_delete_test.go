@@ -6,6 +6,13 @@ import (
 )
 
 func TestRepositoriesDelete(t *testing.T) {
+	repoMissingBodyV4 := `{
+		"message": "Unauthorized request by user admin due to lack of proper permissions or the object does not exist."
+	  }`
+
+	repoMissingBodyV3 := `{
+		"message": "Repository MyRepo does not exist."
+	  }`
 
 	cases := []testCase{
 		{
@@ -26,16 +33,30 @@ func TestRepositoriesDelete(t *testing.T) {
 			args:        []string{"repositories", "delete"},
 		},
 		{
-			name:            "delete repository",
+			name:            "delete repository V4",
 			statusCode:      http.StatusNoContent,
-			args:            []string{"repositories", "delete", "--name", "MyRepo", "--no-prompt"},
+			args:            []string{"repositories", "delete", "--name", "MyRepo", "--no-prompt", "--api-version", "v4"},
 			wantOutputRegex: "^Repository successfully deleted.[\\s]*$",
 		},
 		{
-			name:        "delete repository not found",
+			name:        "delete repository not found V4",
 			statusCode:  http.StatusNotFound,
-			args:        []string{"repositories", "delete", "--name", "MyRepo", "--no-prompt"},
-			wantErrText: "404 Not Found: The repository does not exist",
+			body:        repoMissingBodyV4,
+			args:        []string{"repositories", "delete", "--name", "MyRepo", "--no-prompt", "--api-version", "v4"},
+			wantErrText: "Unauthorized request by user admin due to lack of proper permissions or the object does not exist.",
+		},
+		{
+			name:            "delete repository V3",
+			statusCode:      http.StatusNoContent,
+			args:            []string{"repositories", "delete", "--name", "MyRepo", "--no-prompt", "--api-version", "v3"},
+			wantOutputRegex: "^Repository successfully deleted.[\\s]*$",
+		},
+		{
+			name:        "delete repository not found V3",
+			statusCode:  http.StatusNotFound,
+			body:        repoMissingBodyV3,
+			args:        []string{"repositories", "delete", "--name", "MyRepo", "--no-prompt", "--api-version", "v3"},
+			wantErrText: "Repository MyRepo does not exist.",
 		},
 	}
 

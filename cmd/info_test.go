@@ -74,7 +74,7 @@ func TestInfo(t *testing.T) {
 			name:            "get info custom columns",
 			statusCode:      http.StatusOK,
 			body:            responseV3,
-			args:            []string{"info", "--output=custom-columns=TIME:$.currentTime,BUILD:$.build"},
+			args:            []string{"info", "--output=custom-columns=TIME:.currentTime,BUILD:.build"},
 			wantOutputRegex: "[\\s]*TIME[\\s]*BUILD[\\s]*Mon-14-Nov-2022 07:20:24 PM[\\s]*FME Server 2023.0 - Build 23166 - linux-x64[\\s]*",
 		},
 	}
