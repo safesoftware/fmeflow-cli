@@ -115,6 +115,8 @@ func newProjectsCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.name, "name", "", "Return a single project with the given name.")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	cmd.AddCommand(newProjectDownloadCmd())
+	cmd.AddCommand(newProjectUploadCmd())
 
 	return cmd
 }
