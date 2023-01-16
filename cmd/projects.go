@@ -111,7 +111,8 @@ func newProjectsCmd() *cobra.Command {
 		RunE: projectsRun(&f),
 	}
 
-	cmd.Flags().StringVarP(&f.owner, "file", "f", "", "Path to backup file to upload to restore. Can be a local file or the relative path inside the specified shared resource.")
+	cmd.Flags().StringVar(&f.owner, "owner", "", "If specified, only projects owned by the specified user will be returned.")
+	cmd.Flags().StringVar(&f.name, "name", "", "Return a single project with the given name.")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 
@@ -149,7 +150,11 @@ func projectsRun(f *projectsFlags) func(cmd *cobra.Command, args []string) error
 		if err != nil {
 			return err
 		} else if response.StatusCode != http.StatusOK {
-			return errors.New(response.Status)
+			if response.StatusCode == http.StatusNotFound {
+				return fmt.Errorf("%w: check that the specified project exists", errors.New(response.Status))
+			} else {
+				return errors.New(response.Status)
+			}
 		}
 
 		responseData, err := io.ReadAll(response.Body)
@@ -164,7 +169,7 @@ func projectsRun(f *projectsFlags) func(cmd *cobra.Command, args []string) error
 				return err
 			}
 		} else {
-			// else, we aree getting a single repository. We will just append this
+			// else, we aree getting a single project. We will just append this
 			// to the Item list in the full struct for easier parsing
 			var singleResult Project
 			if err := json.Unmarshal(responseData, &singleResult); err != nil {
