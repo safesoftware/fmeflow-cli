@@ -45,10 +45,10 @@ func newProjectUploadCmd() *cobra.Command {
 		},
 		Example: `
   # Restore from a backup in a local file
-  fmeserver restore --file ServerConfigPackage.fsconfig
+  fmeserver projects upload --file ProjectPackage.fsproject
 
   # Restore from a backup in a local file using UPDATE mode
-  fmeserver restore --file ServerConfigPackage.fsconfig --import-mode UPDATE`,
+  fmeserver projects upload --file ProjectPackage.fsproject --import-mode UPDATE`,
 		Args: NoArgs,
 		RunE: projectUploadRun(&f),
 	}
