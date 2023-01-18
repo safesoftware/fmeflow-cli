@@ -1,17 +1,47 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/PaesslerAG/jsonpath"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"k8s.io/client-go/util/jsonpath"
 )
 
 var jsonRegexp = regexp.MustCompile(`^\{\.?([^{}]+)\}$|^\.?([^{}]+)$`)
+
+// RelaxedJSONPathExpression attempts to be flexible with JSONPath expressions, it accepts:
+//   - metadata.name (no leading '.' or curly braces '{...}'
+//   - {metadata.name} (no leading '.')
+//   - .metadata.name (no curly braces '{...}')
+//   - {.metadata.name} (complete expression)
+//
+// And transforms them all into a valid jsonpath expression:
+//
+//	{.metadata.name}
+func RelaxedJSONPathExpression(pathExpression string) (string, error) {
+	if len(pathExpression) == 0 {
+		return pathExpression, nil
+	}
+	submatches := jsonRegexp.FindStringSubmatch(pathExpression)
+	if submatches == nil {
+		return "", fmt.Errorf("unexpected path string, expected a 'name1.name2' or '.name1.name2' or '{name1.name2}' or '{.name1.name2}'")
+	}
+	if len(submatches) != 3 {
+		return "", fmt.Errorf("unexpected submatch list: %v", submatches)
+	}
+	var fieldSpec string
+	if len(submatches[1]) != 0 {
+		fieldSpec = submatches[1]
+	} else {
+		fieldSpec = submatches[2]
+	}
+	return fmt.Sprintf("{.%s}", fieldSpec), nil
+}
 
 // This will create a table object and return it with the columns and queries specified by columnsInput
 // applied to the jsonItems array
@@ -28,11 +58,11 @@ func createTableFromCustomColumns(jsonItems [][]byte, columnsInput []string) (ta
 			if !strings.Contains(column, ":") {
 				return nil, errors.New("custom column \"" + column + "\" syntax invalid")
 			}
-			headerQueryArr := strings.Split(column, ":")
-			columnHeader := headerQueryArr[0]
-			columnQuery, err := massageQuery(headerQueryArr[1])
+			// split on the first instance of ":"
+			columnHeader, columnQuery, _ := strings.Cut(column, ":")
+			columnQuery, err := RelaxedJSONPathExpression(columnQuery)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("error parsing JSON Query for custom column: %w", err)
 			}
 			if first {
 				headers = append(headers, columnHeader)
@@ -41,11 +71,16 @@ func createTableFromCustomColumns(jsonItems [][]byte, columnsInput []string) (ta
 			v := interface{}(nil)
 			json.Unmarshal(element, &v)
 
-			test, err := jsonpath.Get(columnQuery, v)
-			if err != nil {
+			j := jsonpath.New("Parser")
+			if err := j.Parse(columnQuery); err != nil {
 				return nil, err
 			}
-			row = append(row, test)
+			valueString := new(bytes.Buffer)
+			err = j.Execute(valueString, v)
+			if err != nil {
+				return nil, fmt.Errorf("error parsing JSON Query for custom column: %w", err)
+			}
+			row = append(row, valueString)
 		}
 		first = false
 		t.AppendRow(row)
@@ -53,20 +88,4 @@ func createTableFromCustomColumns(jsonItems [][]byte, columnsInput []string) (ta
 	}
 	t.AppendHeader(headers)
 	return t, nil
-}
-func massageQuery(q string) (string, error) {
-	submatches := jsonRegexp.FindStringSubmatch(q)
-	if submatches == nil {
-		return "", errors.New("unexpected path string, expected a 'name1.name2' or '.name1.name2' or '{name1.name2}' or '{.name1.name2}'")
-	}
-	if len(submatches) != 3 {
-		return "", fmt.Errorf("unexpected submatch list: %v", submatches)
-	}
-	var fieldSpec string
-	if len(submatches[1]) != 0 {
-		fieldSpec = submatches[1]
-	} else {
-		fieldSpec = submatches[2]
-	}
-	return fieldSpec, nil
 }
