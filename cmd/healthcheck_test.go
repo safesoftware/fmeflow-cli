@@ -90,6 +90,20 @@ func TestHealthcheck(t *testing.T) {
 			fmeserverBuild:  23200,
 			args:            []string{"healthcheck"},
 		},
+		{
+			name:           "json output v4",
+			statusCode:     http.StatusOK,
+			body:           okResponseV4,
+			wantOutputJson: okResponseV4,
+			args:           []string{"healthcheck", "--json"},
+		},
+		{
+			name:           "json output v3",
+			statusCode:     http.StatusOK,
+			body:           okResponseV3,
+			wantOutputJson: okResponseV3,
+			args:           []string{"healthcheck", "--json", "--api-version", "v3"},
+		},
 	}
 	runTests(cases, t)
 }

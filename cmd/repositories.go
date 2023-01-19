@@ -191,7 +191,7 @@ func repositoriesRun(f *repositoryFlags) func(cmd *cobra.Command, args []string)
 					return err
 				}
 			} else {
-				// else, we aree getting a single repository. We will just append this
+				// else, we are getting a single repository. We will just append this
 				// to the Item list in the full struct for easier parsing
 				var singleResult FMEServerRepositoryV4
 				if err := json.Unmarshal(responseData, &singleResult); err != nil {
@@ -299,7 +299,7 @@ func repositoriesRun(f *repositoryFlags) func(cmd *cobra.Command, args []string)
 					return err
 				}
 			} else {
-				// else, we aree getting a single repository. We will just append this
+				// else, we are getting a single repository. We will just append this
 				// to the Item list in the full struct for easier parsing
 				var singleResult FMEServerRepositoryV3
 				if err := json.Unmarshal(responseData, &singleResult); err != nil {
