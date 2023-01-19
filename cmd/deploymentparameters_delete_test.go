@@ -29,13 +29,13 @@ func TestDeploymentParametersDelete(t *testing.T) {
 			args:        []string{"deploymentparameters", "delete"},
 		},
 		{
-			name:            "delete repository V4",
+			name:            "delete parameter",
 			statusCode:      http.StatusNoContent,
 			args:            []string{"deploymentparameters", "delete", "--name", "myDep", "--no-prompt"},
 			wantOutputRegex: "^Deployment Parameter successfully deleted.[\\s]*$",
 		},
 		{
-			name:        "delete repository not found V4",
+			name:        "delete parameter not found",
 			statusCode:  http.StatusNotFound,
 			body:        paramMissingBody,
 			args:        []string{"deploymentparameters", "delete", "--name", "myDep", "--no-prompt"},
