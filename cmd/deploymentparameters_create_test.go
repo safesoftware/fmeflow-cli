@@ -6,7 +6,7 @@ import (
 )
 
 func TestDeploymentParametersCreate(t *testing.T) {
-	repoExistsBodyV4 := `{
+	parameterExistsBody := `{
 		"message": "A deployment parameter with name \"myDep\" already exists."
 	  }`
 	cases := []testCase{
@@ -41,7 +41,7 @@ func TestDeploymentParametersCreate(t *testing.T) {
 		{
 			name:        "parameter already exists",
 			statusCode:  http.StatusConflict,
-			body:        repoExistsBodyV4,
+			body:        parameterExistsBody,
 			args:        []string{"deploymentparameters", "create", "--name", "myDep", "--value", "myValue"},
 			wantErrText: "A deployment parameter with name \"myDep\" already exists.",
 		},

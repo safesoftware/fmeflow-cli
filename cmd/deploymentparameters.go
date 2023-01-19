@@ -63,6 +63,7 @@ func newDeploymentParametersCmd() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("api-version", apiVersionFlagCompletion)
 	cmd.AddCommand(newDeploymentParameterCreateCmd())
 	cmd.AddCommand(newDeploymentParameterDeleteCmd())
+	cmd.AddCommand(newDeploymentParameterUpdateCmd())
 
 	return cmd
 }
