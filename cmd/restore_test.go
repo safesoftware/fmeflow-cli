@@ -42,8 +42,8 @@ func TestRestore(t *testing.T) {
 			args:        []string{"restore", "--file", f.Name()},
 		},
 		{
-			name:        "missing file flag",
-			wantErrText: "required flag(s) \"file\" not set",
+			name:        "missing required flags",
+			wantErrText: "required flag \"file\" or \"resource\" not set",
 			args:        []string{"restore"},
 		},
 		{
@@ -52,6 +52,37 @@ func TestRestore(t *testing.T) {
 			args:            []string{"restore", "--file", f.Name()},
 			body:            response,
 			wantOutputRegex: "Restore task submitted with id: 1",
+		},
+		{
+			name:            "restore from resource",
+			statusCode:      http.StatusAccepted,
+			args:            []string{"restore", "--resource"},
+			body:            response,
+			wantOutputRegex: "Restore task submitted with id: 1",
+		},
+		{
+			name:            "restore from resource specific file",
+			statusCode:      http.StatusAccepted,
+			args:            []string{"restore", "--resource", "--file", "ServerConfigPackage.fsconfig"},
+			body:            response,
+			wantOutputRegex: "Restore task submitted with id: 1",
+			wantFormParams:  map[string]string{"importPackage": "ServerConfigPackage.fsconfig"},
+		},
+		{
+			name:            "restore from resource specific file failure and success topics",
+			statusCode:      http.StatusAccepted,
+			args:            []string{"restore", "--resource", "--file", "ServerConfigPackage.fsconfig", "--success-topic", "SUCCESS", "--failure-topic", "FAILURE"},
+			body:            response,
+			wantOutputRegex: "Restore task submitted with id: 1",
+			wantFormParams:  map[string]string{"importPackage": "ServerConfigPackage.fsconfig", "successTopic": "SUCCESS", "failureTopic": "FAILURE"},
+		},
+		{
+			name:            "restore from resource specific file and specific shared resource",
+			statusCode:      http.StatusAccepted,
+			args:            []string{"restore", "--resource", "--file", "ServerConfigPackage.fsconfig", "--resource-name", "OTHER_RESOURCE"},
+			body:            response,
+			wantOutputRegex: "Restore task submitted with id: 1",
+			wantFormParams:  map[string]string{"importPackage": "ServerConfigPackage.fsconfig", "resourceName": "OTHER_RESOURCE"},
 		},
 		{
 			name:            "import mode",
