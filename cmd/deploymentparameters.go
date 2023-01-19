@@ -62,7 +62,7 @@ func newDeploymentParametersCmd() *cobra.Command {
 	cmd.Flags().MarkHidden("api-version")
 	cmd.RegisterFlagCompletionFunc("api-version", apiVersionFlagCompletion)
 	cmd.AddCommand(newDeploymentParameterCreateCmd())
-	//cmd.AddCommand(newRepositoryDeleteCmd())
+	cmd.AddCommand(newDeploymentParameterDeleteCmd())
 
 	return cmd
 }

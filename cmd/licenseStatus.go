@@ -107,7 +107,7 @@ func licenseStatusRun(f *licenseStatusFlags) func(cmd *cobra.Command, args []str
 				if err != nil {
 					return err
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), t.Render())

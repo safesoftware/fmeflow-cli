@@ -535,7 +535,7 @@ func workspacesRun(f *workspaceFlags) func(cmd *cobra.Command, args []string) er
 				if err != nil {
 					return err
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
@@ -651,7 +651,7 @@ func workspacesRun(f *workspaceFlags) func(cmd *cobra.Command, args []string) er
 				if err != nil {
 					return err
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), t.Render())

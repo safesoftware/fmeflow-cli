@@ -248,7 +248,7 @@ func repositoriesRun(f *repositoryFlags) func(cmd *cobra.Command, args []string)
 				if err != nil {
 					return err
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
@@ -357,7 +357,7 @@ func repositoriesRun(f *repositoryFlags) func(cmd *cobra.Command, args []string)
 				if err != nil {
 					return err
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
