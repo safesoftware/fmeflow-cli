@@ -13,13 +13,13 @@ func TestProjectUpload(t *testing.T) {
 	response := `{
 		"id": 1
 	  }`
-	backupContents := "Pretend project file"
+	projectContents := "Pretend project file"
 
 	// generate random file to restore from
 	f, err := os.CreateTemp("", "fmeserver-project")
 	require.NoError(t, err)
 	defer os.Remove(f.Name()) // clean up
-	err = os.WriteFile(f.Name(), []byte(backupContents), 0644)
+	err = os.WriteFile(f.Name(), []byte(projectContents), 0644)
 	require.NoError(t, err)
 
 	cases := []testCase{
@@ -68,7 +68,7 @@ func TestProjectUpload(t *testing.T) {
 			body:            response,
 			wantOutputRegex: "Project Upload task submitted with id: 1",
 			wantFormParams:  map[string]string{"projectsImportMode": "UPDATE"},
-			wantBodyRegEx:   backupContents,
+			wantBodyRegEx:   projectContents,
 		},
 		{
 			name:            "pause-notifications",
