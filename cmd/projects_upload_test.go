@@ -68,7 +68,7 @@ func TestProjectUpload(t *testing.T) {
 			body:            response,
 			wantOutputRegex: "Project Upload task submitted with id: 1",
 			wantFormParams:  map[string]string{"projectsImportMode": "UPDATE"},
-			wantBodyRegEx:   backupContents,
+			wantBodyRegEx:   projectContents,
 		},
 		{
 			name:            "pause-notifications",
