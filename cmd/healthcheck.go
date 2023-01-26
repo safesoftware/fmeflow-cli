@@ -115,7 +115,7 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 			if f.outputType == "table" {
 				t := createTableWithDefaultColumns(resultV4)
 
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
@@ -150,7 +150,7 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 				if err != nil {
 					return err
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
