@@ -31,10 +31,10 @@ func newProjectDownloadCmd() *cobra.Command {
 			return nil
 		},
 		Example: `
-  # back up a project named "Test Project" to a local file with default name
+  # download a project named "Test Project" to a local file with default name
   fmeserver projects download --name "Test Project"
 	
-  # back up a project named "Test Project" to a local file named MyProject.fsproject
+  # download a project named "Test Project" to a local file named MyProject.fsproject
   fmeserver projects download --name "Test Project" -f MyProject.fsproject`,
 		Args: NoArgs,
 		RunE: projectDownloadRun(&f),

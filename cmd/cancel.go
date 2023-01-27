@@ -57,7 +57,7 @@ func runCancel(f *cancelFlags) func(cmd *cobra.Command, args []string) error {
 		// FME Server 2022.0 and later can use v4. Otherwise fall back to v3
 		if f.apiVersion == "" {
 			fmeserverBuild := viper.GetInt("build")
-			if fmeserverBuild < healthcheckV4BuildThreshold {
+			if fmeserverBuild < cancelV4BuildThreshold {
 				f.apiVersion = apiVersionFlagV3
 			} else {
 				f.apiVersion = apiVersionFlagV4
