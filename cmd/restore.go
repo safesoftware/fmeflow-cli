@@ -54,6 +54,10 @@ func newRestoreCmd() *cobra.Command {
 				f.file = "ServerConfigPackage.fsconfig"
 			}
 
+			// if a failure topic or success topic is set, the restore needs to be of type "resource" as the upload endpoint doesn't support success and failure topics
+			if (f.failureTopic != "" || f.successTopic != "") && !f.resource {
+				return errors.New("setting a failure and/or success topic is only supported if restoring from a shared resource")
+			}
 			return nil
 		},
 		Example: `
@@ -72,8 +76,8 @@ func newRestoreCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.projectsImportMode, "projects-import-mode", "", "Import mode for projects. To import only projects in the import package that do not exist on the current instance, specify INSERT. To overwrite projects on the current instance with those in the import package, specify UPDATE. If not supplied, importMode will be used.")
 	cmd.Flags().BoolVar(&f.resource, "resource", false, "Restore from a shared resource location instead of a local file.")
 	cmd.Flags().StringVar(&f.resourceName, "resource-name", "FME_SHAREDRESOURCE_BACKUP", "Resource containing the import package.")
-	cmd.Flags().StringVar(&f.failureTopic, "failure-topic", "", "Topic to notify on failure of the import. Default is MIGRATION_ASYNC_JOB_FAILURE")
-	cmd.Flags().StringVar(&f.successTopic, "success-topic", "", "Topic to notify on success of the import. Default is MIGRATION_ASYNC_JOB_SUCCESS")
+	cmd.Flags().StringVar(&f.failureTopic, "failure-topic", "", "Topic to notify on failure of the import. Default is MIGRATION_ASYNC_JOB_FAILURE. Only supported when restoring from a shared resource.")
+	cmd.Flags().StringVar(&f.successTopic, "success-topic", "", "Topic to notify on success of the import. Default is MIGRATION_ASYNC_JOB_SUCCESS. Only supported when restoring from a shared resource.")
 
 	return cmd
 }
@@ -146,6 +150,9 @@ func restoreRun(f *restoreFlags) func(cmd *cobra.Command, args []string) error {
 		} else if !f.resource && response.StatusCode != http.StatusOK {
 			return errors.New(response.Status)
 		} else if f.resource && response.StatusCode != http.StatusAccepted {
+			if response.StatusCode == http.StatusUnprocessableEntity {
+				return fmt.Errorf("%w: check that the specified shared resource and file exist", errors.New(response.Status))
+			}
 			return errors.New(response.Status)
 		}
 
