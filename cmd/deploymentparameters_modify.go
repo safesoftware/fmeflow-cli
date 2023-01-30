@@ -36,7 +36,7 @@ func newDeploymentParameterUpdateCmd() *cobra.Command {
 		RunE: deploymentParametersUpdateRun(&f),
 	}
 
-	cmd.Flags().StringVar(&f.name, "name", "", "Name of the deployment parameter to create.")
+	cmd.Flags().StringVar(&f.name, "name", "", "Name of the deployment parameter to update.")
 	cmd.Flags().StringVar(&f.value, "value", "", "The value to set the deployment parameter to.")
 	cmd.MarkFlagRequired("name")
 	cmd.MarkFlagRequired("value")
