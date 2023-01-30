@@ -351,8 +351,8 @@ func newWorkspaceCmd() *cobra.Command {
 	# Get information on a single workspace 
 	fmeserver workspaces --repository Samples --name austinApartments.fmw
 	
-	# Get the name, source format, destination format, and the services this workspace is assigned to
-	fmeserver workspaces --repository Samples --name austinApartments.fmw --output=custom-columns=NAME:.name,SOURCE:.datasets.source[*].format,DEST:.datasets.destination[*].format,SERVICES:.services[*].name`,
+	# Get the name, source format, and destination format for this workspace
+	fmeserver workspaces --repository Samples --name austinApartments.fmw --output=custom-columns=NAME:.name,SOURCE:.datasets.source[*].format,DEST:.datasets.destination[*].format`,
 		Args: NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4

@@ -31,11 +31,11 @@ func newProjectDownloadCmd() *cobra.Command {
 			return nil
 		},
 		Example: `
-  # back up to a local file
-  fmeserver backup -f my_local_backup.fsconfig
+  # download a project named "Test Project" to a local file with default name
+  fmeserver projects download --name "Test Project"
 	
-  # back up to the "Backup" folder in the FME Server Shared Resources with the file name my_fme_backup.fsconfig
-  fmeserver backup --resource --export-package my_fme_backup.fsconfig`,
+  # download a project named "Test Project" to a local file named MyProject.fsproject
+  fmeserver projects download --name "Test Project" -f MyProject.fsproject`,
 		Args: NoArgs,
 		RunE: projectDownloadRun(&f),
 	}
