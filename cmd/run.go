@@ -346,7 +346,7 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 
 				t.AppendRow(table.Row{result.ID, result.Status, result.StatusMessage, result.NumFeaturesOutput})
 
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Println(t.Render())

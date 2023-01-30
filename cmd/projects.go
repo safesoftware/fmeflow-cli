@@ -228,7 +228,7 @@ func projectsRun(f *projectsFlags) func(cmd *cobra.Command, args []string) error
 			if err != nil {
 				return err
 			}
-			if noHeaders {
+			if f.noHeaders {
 				t.ResetHeaders()
 			}
 			fmt.Fprintln(cmd.OutOrStdout(), t.Render())

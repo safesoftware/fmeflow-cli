@@ -80,6 +80,7 @@ func NewRootCommand() *cobra.Command {
 	cmds.AddCommand(newRepositoryCmd())
 	cmds.AddCommand(newWorkspaceCmd())
 	cmds.AddCommand(newProjectsCmd())
+	cmds.AddCommand(newDeploymentParametersCmd())
 	cmds.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		cmd.PrintErrln(err)
 		cmd.PrintErrln(cmd.UsageString())
