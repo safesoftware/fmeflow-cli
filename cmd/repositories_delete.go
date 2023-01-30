@@ -50,7 +50,7 @@ func newRepositoryDeleteCmd() *cobra.Command {
 		RunE: repositoriesDeleteRun(&f),
 	}
 
-	cmd.Flags().BoolVar(&f.noprompt, "no-prompt", false, "Description of the new repository.")
+	cmd.Flags().BoolVarP(&f.noprompt, "no-prompt", "y", false, "Description of the new repository.")
 	cmd.Flags().StringVar(&f.name, "name", "", "Name of the repository to create.")
 	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
 	cmd.Flags().MarkHidden("api-version")

@@ -35,7 +35,7 @@ func newDeploymentParameterDeleteCmd() *cobra.Command {
 		RunE: deploymentParameterDeleteRun(&f),
 	}
 
-	cmd.Flags().BoolVar(&f.noprompt, "no-prompt", false, "Description of the new repository.")
+	cmd.Flags().BoolVarP(&f.noprompt, "no-prompt", "y", false, "Description of the new repository.")
 	cmd.Flags().StringVar(&f.name, "name", "", "Name of the repository to create.")
 	cmd.MarkFlagRequired("name")
 	return cmd
