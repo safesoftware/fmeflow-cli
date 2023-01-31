@@ -84,7 +84,7 @@ func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
 				// output all values returned by the JSON in a table
 				t := createTableWithDefaultColumns(result)
 
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
@@ -119,7 +119,7 @@ func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
 				if err != nil {
 					return err
 				}
-				if noHeaders {
+				if f.noHeaders {
 					t.ResetHeaders()
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), t.Render())

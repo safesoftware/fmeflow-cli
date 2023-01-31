@@ -9,57 +9,39 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-type repositoryDeleteFlags struct {
+type deploymentParameterDeleteFlags struct {
 	name       string
 	noprompt   bool
 	apiVersion apiVersionFlag
 }
 
-func newRepositoryDeleteCmd() *cobra.Command {
-	f := repositoryDeleteFlags{}
+func newDeploymentParameterDeleteCmd() *cobra.Command {
+	f := deploymentParameterDeleteFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete",
-		Short: "Delete a repository",
-		Long:  `Delete a repository.`,
+		Short: "Delete a deployment parameter",
+		Long:  `Delete a deployment parameter.`,
 		Example: `
 	Examples:
-	# Delete a repository with the name "myRepository"
-	fmeserver repositories delete --name myRepository
+	# Delete adeployment parameter with the name "myParam"
+	fmeserver deploymentparameter delete --name myParam
 	
 	# Delete a repository with the name "myRepository" and no confirmation
-	fmeserver repositories delete --name myRepository --no-prompt
+	fmeserver deploymentparameter delete --name myParam --no-prompt
 `,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// get build to decide if we should use v3 or v4
-			// FME Server 2023.0 and later can use v4. Otherwise fall back to v3
-			if f.apiVersion == "" {
-				fmeserverBuild := viper.GetInt("build")
-				if fmeserverBuild < repositoriesV4BuildThreshold {
-					f.apiVersion = apiVersionFlagV3
-				} else {
-					f.apiVersion = apiVersionFlagV4
-				}
-			}
-
-			return nil
-		},
 		Args: NoArgs,
-		RunE: repositoriesDeleteRun(&f),
+		RunE: deploymentParameterDeleteRun(&f),
 	}
 
 	cmd.Flags().BoolVarP(&f.noprompt, "no-prompt", "y", false, "Description of the new repository.")
 	cmd.Flags().StringVar(&f.name, "name", "", "Name of the repository to create.")
-	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
-	cmd.Flags().MarkHidden("api-version")
-	cmd.RegisterFlagCompletionFunc("api-version", apiVersionFlagCompletion)
 	cmd.MarkFlagRequired("name")
 	return cmd
 }
 
-func repositoriesDeleteRun(f *repositoryDeleteFlags) func(cmd *cobra.Command, args []string) error {
+func deploymentParameterDeleteRun(f *deploymentParameterDeleteFlags) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 
 		// set up http
@@ -69,22 +51,15 @@ func repositoriesDeleteRun(f *repositoryDeleteFlags) func(cmd *cobra.Command, ar
 			// prompt for a user and password
 			confirm := false
 			promptUser := &survey.Confirm{
-				Message: "Are you sure you want to delete the repository " + f.name + "?",
+				Message: "Are you sure you want to delete the deployment parameter " + f.name + "?",
 			}
 			survey.AskOne(promptUser, &confirm)
 			if !confirm {
 				return nil
 			}
 		}
-		url := ""
 
-		if f.apiVersion == "v4" {
-			url = "/fmeapiv4/repositories/" + f.name
-		} else if f.apiVersion == "v3" {
-			url = "/fmerest/v3/repositories/" + f.name
-		}
-
-		request, err := buildFmeServerRequest(url, "DELETE", nil)
+		request, err := buildFmeServerRequest("/fmeapiv4/deploymentparameters/"+f.name, "DELETE", nil)
 		if err != nil {
 			return err
 		}
@@ -119,7 +94,7 @@ func repositoriesDeleteRun(f *repositoryDeleteFlags) func(cmd *cobra.Command, ar
 		}
 
 		if !jsonOutput {
-			fmt.Fprintln(cmd.OutOrStdout(), "Repository successfully deleted.")
+			fmt.Fprintln(cmd.OutOrStdout(), "Deployment Parameter successfully deleted.")
 		} else {
 			fmt.Fprintln(cmd.OutOrStdout(), "{}")
 		}
