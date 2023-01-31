@@ -55,12 +55,10 @@ func projectDownloadRun(f *projectsDownloadFlags) func(cmd *cobra.Command, args 
 		client := &http.Client{}
 
 		// massage the backup file name
-		if !f.suppressFileRename {
-			if f.file != "" {
-				backupExtension := ".fsproject"
-				if !strings.HasSuffix(f.file, backupExtension) {
-					f.file += backupExtension
-				}
+		if !f.suppressFileRename && f.file != "" {
+			backupExtension := ".fsproject"
+			if !strings.HasSuffix(f.file, backupExtension) {
+				f.file += backupExtension
 			}
 		}
 

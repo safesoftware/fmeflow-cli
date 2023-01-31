@@ -70,12 +70,10 @@ func backupRun(f *backupFlags) func(cmd *cobra.Command, args []string) error {
 		client := &http.Client{}
 
 		// massage the backup file name
-		if !f.suppressFileRename {
-			if f.outputBackupFile != "" {
-				backupExtension := ".fsconfig"
-				if !strings.HasSuffix(f.outputBackupFile, backupExtension) {
-					f.outputBackupFile += backupExtension
-				}
+		if !f.suppressFileRename && f.outputBackupFile != "" {
+			backupExtension := ".fsconfig"
+			if !strings.HasSuffix(f.outputBackupFile, backupExtension) {
+				f.outputBackupFile += backupExtension
 			}
 		}
 
