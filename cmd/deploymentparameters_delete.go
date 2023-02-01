@@ -12,9 +12,8 @@ import (
 )
 
 type deploymentParameterDeleteFlags struct {
-	name       string
-	noprompt   bool
-	apiVersion apiVersionFlag
+	name     string
+	noprompt bool
 }
 
 func newDeploymentParameterDeleteCmd() *cobra.Command {

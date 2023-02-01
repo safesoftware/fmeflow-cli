@@ -15,8 +15,6 @@ import (
 
 var cfgFile string
 var jsonOutput bool
-var outputType string
-var noHeaders bool
 
 const notSet string = "not set"
 

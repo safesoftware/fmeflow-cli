@@ -26,10 +26,6 @@ func newMachineKeyCmd() *cobra.Command {
 
 func machineKeyRun() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		// --json overrides --output
-		if jsonOutput {
-			outputType = "json"
-		}
 		// set up http
 		client := &http.Client{}
 
