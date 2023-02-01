@@ -50,8 +50,8 @@ func newDeploymentParametersCmd() *cobra.Command {
 	# List a single deployment parameter
 	fmeserver deploymentparameters --name testParameter
 	
-	# Output all repositories in json format
-	fmeserver repositories --json`,
+	# Output all deploymentparameters in json format
+	fmeserver deploymentparameters --json`,
 		Args: NoArgs,
 		RunE: deploymentParametersRun(&f),
 	}
@@ -102,7 +102,7 @@ func deploymentParametersRun(f *deploymentparametersFlags) func(cmd *cobra.Comma
 				if err := json.Unmarshal(responseData, &responseMessage); err == nil {
 
 					// if json output is requested, output the JSON to stdout before erroring
-					if jsonOutput {
+					if f.outputType == "json" {
 						prettyJSON, err := prettyPrintJSON(responseData)
 						if err == nil {
 							fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)

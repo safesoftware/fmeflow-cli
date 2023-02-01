@@ -148,11 +148,17 @@ func restoreRun(f *restoreFlags) func(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		} else if !f.resource && response.StatusCode != http.StatusOK {
-			return errors.New(response.Status)
+			if response.StatusCode == http.StatusInternalServerError {
+				return fmt.Errorf("%w: check that the file specified is a valid backup file", errors.New(response.Status))
+			} else {
+				return errors.New(response.Status)
+			}
+
 		} else if f.resource && response.StatusCode != http.StatusAccepted {
 			if response.StatusCode == http.StatusUnprocessableEntity {
 				return fmt.Errorf("%w: check that the specified shared resource and file exist", errors.New(response.Status))
 			}
+
 			return errors.New(response.Status)
 		}
 

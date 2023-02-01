@@ -32,7 +32,7 @@ func TestProjectUpload(t *testing.T) {
 		{
 			name:        "500 bad status code",
 			statusCode:  http.StatusInternalServerError,
-			wantErrText: "500 Internal Server Error",
+			wantErrText: "500 Internal Server Error: check that the file specified is a valid project file",
 			args:        []string{"projects", "upload", "--file", f.Name()},
 		},
 		{

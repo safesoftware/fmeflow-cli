@@ -105,7 +105,11 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 		if err != nil {
 			return err
 		} else if response.StatusCode != http.StatusOK {
-			return errors.New(response.Status)
+			if response.StatusCode == http.StatusInternalServerError {
+				return fmt.Errorf("%w: check that the file specified is a valid project file", errors.New(response.Status))
+			} else {
+				return errors.New(response.Status)
+			}
 		}
 
 		responseData, err := io.ReadAll(response.Body)
