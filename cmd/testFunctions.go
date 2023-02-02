@@ -87,6 +87,23 @@ func runTests(tcs []testCase, t *testing.T) {
 				tc.args[1] = tc.httpServer.URL
 			}
 
+			// if a config file isn't specified, generate a random file and set the config file flag
+			exists := false
+			for _, s := range tc.args {
+				if s == "--config" {
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				f, err := os.CreateTemp("", "config-file*.yaml")
+				require.NoError(t, err)
+				defer os.Remove(f.Name()) // clean up
+				// insert right after the command so we don't mess up tests that are testing missing arguments
+				tc.args = insert(tc.args, 1, "--config")
+				tc.args = insert(tc.args, 2, f.Name())
+			}
+
 			// set the arguments on the command
 			cmd.SetArgs(tc.args)
 
@@ -120,4 +137,13 @@ func runTests(tcs []testCase, t *testing.T) {
 
 		})
 	}
+}
+
+// helper function to insert into the middle of a slice
+func insert(s []string, index int, item string) []string {
+	result := make([]string, len(s)+1)
+	copy(result[:index], s[:index])
+	result[index] = item
+	copy(result[index+1:], s[index:])
+	return result
 }
