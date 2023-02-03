@@ -171,6 +171,7 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 				job.PublishedParameters = append(job.PublishedParameters, a)
 			}
 
+			// get list published parameters
 			for _, parameter := range f.listPublishedParameter {
 				this_parameter := strings.SplitN(parameter, "=", 2)
 				var a ListParameter
@@ -312,8 +313,16 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 
 			// TODO: I'm not sure this is the correct way to pass published parameters in the query string
 			for _, parameter := range f.publishedParameter {
-				this_parameter := splitEscapedString(parameter, '=')
+				this_parameter := strings.SplitN(parameter, "=", 2)
 				q.Add(this_parameter[0], this_parameter[1])
+			}
+			for _, parameter := range f.listPublishedParameter {
+				this_parameter := strings.SplitN(parameter, "=", 2)
+				this_list := splitEscapedString(this_parameter[1], ',')
+				for _, item := range this_list {
+					q.Add(this_parameter[0], item)
+				}
+
 			}
 
 			request.URL.RawQuery = q.Encode()
