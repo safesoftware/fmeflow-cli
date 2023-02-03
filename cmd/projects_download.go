@@ -17,6 +17,7 @@ type projectsDownloadFlags struct {
 	file                 string
 	name                 string
 	excludeSensitiveInfo bool
+	suppressFileRename   bool
 }
 
 // backupCmd represents the backup command
@@ -42,7 +43,9 @@ func newProjectDownloadCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&f.file, "file", "f", "ProjectPackage.fsproject", "Path to file to download the backup to.")
 	cmd.Flags().StringVar(&f.name, "name", "", "Name of the project to download.")
 	cmd.Flags().BoolVar(&f.excludeSensitiveInfo, "exclude-sensitive-info", false, "Whether to exclude sensitive information from the exported package. Sensitive information will be excluded from connections, subscriptions, publications, schedule tasks, S3 resources, and user accounts. Other items in the project may still contain sensitive data, especially workspaces. Please be careful before sharing the project export pacakge with others.")
+	cmd.Flags().BoolVar(&f.suppressFileRename, "suppress-file-rename", false, "Specify this flag to not add .fsproject to the output file automatically")
 	cmd.MarkFlagRequired("name")
+	cmd.Flags().MarkHidden("suppress-file-rename")
 	return cmd
 }
 
@@ -50,6 +53,14 @@ func projectDownloadRun(f *projectsDownloadFlags) func(cmd *cobra.Command, args 
 	return func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
+
+		// massage the backup file name
+		if !f.suppressFileRename && f.file != "" {
+			backupExtension := ".fsproject"
+			if !strings.HasSuffix(f.file, backupExtension) {
+				f.file += backupExtension
+			}
+		}
 
 		// add mandatory values
 		data := url.Values{

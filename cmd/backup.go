@@ -21,6 +21,7 @@ type backupFlags struct {
 	backupFailureTopic  string
 	backupSuccessTopic  string
 	backupResource      bool
+	suppressFileRename  bool
 }
 
 type BackupResource struct {
@@ -53,11 +54,13 @@ func newBackupCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.backupExportPackage, "export-package", "ServerConfigPackage.fsconfig", "Path and name of the export package.")
 	cmd.Flags().StringVar(&f.backupFailureTopic, "failure-topic", "", "Topic to notify on failure of the backup. Default is MIGRATION_ASYNC_JOB_FAILURE")
 	cmd.Flags().StringVar(&f.backupSuccessTopic, "success-topic", "", "Topic to notify on success of the backup. Default is MIGRATION_ASYNC_JOB_SUCCESS")
+	cmd.Flags().BoolVar(&f.suppressFileRename, "suppress-file-rename", false, "Specify this flag to not add .fsconfig to the output file automatically")
 	cmd.MarkFlagsMutuallyExclusive("file", "resource")
 	cmd.MarkFlagsMutuallyExclusive("file", "resource-name")
 	cmd.MarkFlagsMutuallyExclusive("file", "export-package")
 	cmd.MarkFlagsMutuallyExclusive("file", "failure-topic")
 	cmd.MarkFlagsMutuallyExclusive("file", "success-topic")
+	cmd.Flags().MarkHidden("suppress-file-rename")
 	return cmd
 }
 
@@ -65,6 +68,14 @@ func backupRun(f *backupFlags) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		// set up http
 		client := &http.Client{}
+
+		// massage the backup file name
+		if !f.suppressFileRename && f.outputBackupFile != "" {
+			backupExtension := ".fsconfig"
+			if !strings.HasSuffix(f.outputBackupFile, backupExtension) {
+				f.outputBackupFile += backupExtension
+			}
+		}
 
 		if !f.backupResource {
 
