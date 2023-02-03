@@ -132,7 +132,7 @@ func newRunCmd() *cobra.Command {
 
 	cmd.Flags().StringArrayVar(&f.runSuccessTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
 	cmd.Flags().StringArrayVar(&f.runFailureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
-	cmd.Flags().StringArrayVar(&f.runPublishedParameter, "published-parameter", []string{}, "Workspace published parameters defined for this job. Specify as Key=Value. Can be passed in multiple times. For list parameters, specify as Key=Value1,Value2. This means parameter values can't contain = or , at the moment. That should probably be fixed.")
+	cmd.Flags().StringArrayVar(&f.runPublishedParameter, "published-parameter", []string{}, "Workspace published parameters defined for this job. Specify as Key=Value. Can be passed in multiple times. For list parameters, specify as Key=Value1,Value2. Equals signs, commas and backslashes must be escaped with a backslash")
 	cmd.Flags().StringArrayVar(&f.runNodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times.")
 
 	cmd.MarkFlagRequired("repository")
@@ -162,11 +162,11 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 
 			// get published parameters
 			for _, parameter := range f.runPublishedParameter {
-				this_parameter := strings.Split(parameter, "=")
+				this_parameter := splitEscapedString(parameter, '=')
 				if strings.Contains(this_parameter[1], ",") {
 					var a ListParameter
 					a.Name = this_parameter[0]
-					this_list := strings.Split(this_parameter[1], ",")
+					this_list := splitEscapedString(this_parameter[1], ',')
 					a.Value = this_list
 					job.PublishedParameters = append(job.PublishedParameters, a)
 				} else {
@@ -307,7 +307,7 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 
 			// TODO: I'm not sure this is the correct way to pass published parameters in the query string
 			for _, parameter := range f.runPublishedParameter {
-				this_parameter := strings.Split(parameter, "=")
+				this_parameter := splitEscapedString(parameter, '=')
 				q.Add(this_parameter[0], this_parameter[1])
 			}
 
@@ -394,4 +394,59 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 		}
 		return nil
 	}
+}
+
+// split a string on delimiter, unless it is escaped
+/*func splitEscapedString(s string, delimiter rune) []string {
+	var result []string
+	var builder strings.Builder
+	var escaped bool
+	for _, r := range s {
+		if escaped {
+			builder.WriteRune(r)
+			escaped = false
+			continue
+		}
+		if r == '\\' {
+			escaped = true
+			continue
+		}
+		if r == delimiter {
+			result = append(result, builder.String())
+			builder.Reset()
+			continue
+		}
+		builder.WriteRune(r)
+	}
+	result = append(result, builder.String())
+	return result
+}*/
+
+func splitEscapedString(s string, delimiter rune) []string {
+	var result []string
+	var builder strings.Builder
+	var escaped bool
+	runes := []rune(s)
+	for _, r := range runes {
+		if escaped {
+			if r != '\\' && r != delimiter {
+				builder.WriteRune('\\')
+			}
+			builder.WriteRune(r)
+			escaped = false
+			continue
+		}
+		if r == '\\' {
+			escaped = true
+			continue
+		}
+		if r == delimiter && !escaped {
+			result = append(result, builder.String())
+			builder.Reset()
+			continue
+		}
+		builder.WriteRune(r)
+	}
+	result = append(result, builder.String())
+	return result
 }
