@@ -108,7 +108,7 @@ func newRunCmd() *cobra.Command {
 	fmeserver run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
 	
 	# Submit a job and pass in a few published parameters
-	fmeserver run --repository Samples --workspace austinDownload.fmw --published-parameter THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
+	fmeserver run --repository Samples --workspace austinDownload.fmw --published-parameter-list THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
 	
 	# Submit a job, wait for it to complete, and customize the output
 	fmeserver run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
@@ -127,7 +127,7 @@ func newRunCmd() *cobra.Command {
 	cmd.Flags().IntVar(&f.ttl, "time-to-live", -1, "Time to live in the job queue (in seconds)")
 	cmd.Flags().StringVar(&f.tag, "tag", "", "The job routing tag for the request")
 	cmd.Flags().StringVar(&f.description, "description", "", "Description of the request.")
-	cmd.Flags().StringVar(&f.sourceData, "file", "", "Upload a local file Source dataset to use to run the workspace.")
+	cmd.Flags().StringVar(&f.sourceData, "file", "", "Upload a local file Source dataset to use to run the workspace. Note this causes the translation to run in synchonous mode whether the --wait flag is passed in or not.")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 
@@ -253,13 +253,13 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 					return err
 				} else {
 					if !jsonOutput {
-						fmt.Println("Job submitted with id: " + strconv.Itoa(result.Id))
+						fmt.Fprintln(cmd.OutOrStdout(), "Job submitted with id: "+strconv.Itoa(result.Id))
 					} else {
 						prettyJSON, err := prettyPrintJSON(responseData)
 						if err != nil {
 							return err
 						}
-						fmt.Println(prettyJSON)
+						fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 					}
 				}
 			} else {
@@ -311,7 +311,6 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 				q.Add("opt_ttc", strconv.Itoa(f.ttc))
 			}
 
-			// TODO: I'm not sure this is the correct way to pass published parameters in the query string
 			for _, parameter := range f.publishedParameter {
 				this_parameter := strings.SplitN(parameter, "=", 2)
 				q.Add(this_parameter[0], this_parameter[1])
@@ -351,7 +350,8 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		if f.wait {
+		// the transactdata endpoint only runs synchonously
+		if f.wait || f.sourceData != "" {
 			if f.outputType == "table" {
 				t := table.NewWriter()
 				t.SetStyle(defaultStyle)
@@ -363,14 +363,14 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
@@ -400,7 +400,7 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 			} else {
 				return errors.New("invalid output format specified")
