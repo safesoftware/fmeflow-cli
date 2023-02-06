@@ -88,14 +88,7 @@ func runTests(tcs []testCase, t *testing.T) {
 			}
 
 			// if a config file isn't specified, generate a random file and set the config file flag
-			exists := false
-			for _, s := range tc.args {
-				if s == "--config" {
-					exists = true
-					break
-				}
-			}
-			if !exists {
+			if !configFlagExists(tc.args) {
 				f, err := os.CreateTemp("", "config-file*.yaml")
 				require.NoError(t, err)
 				defer os.Remove(f.Name()) // clean up
@@ -146,4 +139,14 @@ func insert(s []string, index int, item string) []string {
 	result[index] = item
 	copy(result[index+1:], s[index:])
 	return result
+}
+
+// helper function to check if the config flag was already set by the test
+func configFlagExists(args []string) bool {
+	for _, s := range args {
+		if s == "--config" {
+			return true
+		}
+	}
+	return false
 }
