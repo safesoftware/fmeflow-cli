@@ -65,7 +65,14 @@ func newRestoreCmd() *cobra.Command {
   fmeserver restore --file ServerConfigPackage.fsconfig
 
   # Restore from a backup in a local file using UPDATE mode
-  fmeserver restore --file ServerConfigPackage.fsconfig --import-mode UPDATE`,
+  fmeserver restore --file ServerConfigPackage.fsconfig --import-mode UPDATE
+  
+  # Restore from a backup file stored in the Backup resource folder (FME_SHAREDRESOURCE_BACKUP) named ServerConfigPackage.fsconfig
+  fmeserver restore --resource --file ServerConfigPackage.fsconfig
+  
+  # Restore from a backup file stored in the Data resource folder (FME_SHAREDRESOURCE_DATA) named ServerConfigPackage.fsconfig and set a failure and success topic to notify
+  fmeserver restore --resource --resource-name FME_SHAREDRESOURCE_DATA --file ServerConfigPackage.fsconfig --failure-topic MY_FAILURE_TOPIC --success-topic MY_SUCCESS_TOPIC
+  `,
 		Args: NoArgs,
 		RunE: restoreRun(&f),
 	}
