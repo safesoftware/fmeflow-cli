@@ -114,7 +114,7 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 		var password string
 
 		if f.token == "" {
-			if f.user == "" && f.passwordFile == "" {
+			if f.user == "" || f.passwordFile == "" {
 				// prompt for a user and password
 				promptUser := &survey.Input{
 					Message: "Username:",
