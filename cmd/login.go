@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -43,10 +44,10 @@ type TokenResponse struct {
 }
 
 type loginFlags struct {
-	token      string
-	user       string
-	password   string
-	expiration int
+	token        string
+	user         string
+	passwordFile string
+	expiration   int
 }
 
 func newLoginCmd() *cobra.Command {
@@ -55,7 +56,7 @@ func newLoginCmd() *cobra.Command {
 		Use:   "login [URL]",
 		Short: "Save credentials for an FME Server",
 		Long: `Update the config file with the credentials to connect to FME Server. If just a URL is passed in, you will be prompted for a user and password for the FME Server. This will be used to generate an API token that will be saved to the config file for use connecting to FME Server.
-	Use the --token flag to pass in an existing API token. It is not recommended to pass the password in on the command line in plaintext.
+	Use the --token flag to pass in an existing API token. To log in with a password on the command line without being prompted, place the password in a text file and pass that in using the --password-file flag.
 	This will overwrite any existing credentials saved.
 	
 	Examples:
@@ -66,7 +67,7 @@ func newLoginCmd() *cobra.Command {
 	# Login to an FME Server using a pre-generated token
 	fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
 	
-	# Login to an FME Server using a passed in user and password
+	# Login to an FME Server using a passed in user and password file
 	fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return nil
@@ -95,12 +96,12 @@ func newLoginCmd() *cobra.Command {
 
 	cmd.Flags().StringVarP(&f.token, "token", "t", "", "The existing API token to use to connect to FME Server")
 	cmd.Flags().StringVarP(&f.user, "user", "u", "", "The FME Server user to generate an API token for.")
-	cmd.Flags().StringVarP(&f.password, "password", "p", "", "The FME Server password for the user to generate an API token for.")
+	cmd.Flags().StringVarP(&f.passwordFile, "password-file", "p", "", "A file containing the FME Server password for the user to generate an API token for.")
 	cmd.Flags().IntVar(&f.expiration, "expiration", 2592000, "The length of time to generate the token for in seconds.")
 
-	cmd.MarkFlagsRequiredTogether("user", "password")
+	cmd.MarkFlagsRequiredTogether("user", "password-file")
 	cmd.MarkFlagsMutuallyExclusive("token", "user")
-	cmd.MarkFlagsMutuallyExclusive("token", "password")
+	cmd.MarkFlagsMutuallyExclusive("token", "password-file")
 
 	return cmd
 
@@ -110,8 +111,10 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 		url := args[0]
 		client := &http.Client{}
 
+		var password string
+
 		if f.token == "" {
-			if f.user == "" && f.password == "" {
+			if f.user == "" || f.passwordFile == "" {
 				// prompt for a user and password
 				promptUser := &survey.Input{
 					Message: "Username:",
@@ -121,7 +124,20 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 				promptPassword := &survey.Password{
 					Message: "Password:",
 				}
-				survey.AskOne(promptPassword, &f.password)
+				survey.AskOne(promptPassword, &password)
+			} else {
+				// get the password from the password-file
+				file, err := os.Open(f.passwordFile)
+				if err != nil {
+					return err
+				}
+				defer file.Close()
+
+				// just grab the first line of the text file to use as the password
+				scanner := bufio.NewScanner(file)
+				scanner.Scan()
+				password = scanner.Text()
+
 			}
 
 			currentTime := time.Now()
@@ -140,7 +156,7 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 				return err
 			}
 
-			auth := base64.StdEncoding.EncodeToString([]byte(f.user + ":" + f.password))
+			auth := base64.StdEncoding.EncodeToString([]byte(f.user + ":" + password))
 
 			req, err := http.NewRequest("POST", url+"/fmerest/v3/tokens", strings.NewReader(string(tokenJson)))
 			if err != nil {
