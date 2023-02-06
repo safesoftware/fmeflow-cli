@@ -71,13 +71,13 @@ func TestLogin(t *testing.T) {
 			name:        "500 bad status code",
 			statusCode:  http.StatusInternalServerError,
 			wantErrText: "500 Internal Server Error",
-			args:        []string{"login", testURL},
+			args:        []string{"login", testURL, "--user", "admin", "--password", "passw0rd"},
 		},
 		{
 			name:        "422 bad status code",
 			statusCode:  http.StatusNotFound,
 			wantErrText: "404 Not Found",
-			args:        []string{"login", testURL},
+			args:        []string{"login", testURL, "--user", "admin", "--password", "passw0rd"},
 		},
 		{
 			name:            "login with user and password",

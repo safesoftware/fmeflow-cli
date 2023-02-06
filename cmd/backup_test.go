@@ -13,7 +13,7 @@ func TestBackup(t *testing.T) {
 	okResponseV3 := `Random file contents`
 
 	// generate random file to back up to
-	f, err := os.CreateTemp("", "fmeserver-backup")
+	f, err := os.CreateTemp("", "*fmeserver-backup.fsconfig")
 	require.NoError(t, err)
 	defer os.Remove(f.Name()) // clean up
 
