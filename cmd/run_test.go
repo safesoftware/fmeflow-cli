@@ -49,6 +49,16 @@ func TestRun(t *testing.T) {
 			args:        []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw"},
 		},
 		{
+			name:        "repository flag required",
+			wantErrText: "required flag(s) \"repository\" not set",
+			args:        []string{"run", "--workspace", "austinApartments.fmw"},
+		},
+		{
+			name:        "workspace flag required",
+			wantErrText: "required flag(s) \"workspace\" not set",
+			args:        []string{"run", "--repository", "Samples"},
+		},
+		{
 			name:            "run sync job table output",
 			statusCode:      http.StatusOK,
 			args:            []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--wait"},
@@ -220,6 +230,16 @@ func TestRun(t *testing.T) {
 			args:               []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--published-parameter-list", "THEMES=railroad,airports", "--file", f.Name()},
 			wantOutputRegex:    "^[\\s]*ID[\\s]*STATUS[\\s]*STATUS MESSAGE[\\s]*FEATURES OUTPUT[\\s]*1[\\s]*SUCCESS[\\s]*Translation Successful[\\s]*1539[\\s]*$",
 			wantFormParamsList: map[string][]string{"THEMES": {"railroad", "airports"}},
+		},
+		{
+			name:        "transact data node manager mutually exclusive",
+			args:        []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--node-manager-directive", "directive1=value1", "--file", f.Name()},
+			wantErrText: "if any flags in the group [file node-manager-directive] are set none of the others can be; [file node-manager-directive] were all set",
+		},
+		{
+			name:        "transact data run until canceled mutually exclusive",
+			args:        []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--run-until-canceled", "--file", f.Name()},
+			wantErrText: "if any flags in the group [file run-until-canceled] are set none of the others can be; [file run-until-canceled] were all set",
 		},
 	}
 	runTests(cases, t)

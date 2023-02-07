@@ -142,6 +142,10 @@ func newRunCmd() *cobra.Command {
 	cmd.MarkFlagRequired("repository")
 	cmd.MarkFlagRequired("workspace")
 
+	//node manager directives and run until canceled do not work with transactdata
+	cmd.MarkFlagsMutuallyExclusive("file", "node-manager-directive")
+	cmd.MarkFlagsMutuallyExclusive("file", "run-until-canceled")
+
 	return cmd
 }
 
