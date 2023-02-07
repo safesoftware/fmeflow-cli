@@ -122,20 +122,22 @@ func newRunCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.repository, "repository", "", "The name of the repository containing the workspace to run.")
 	cmd.Flags().StringVar(&f.workspace, "workspace", "", "The name of the workspace to run.")
 	cmd.Flags().BoolVar(&f.wait, "wait", false, "Submit job and wait for it to finish.")
+	cmd.Flags().StringVar(&f.tag, "tag", "", "The job routing tag for the request")
+	cmd.Flags().StringArrayVar(&f.publishedParameter, "published-parameter", []string{}, "Published parameters defined for this workspace. Specify as Key=Value. Can be passed in multiple times. For list parameters, use the --list-published-parameter flag.")
+	cmd.Flags().StringArrayVar(&f.listPublishedParameter, "published-parameter-list", []string{}, "A List-type published parameters defined for this workspace. Specify as Key=Value1,Value2. Can be passed in multiple times.")
+	cmd.Flags().StringVar(&f.sourceData, "file", "", "Upload a local file Source dataset to use to run the workspace. Note this causes the translation to run in synchonous mode whether the --wait flag is passed in or not.")
 	cmd.Flags().BoolVar(&f.rtc, "run-until-canceled", false, "Runs a job until it is explicitly canceled. The job will run again regardless of whether the job completed successfully, failed, or the server crashed or was shut down.")
 	cmd.Flags().IntVar(&f.ttc, "time-until-canceled", -1, "Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored.")
 	cmd.Flags().IntVar(&f.ttl, "time-to-live", -1, "Time to live in the job queue (in seconds)")
-	cmd.Flags().StringVar(&f.tag, "tag", "", "The job routing tag for the request")
 	cmd.Flags().StringVar(&f.description, "description", "", "Description of the request.")
-	cmd.Flags().StringVar(&f.sourceData, "file", "", "Upload a local file Source dataset to use to run the workspace. Note this causes the translation to run in synchonous mode whether the --wait flag is passed in or not.")
+	cmd.Flags().StringArrayVar(&f.successTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
+	cmd.Flags().StringArrayVar(&f.failureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
+	cmd.Flags().StringArrayVar(&f.nodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times.")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 
-	cmd.Flags().StringArrayVar(&f.successTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
-	cmd.Flags().StringArrayVar(&f.failureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
-	cmd.Flags().StringArrayVar(&f.publishedParameter, "published-parameter", []string{}, "Published parameters defined for this workspace. Specify as Key=Value. Can be passed in multiple times. For list parameters, use the --list-published-parameter flag.")
-	cmd.Flags().StringArrayVar(&f.listPublishedParameter, "published-parameter-list", []string{}, "A List-type published parameters defined for this workspace. Specify as Key=Value1,Value2. Can be passed in multiple times.")
-	cmd.Flags().StringArrayVar(&f.nodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times.")
+	// since there are a lot of flags in this command, using the sorting above with more important flags first seems helpful
+	cmd.Flags().SortFlags = false
 
 	cmd.MarkFlagRequired("repository")
 	cmd.MarkFlagRequired("workspace")
@@ -197,6 +199,10 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 			}
 			if f.ttl != -1 {
 				job.TMDirectives.TTL = f.ttl
+			}
+
+			if f.tag != "" {
+				job.TMDirectives.Tag = f.tag
 			}
 
 			job.TMDirectives.Rtc = f.rtc
