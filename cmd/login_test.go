@@ -35,10 +35,17 @@ func TestLogin(t *testing.T) {
 		"version": "FME Server"
 	  }`
 
-	// generate random file to back up to
+	// generate random file for config file
 	f, err := os.CreateTemp("", "config-file*.yaml")
 	require.NoError(t, err)
 	defer os.Remove(f.Name()) // clean up
+
+	// generate random file for password
+	passwordFile, err := os.CreateTemp("", "password")
+	require.NoError(t, err)
+	defer os.Remove(f.Name()) // clean up
+	// write out a password to the password file
+	passwordFile.Write([]byte("passw0rd"))
 
 	customHttpServerHandler := func(w http.ResponseWriter, r *http.Request) {
 
@@ -71,18 +78,18 @@ func TestLogin(t *testing.T) {
 			name:        "500 bad status code",
 			statusCode:  http.StatusInternalServerError,
 			wantErrText: "500 Internal Server Error",
-			args:        []string{"login", testURL},
+			args:        []string{"login", testURL, "--user", "admin", "--password-file", passwordFile.Name()},
 		},
 		{
 			name:        "422 bad status code",
 			statusCode:  http.StatusNotFound,
 			wantErrText: "404 Not Found",
-			args:        []string{"login", testURL},
+			args:        []string{"login", testURL, "--user", "admin", "--password-file", passwordFile.Name()},
 		},
 		{
 			name:            "login with user and password",
 			statusCode:      http.StatusOK,
-			args:            []string{"login", mainHttpServerLogin.URL, "--user", "admin", "--password", "passw0rd", "--config", f.Name()},
+			args:            []string{"login", mainHttpServerLogin.URL, "--user", "admin", "--password-file", passwordFile.Name(), "--config", f.Name()},
 			httpServer:      mainHttpServerLogin,
 			wantOutputRegex: "Credentials written to ",
 			wantFileContents: fileContents{
@@ -111,19 +118,19 @@ url: %s
 			name:        "missing password flag",
 			statusCode:  http.StatusOK,
 			args:        []string{"login", testURL, "--user", "admin"},
-			wantErrText: "if any flags in the group [user password] are set they must all be set; missing [password]",
+			wantErrText: "if any flags in the group [user password-file] are set they must all be set; missing [password-file]",
 		},
 		{
 			name:        "missing user flag",
 			statusCode:  http.StatusOK,
-			args:        []string{"login", testURL, "--password", "passw0rd"},
-			wantErrText: "if any flags in the group [user password] are set they must all be set; missing [user]",
+			args:        []string{"login", testURL, "--password-file", passwordFile.Name()},
+			wantErrText: "if any flags in the group [user password-file] are set they must all be set; missing [user]",
 		},
 		{
 			name:        "token and password mutually exclusive",
 			statusCode:  http.StatusOK,
-			args:        []string{"login", testURL, "--user", "admin", "--password", "passw0rd", "--token", "5ba5e0fd15c2403bc8b2e3aa1dfb975ca2197fbf"},
-			wantErrText: "if any flags in the group [token password] are set none of the others can be; [password token] were all set",
+			args:        []string{"login", testURL, "--user", "admin", "--password-file", passwordFile.Name(), "--token", "5ba5e0fd15c2403bc8b2e3aa1dfb975ca2197fbf"},
+			wantErrText: "if any flags in the group [token password-file] are set none of the others can be; [password-file token] were all set",
 		},
 	}
 
