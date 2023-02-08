@@ -183,8 +183,7 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 				var a ListParameter
 				a.Name = this_parameter[0]
 				// split on commas, unless they are escaped
-				this_list := splitEscapedString(this_parameter[1], ',')
-				a.Value = this_list
+				a.Value = splitEscapedString(this_parameter[1], ',')
 				job.PublishedParameters = append(job.PublishedParameters, a)
 
 			}
