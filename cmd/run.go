@@ -72,21 +72,22 @@ type JobResult struct {
 }
 
 type runFlags struct {
-	runWorkspace            string
-	runRepository           string
-	runWait                 bool
-	runRtc                  bool
-	runTtc                  int
-	runTtl                  int
-	runTag                  string
-	runDescription          string
-	runSourceData           string
-	runSuccessTopics        []string
-	runFailureTopics        []string
-	runPublishedParameter   []string
-	runNodeManagerDirective []string
-	outputType              string
-	noHeaders               bool
+	workspace              string
+	repository             string
+	wait                   bool
+	rtc                    bool
+	ttc                    int
+	ttl                    int
+	tag                    string
+	description            string
+	sourceData             string
+	successTopics          []string
+	failureTopics          []string
+	publishedParameter     []string
+	listPublishedParameter []string
+	nodeManagerDirective   []string
+	outputType             string
+	noHeaders              bool
 }
 
 func newRunCmd() *cobra.Command {
@@ -107,7 +108,7 @@ func newRunCmd() *cobra.Command {
 	fmeserver run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
 	
 	# Submit a job and pass in a few published parameters
-	fmeserver run --repository Samples --workspace austinDownload.fmw --published-parameter THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
+	fmeserver run --repository Samples --workspace austinDownload.fmw --published-parameter-list THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
 	
 	# Submit a job, wait for it to complete, and customize the output
 	fmeserver run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
@@ -118,25 +119,32 @@ func newRunCmd() *cobra.Command {
 		RunE: runRun(&f),
 	}
 
-	cmd.Flags().StringVar(&f.runRepository, "repository", "", "The name of the repository containing the workspace to run.")
-	cmd.Flags().StringVar(&f.runWorkspace, "workspace", "", "The name of the workspace to run.")
-	cmd.Flags().BoolVar(&f.runWait, "wait", false, "Submit job and wait for it to finish.")
-	cmd.Flags().BoolVar(&f.runRtc, "run-until-canceled", false, "Runs a job until it is explicitly canceled. The job will run again regardless of whether the job completed successfully, failed, or the server crashed or was shut down.")
-	cmd.Flags().IntVar(&f.runTtc, "time-until-canceled", -1, "Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored.")
-	cmd.Flags().IntVar(&f.runTtl, "time-to-live", -1, "Time to live in the job queue (in seconds)")
-	cmd.Flags().StringVar(&f.runTag, "tag", "", "The job routing tag for the request")
-	cmd.Flags().StringVar(&f.runDescription, "description", "", "Description of the request.")
-	cmd.Flags().StringVar(&f.runSourceData, "file", "", "Upload a local file Source dataset to use to run the workspace.")
+	cmd.Flags().StringVar(&f.repository, "repository", "", "The name of the repository containing the workspace to run.")
+	cmd.Flags().StringVar(&f.workspace, "workspace", "", "The name of the workspace to run.")
+	cmd.Flags().BoolVar(&f.wait, "wait", false, "Submit job and wait for it to finish.")
+	cmd.Flags().StringVar(&f.tag, "tag", "", "The job routing tag for the request")
+	cmd.Flags().StringArrayVar(&f.publishedParameter, "published-parameter", []string{}, "Published parameters defined for this workspace. Specify as Key=Value. Can be passed in multiple times. For list parameters, use the --list-published-parameter flag.")
+	cmd.Flags().StringArrayVar(&f.listPublishedParameter, "published-parameter-list", []string{}, "A List-type published parameters defined for this workspace. Specify as Key=Value1,Value2. Can be passed in multiple times.")
+	cmd.Flags().StringVar(&f.sourceData, "file", "", "Upload a local file Source dataset to use to run the workspace. Note this causes the translation to run in synchonous mode whether the --wait flag is passed in or not.")
+	cmd.Flags().BoolVar(&f.rtc, "run-until-canceled", false, "Runs a job until it is explicitly canceled. The job will run again regardless of whether the job completed successfully, failed, or the server crashed or was shut down.")
+	cmd.Flags().IntVar(&f.ttc, "time-until-canceled", -1, "Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored.")
+	cmd.Flags().IntVar(&f.ttl, "time-to-live", -1, "Time to live in the job queue (in seconds)")
+	cmd.Flags().StringVar(&f.description, "description", "", "Description of the request.")
+	cmd.Flags().StringArrayVar(&f.successTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
+	cmd.Flags().StringArrayVar(&f.failureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
+	cmd.Flags().StringArrayVar(&f.nodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times.")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 
-	cmd.Flags().StringArrayVar(&f.runSuccessTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
-	cmd.Flags().StringArrayVar(&f.runFailureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
-	cmd.Flags().StringArrayVar(&f.runPublishedParameter, "published-parameter", []string{}, "Workspace published parameters defined for this job. Specify as Key=Value. Can be passed in multiple times. For list parameters, specify as Key=Value1,Value2. This means parameter values can't contain = or , at the moment. That should probably be fixed.")
-	cmd.Flags().StringArrayVar(&f.runNodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times.")
+	// since there are a lot of flags in this command, using the sorting above with more important flags first seems helpful
+	cmd.Flags().SortFlags = false
 
 	cmd.MarkFlagRequired("repository")
 	cmd.MarkFlagRequired("workspace")
+
+	//node manager directives and run until canceled do not work with transactdata
+	cmd.MarkFlagsMutuallyExclusive("file", "node-manager-directive")
+	cmd.MarkFlagsMutuallyExclusive("file", "run-until-canceled")
 
 	return cmd
 }
@@ -157,28 +165,31 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 		var result JobResult
 		var responseData []byte
 
-		if f.runSourceData == "" {
+		if f.sourceData == "" {
 			job := &JobRequest{}
 
 			// get published parameters
-			for _, parameter := range f.runPublishedParameter {
-				this_parameter := strings.Split(parameter, "=")
-				if strings.Contains(this_parameter[1], ",") {
-					var a ListParameter
-					a.Name = this_parameter[0]
-					this_list := strings.Split(this_parameter[1], ",")
-					a.Value = this_list
-					job.PublishedParameters = append(job.PublishedParameters, a)
-				} else {
-					var a SimpleParameter
-					a.Name = this_parameter[0]
-					a.Value = this_parameter[1]
-					job.PublishedParameters = append(job.PublishedParameters, a)
-				}
+			for _, parameter := range f.publishedParameter {
+				this_parameter := strings.SplitN(parameter, "=", 2)
+				var a SimpleParameter
+				a.Name = this_parameter[0]
+				a.Value = this_parameter[1]
+				job.PublishedParameters = append(job.PublishedParameters, a)
+			}
+
+			// get list published parameters
+			for _, parameter := range f.listPublishedParameter {
+				this_parameter := strings.SplitN(parameter, "=", 2)
+				var a ListParameter
+				a.Name = this_parameter[0]
+				// split on commas, unless they are escaped
+				a.Value = splitEscapedString(this_parameter[1], ',')
+				job.PublishedParameters = append(job.PublishedParameters, a)
+
 			}
 
 			// get node manager directives
-			for _, directive := range f.runNodeManagerDirective {
+			for _, directive := range f.nodeManagerDirective {
 				this_directive := strings.Split(directive, "=")
 				var a Directive
 				a.Name = this_directive[0]
@@ -186,21 +197,25 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 				job.NMDirectives.Directives = append(job.NMDirectives.Directives, a)
 			}
 
-			if f.runTtc != -1 {
-				job.TMDirectives.Ttc = f.runTtc
+			if f.ttc != -1 {
+				job.TMDirectives.Ttc = f.ttc
 			}
-			if f.runTtl != -1 {
-				job.TMDirectives.TTL = f.runTtl
+			if f.ttl != -1 {
+				job.TMDirectives.TTL = f.ttl
 			}
 
-			job.TMDirectives.Rtc = f.runRtc
+			if f.tag != "" {
+				job.TMDirectives.Tag = f.tag
+			}
+
+			job.TMDirectives.Rtc = f.rtc
 
 			// append slice to slice
-			job.NMDirectives.SuccessTopics = append(job.NMDirectives.SuccessTopics, f.runSuccessTopics...)
-			job.NMDirectives.FailureTopics = append(job.NMDirectives.FailureTopics, f.runFailureTopics...)
+			job.NMDirectives.SuccessTopics = append(job.NMDirectives.SuccessTopics, f.successTopics...)
+			job.NMDirectives.FailureTopics = append(job.NMDirectives.FailureTopics, f.failureTopics...)
 
-			if f.runDescription != "" {
-				job.TMDirectives.Description = f.runDescription
+			if f.description != "" {
+				job.TMDirectives.Description = f.description
 			}
 
 			jobJson, err := json.Marshal(job)
@@ -209,11 +224,11 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 			}
 
 			submitEndpoint := "submit"
-			if f.runWait {
+			if f.wait {
 				submitEndpoint = "transact"
 			}
 
-			endpoint := "/fmerest/v3/transformations/" + submitEndpoint + "/" + f.runRepository + "/" + f.runWorkspace
+			endpoint := "/fmerest/v3/transformations/" + submitEndpoint + "/" + f.repository + "/" + f.workspace
 
 			request, err := buildFmeServerRequest(endpoint, "POST", strings.NewReader(string(jobJson)))
 			if err != nil {
@@ -241,19 +256,19 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 				return err
 			}
 
-			if !f.runWait {
+			if !f.wait {
 				var result JobId
 				if err := json.Unmarshal(responseData, &result); err != nil {
 					return err
 				} else {
 					if !jsonOutput {
-						fmt.Println("Job submitted with id: " + strconv.Itoa(result.Id))
+						fmt.Fprintln(cmd.OutOrStdout(), "Job submitted with id: "+strconv.Itoa(result.Id))
 					} else {
 						prettyJSON, err := prettyPrintJSON(responseData)
 						if err != nil {
 							return err
 						}
-						fmt.Println(prettyJSON)
+						fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 					}
 				}
 			} else {
@@ -263,13 +278,13 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 			}
 		} else {
 			// we are uploading a source file, so we want to send the file in the body as octet stream, and parameters as url parameters
-			file, err := os.Open(f.runSourceData)
+			file, err := os.Open(f.sourceData)
 			if err != nil {
 				return err
 			}
 			defer file.Close()
 
-			endpoint := "/fmerest/v3/transformations/transactdata/" + f.runRepository + "/" + f.runWorkspace
+			endpoint := "/fmerest/v3/transformations/transactdata/" + f.repository + "/" + f.workspace
 			request, err := buildFmeServerRequest(endpoint, "POST", file)
 			if err != nil {
 				return err
@@ -277,38 +292,45 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 
 			q := request.URL.Query()
 
-			if f.runDescription != "" {
-				q.Add("opt_description", f.runDescription)
+			if f.description != "" {
+				q.Add("opt_description", f.description)
 			}
 
-			for _, topic := range f.runSuccessTopics {
+			for _, topic := range f.successTopics {
 				q.Add("opt_successtopics", topic)
 			}
 
-			for _, topic := range f.runFailureTopics {
+			for _, topic := range f.failureTopics {
 				q.Add("opt_failuretopics", topic)
 			}
 
-			if f.runDescription != "" {
-				endpoint += "opt_description=" + f.runDescription
+			if f.description != "" {
+				endpoint += "opt_description=" + f.description
 			}
 
-			if f.runTag != "" {
-				q.Add("opt_tag", f.runTag)
+			if f.tag != "" {
+				q.Add("opt_tag", f.tag)
 			}
 
-			if f.runTtl != -1 {
-				q.Add("opt_ttl", strconv.Itoa(f.runTtl))
+			if f.ttl != -1 {
+				q.Add("opt_ttl", strconv.Itoa(f.ttl))
 			}
 
-			if f.runTtc != -1 {
-				q.Add("opt_ttc", strconv.Itoa(f.runTtc))
+			if f.ttc != -1 {
+				q.Add("opt_ttc", strconv.Itoa(f.ttc))
 			}
 
-			// TODO: I'm not sure this is the correct way to pass published parameters in the query string
-			for _, parameter := range f.runPublishedParameter {
-				this_parameter := strings.Split(parameter, "=")
+			for _, parameter := range f.publishedParameter {
+				this_parameter := strings.SplitN(parameter, "=", 2)
 				q.Add(this_parameter[0], this_parameter[1])
+			}
+			for _, parameter := range f.listPublishedParameter {
+				this_parameter := strings.SplitN(parameter, "=", 2)
+				this_list := splitEscapedString(this_parameter[1], ',')
+				for _, item := range this_list {
+					q.Add(this_parameter[0], item)
+				}
+
 			}
 
 			request.URL.RawQuery = q.Encode()
@@ -337,7 +359,8 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		if f.runWait {
+		// the transactdata endpoint only runs synchonously
+		if f.wait || f.sourceData != "" {
 			if f.outputType == "table" {
 				t := table.NewWriter()
 				t.SetStyle(defaultStyle)
@@ -349,14 +372,14 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 			} else if f.outputType == "json" {
 				prettyJSON, err := prettyPrintJSON(responseData)
 				if err != nil {
 					return err
 				}
-				fmt.Println(prettyJSON)
+				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
 			} else if strings.HasPrefix(f.outputType, "custom-columns") {
 				// parse the columns and json queries
 				columnsString := ""
@@ -386,7 +409,7 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 				if f.noHeaders {
 					t.ResetHeaders()
 				}
-				fmt.Println(t.Render())
+				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
 			} else {
 				return errors.New("invalid output format specified")
@@ -394,4 +417,33 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 		}
 		return nil
 	}
+}
+
+// split a string on delimiter, unless it is escaped
+func splitEscapedString(s string, delimiter rune) []string {
+	var result []string
+	var builder strings.Builder
+	var escaped bool
+	for _, r := range s {
+		if escaped {
+			if r != '\\' && r != delimiter {
+				builder.WriteRune('\\')
+			}
+			builder.WriteRune(r)
+			escaped = false
+			continue
+		}
+		if r == '\\' {
+			escaped = true
+			continue
+		}
+		if r == delimiter && !escaped {
+			result = append(result, builder.String())
+			builder.Reset()
+			continue
+		}
+		builder.WriteRune(r)
+	}
+	result = append(result, builder.String())
+	return result
 }

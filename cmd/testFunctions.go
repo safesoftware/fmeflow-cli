@@ -19,18 +19,19 @@ type fileContents struct {
 }
 
 type testCase struct {
-	name               string            // the name of the test
-	statusCode         int               // the http status code the test server should return
-	body               string            // the body of the request that the test server should return
-	wantErrText        string            // the expected text in the error object to be returned
-	wantOutputRegex    string            // regex of the expected stdout to be returned
-	wantOutputJson     string            // regex of the expected stdout to be returned
-	wantErrOutputRegex string            // regex of the expected stderr to be returned
-	wantFormParams     map[string]string // array to ensure that all required URL form parameters exist
-	wantFileContents   fileContents      // check file contents
-	wantBodyRegEx      string            // check the contents of the body sent
-	fmeserverBuild     int               // build to pretend we are contacting
-	args               []string          // flags to pass into the command
+	name               string              // the name of the test
+	statusCode         int                 // the http status code the test server should return
+	body               string              // the body of the request that the test server should return
+	wantErrText        string              // the expected text in the error object to be returned
+	wantOutputRegex    string              // regex of the expected stdout to be returned
+	wantOutputJson     string              // regex of the expected stdout to be returned
+	wantErrOutputRegex string              // regex of the expected stderr to be returned
+	wantFormParams     map[string]string   // array to ensure that all required URL form parameters exist
+	wantFormParamsList map[string][]string // for URL forms with multiple values
+	wantFileContents   fileContents        // check file contents
+	wantBodyRegEx      string              // check the contents of the body sent
+	fmeserverBuild     int                 // build to pretend we are contacting
+	args               []string            // flags to pass into the command
 
 	httpServer *httptest.Server // custom http test server if needed
 }
@@ -49,6 +50,10 @@ func runTests(tcs []testCase, t *testing.T) {
 					for param, value := range tc.wantFormParams {
 						require.True(t, urlParams.Has(param))
 						require.EqualValues(t, urlParams.Get(param), value)
+					}
+					for param, value := range tc.wantFormParamsList {
+						require.True(t, urlParams.Has(param))
+						require.EqualValues(t, urlParams[param], value)
 					}
 					if tc.wantBodyRegEx != "" {
 						body, err := io.ReadAll(r.Body)
