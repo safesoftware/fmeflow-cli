@@ -31,4 +31,5 @@ A command line interface for interacting with FME Server. See available commands
 * [fmeserver restore](fmeserver_restore.md)	 - Restores the FME Server configuration from an import package
 * [fmeserver run](fmeserver_run.md)	 - Run a workspace on FME Server
 * [fmeserver workspaces](fmeserver_workspaces.md)	 - List workspaces by repository
+* [Custom Columns output](custom-columns.md)    - In depth documentation on using the `custom-columns` output type
 
