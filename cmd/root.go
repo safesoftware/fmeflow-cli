@@ -30,7 +30,7 @@ func NewRootCommand() *cobra.Command {
 	cmds := &cobra.Command{
 		Use:           "fmeserver",
 		Short:         "A command line interface for interacting with FME Server.",
-		Long:          `A command line interface for interacting with FME Server.`,
+		Long:          `A command line interface for interacting with FME Server. See available commands below. Get started with the login command.`,
 		Version:       appVersion,
 		SilenceErrors: true,
 		SilenceUsage:  true,
