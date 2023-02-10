@@ -26,10 +26,10 @@ A command line interface for interacting with FME Server. See available commands
 * [fmeserver license](fmeserver_license.md)	 - Interact with licensing an FME Server
 * [fmeserver login](fmeserver_login.md)	 - Save credentials for an FME Server
 * [fmeserver migration](fmeserver_migration.md)	 - Returns information on migration tasks using the tasks subcommand.
-* [fmeserver projects](fmeserver_projects.md)	 - Lists all projects on the FME Server
+* [fmeserver projects](fmeserver_projects.md)	 - Lists projects on the FME Server
 * [fmeserver repositories](fmeserver_repositories.md)	 - List repositories
 * [fmeserver restore](fmeserver_restore.md)	 - Restores the FME Server configuration from an import package
-* [fmeserver run](fmeserver_run.md)	 - Run a workspace on FME Server
-* [fmeserver workspaces](fmeserver_workspaces.md)	 - List workspaces by repository
+* [fmeserver run](fmeserver_run.md)	 - Run a workspace on FME Server.
+* [fmeserver workspaces](fmeserver_workspaces.md)	 - List workspaces.
 * [Custom Columns output](custom-columns.md)    - In depth documentation on using the `custom-columns` output type
 

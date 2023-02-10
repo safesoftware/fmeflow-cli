@@ -35,5 +35,5 @@ fmeserver license refresh [flags]
 ### SEE ALSO
 
 * [fmeserver license](fmeserver_license.md)	 - Interact with licensing an FME Server
-* [fmeserver license refresh status](fmeserver_license_refresh_status.md)	 - Check status of license refresh
+* [fmeserver license refresh status](fmeserver_license_refresh_status.md)	 - Check the status of a license refresh request.
 

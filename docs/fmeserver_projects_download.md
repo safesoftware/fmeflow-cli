@@ -4,7 +4,7 @@ Downloads an FME Server Project
 
 ### Synopsis
 
-Backs up the FME Server configuration to a local file or to a shared resource location on the FME Server.
+Downloads an FME Server Project to a local file. Useful for backing up or moving a project to another FME Server.
 
 ```
 fmeserver projects download [flags]
@@ -39,5 +39,5 @@ fmeserver projects download [flags]
 
 ### SEE ALSO
 
-* [fmeserver projects](fmeserver_projects.md)	 - Lists all projects on the FME Server
+* [fmeserver projects](fmeserver_projects.md)	 - Lists projects on the FME Server
 

@@ -64,7 +64,7 @@ func newRepositoryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "repositories",
 		Short: "List repositories",
-		Long:  `Lists repositories on the given FME Server.`,
+		Long:  `Lists repositories on the given FME Server. Pass in a name to get information on a specific repository.`,
 		Example: `
 	Examples:
 	# List all repositories

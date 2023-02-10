@@ -1,10 +1,10 @@
 ## fmeserver run
 
-Run a workspace on FME Server
+Run a workspace on FME Server.
 
 ### Synopsis
 
-Run a workspace on FME Server
+Run a workspace on FME Server.
 		
 	Examples:
 	# Submit a job asynchronously

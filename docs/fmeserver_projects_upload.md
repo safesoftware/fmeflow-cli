@@ -1,10 +1,10 @@
 ## fmeserver projects upload
 
-Imports FME Server Projects from a downloaded import package.
+Imports FME Server Projects from a downloaded package.
 
 ### Synopsis
 
-Imports FME Server Projects from a downloaded import package.
+Imports FME Server Projects from a downloaded package. Useful for moving a project from one FME Server to another.
 
 ```
 fmeserver projects upload [flags]
@@ -41,5 +41,5 @@ fmeserver projects upload [flags]
 
 ### SEE ALSO
 
-* [fmeserver projects](fmeserver_projects.md)	 - Lists all projects on the FME Server
+* [fmeserver projects](fmeserver_projects.md)	 - Lists projects on the FME Server
 

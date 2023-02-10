@@ -1,6 +1,6 @@
 ## fmeserver repositories delete
 
-Delete a repository
+Delete a repository.
 
 ### Synopsis
 

@@ -99,8 +99,8 @@ func newProjectsCmd() *cobra.Command {
 	f := projectsFlags{}
 	cmd := &cobra.Command{
 		Use:   "projects",
-		Short: "Lists all projects on the FME Server",
-		Long:  "Lists all projects on the FME Server",
+		Short: "Lists projects on the FME Server",
+		Long:  "Lists projects on the FME Server. Pass in a name to retrieve information on a single project.",
 		Example: `
   # List all projects
   fmeserver projects

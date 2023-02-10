@@ -335,10 +335,13 @@ func newWorkspaceCmd() *cobra.Command {
 	f := workspaceFlags{}
 	cmd := &cobra.Command{
 		Use:   "workspaces",
-		Short: "List workspaces by repository",
-		Long:  `Lists workspaces on the given FME Server in the repository.`,
+		Short: "List workspaces.",
+		Long:  `Lists workspaces that exist on the FME Server. Filter by repository, specify a name to retrieve a specific workspace, or specify a filter string to narrow down by name or title.`,
 		Example: `
 	Examples:
+	# List all workspaces on the FME Server
+	fmeserver workspaces
+	
 	# List all workspaces in Samples repository
 	fmeserver workspaces --repository Samples
 	
@@ -383,7 +386,7 @@ func newWorkspaceCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&f.repository, "repository", "", "Name of repository to list workspaces in.")
 	cmd.Flags().StringVar(&f.name, "name", "", "If specified, get details about a specific workspace")
-	cmd.Flags().StringVar(&f.filterString, "filter-string", "", "Specify the output type. Should be one of table, json, or custom-columns. Only usable with V4 API.")
+	cmd.Flags().StringVar(&f.filterString, "filter-string", "", "If specified, only workspaces with a matching name or title will be returned. Only usable with V4 API.")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")

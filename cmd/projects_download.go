@@ -26,7 +26,7 @@ func newProjectDownloadCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "download",
 		Short: "Downloads an FME Server Project",
-		Long:  "Backs up the FME Server configuration to a local file or to a shared resource location on the FME Server.",
+		Long:  "Downloads an FME Server Project to a local file. Useful for backing up or moving a project to another FME Server.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 
 			return nil

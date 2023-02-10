@@ -22,5 +22,5 @@ Returns information on migration tasks using the tasks subcommand.
 ### SEE ALSO
 
 * [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
-* [fmeserver migration tasks](fmeserver_migration_tasks.md)	 - Retrieves the records for all migration tasks.
+* [fmeserver migration tasks](fmeserver_migration_tasks.md)	 - Retrieves the records for migration tasks.
 

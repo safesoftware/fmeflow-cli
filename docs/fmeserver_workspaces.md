@@ -1,10 +1,10 @@
 ## fmeserver workspaces
 
-List workspaces by repository
+List workspaces.
 
 ### Synopsis
 
-Lists workspaces on the given FME Server in the repository.
+Lists workspaces that exist on the FME Server. Filter by repository, specify a name to retrieve a specific workspace, or specify a filter string to narrow down by name or title.
 
 ```
 fmeserver workspaces [flags]
@@ -15,6 +15,9 @@ fmeserver workspaces [flags]
 ```
 
 	Examples:
+	# List all workspaces on the FME Server
+	fmeserver workspaces
+	
 	# List all workspaces in Samples repository
 	fmeserver workspaces --repository Samples
 	
@@ -34,7 +37,7 @@ fmeserver workspaces [flags]
 ### Options
 
 ```
-      --filter-string string   Specify the output type. Should be one of table, json, or custom-columns. Only usable with V4 API.
+      --filter-string string   If specified, only workspaces with a matching name or title will be returned. Only usable with V4 API.
   -h, --help                   help for workspaces
       --name string            If specified, get details about a specific workspace
       --no-headers             Don't print column headers

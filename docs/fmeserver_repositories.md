@@ -4,7 +4,7 @@ List repositories
 
 ### Synopsis
 
-Lists repositories on the given FME Server.
+Lists repositories on the given FME Server. Pass in a name to get information on a specific repository.
 
 ```
 fmeserver repositories [flags]
@@ -52,6 +52,6 @@ fmeserver repositories [flags]
 ### SEE ALSO
 
 * [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
-* [fmeserver repositories create](fmeserver_repositories_create.md)	 - Create a repository
-* [fmeserver repositories delete](fmeserver_repositories_delete.md)	 - Delete a repository
+* [fmeserver repositories create](fmeserver_repositories_create.md)	 - Create a new repository.
+* [fmeserver repositories delete](fmeserver_repositories_delete.md)	 - Delete a repository.
 

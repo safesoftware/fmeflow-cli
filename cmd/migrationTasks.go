@@ -57,8 +57,8 @@ func newMigrationTasksCmd() *cobra.Command {
 	f := migrationTasksFlags{}
 	cmd := &cobra.Command{
 		Use:   "tasks",
-		Short: "Retrieves the records for all migration tasks.",
-		Long:  "Retrieves the records for all migration tasks.",
+		Short: "Retrieves the records for migration tasks.",
+		Long:  "Retrieves the records for migration tasks. Get all migration tasks or for a specific task by passing in the id.",
 		Example: `
   # Get all migration tasks
   fmeserver migration tasks

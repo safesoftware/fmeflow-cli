@@ -4,7 +4,7 @@ Lists jobs on FME Server
 
 ### Synopsis
 
-Lists jobs on FME Server
+Lists running, queued, and/or queued jobs on FME Server. Pass in a job id to get information on a specific job.
 
 ```
 fmeserver jobs [flags]

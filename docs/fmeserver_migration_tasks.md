@@ -1,10 +1,10 @@
 ## fmeserver migration tasks
 
-Retrieves the records for all migration tasks.
+Retrieves the records for migration tasks.
 
 ### Synopsis
 
-Retrieves the records for all migration tasks.
+Retrieves the records for migration tasks. Get all migration tasks or for a specific task by passing in the id.
 
 ```
 fmeserver migration tasks [flags]

@@ -1,6 +1,6 @@
 ## fmeserver repositories create
 
-Create a repository
+Create a new repository.
 
 ### Synopsis
 

@@ -1,6 +1,6 @@
 ## fmeserver license refresh status
 
-Check status of license refresh
+Check the status of a license refresh request.
 
 ### Synopsis
 

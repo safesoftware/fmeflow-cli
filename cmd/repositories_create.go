@@ -29,7 +29,7 @@ func newRepositoryCreateCmd() *cobra.Command {
 	f := repositoryCreateFlags{}
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a repository",
+		Short: "Create a new repository.",
 		Long:  `Create a new repository.`,
 		Example: `
 	Examples:

@@ -1,10 +1,10 @@
 ## fmeserver projects
 
-Lists all projects on the FME Server
+Lists projects on the FME Server
 
 ### Synopsis
 
-Lists all projects on the FME Server
+Lists projects on the FME Server. Pass in a name to retrieve information on a single project.
 
 ```
 fmeserver projects [flags]
@@ -42,5 +42,5 @@ fmeserver projects [flags]
 
 * [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
 * [fmeserver projects download](fmeserver_projects_download.md)	 - Downloads an FME Server Project
-* [fmeserver projects upload](fmeserver_projects_upload.md)	 - Imports FME Server Projects from a downloaded import package.
+* [fmeserver projects upload](fmeserver_projects_upload.md)	 - Imports FME Server Projects from a downloaded package.
 
