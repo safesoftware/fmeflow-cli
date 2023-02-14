@@ -28,7 +28,7 @@ fmeserver login https://my-fmeserver.com --token my-token-here
 fmeserver info
 ```
 
-For full documentation of all commands, see the [Documentation](doc/fmeserver.md).
+For full documentation of all commands, see the [Documentation](docs/fmeserver.md).
 
 
 ## Development
