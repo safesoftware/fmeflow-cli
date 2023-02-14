@@ -69,6 +69,8 @@ jobs:
         push: true
         tags: safesoftware/fmeserver-cli:${{ env.APP_VERSION }}, safesoftware/fmeserver-cli:latest
         platforms: linux/amd64,linux/arm64
+        build-args: |
+          APP_VERSION=${{ env.APP_VERSION }}
 
   sign-windows:
     name: Sign Windows Binary
