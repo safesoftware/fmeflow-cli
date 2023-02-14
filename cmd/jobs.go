@@ -67,7 +67,7 @@ func newJobsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "jobs",
 		Short: "Lists jobs on FME Server",
-		Long:  "Lists jobs on FME Server",
+		Long:  "Lists running, queued, and/or queued jobs on FME Server. Pass in a job id to get information on a specific job.",
 
 		Example: `
   # List all jobs (currently limited to the most recent 1000)

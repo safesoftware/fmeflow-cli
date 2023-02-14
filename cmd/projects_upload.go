@@ -28,8 +28,8 @@ func newProjectUploadCmd() *cobra.Command {
 	f := projectUploadFlags{}
 	cmd := &cobra.Command{
 		Use:   "upload",
-		Short: "Imports FME Server Projects from a downloaded import package.",
-		Long:  "Imports FME Server Projects from a downloaded import package.",
+		Short: "Imports FME Server Projects from a downloaded package.",
+		Long:  "Imports FME Server Projects from a downloaded package. Useful for moving a project from one FME Server to another.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// verify import mode is valid
 			if f.importMode != "UPDATE" && f.importMode != "INSERT" {

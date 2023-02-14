@@ -22,7 +22,7 @@ func newRepositoryDeleteCmd() *cobra.Command {
 	f := repositoryDeleteFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete",
-		Short: "Delete a repository",
+		Short: "Delete a repository.",
 		Long:  `Delete a repository.`,
 		Example: `
 	Examples:

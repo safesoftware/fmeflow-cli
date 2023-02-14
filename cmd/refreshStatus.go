@@ -20,7 +20,7 @@ func newRefreshStatusCmd() *cobra.Command {
 	f := licenseRefreshStatusFlags{}
 	cmd := &cobra.Command{
 		Use:   "status",
-		Short: "Check status of license refresh",
+		Short: "Check the status of a license refresh request.",
 		Long:  "Check the status of a license refresh request.",
 		Example: `
 	# Output the license refresh status as a table

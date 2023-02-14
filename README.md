@@ -28,12 +28,11 @@ fmeserver login https://my-fmeserver.com --token my-token-here
 fmeserver info
 ```
 
+For full documentation of all commands, see the [Documentation](doc/fmeserver.md).
+
+
 ## Development
 
-* `cobra-cli` will be needed to add new commands
-```
-go install github.com/spf13/cobra-cli@latest
-```
 * Run while coding:
 ```
 go run main.go
@@ -42,11 +41,6 @@ go run main.go
 ```
 go build -o fmeserver
 ```
-* Add a new command
-```
-cobra-cli add new-command
-```
-More details [here](https://github.com/spf13/cobra-cli/blob/main/README.md)
 
 A great resource for adding new structs to represent JSON returned from FME Server is this [JSON to Go converter](https://mholt.github.io/json-to-go/) which will create a Go struct for you from a JSON sample.
 

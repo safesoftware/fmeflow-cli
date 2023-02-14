@@ -28,12 +28,13 @@ var rootCmd = NewRootCommand()
 
 func NewRootCommand() *cobra.Command {
 	cmds := &cobra.Command{
-		Use:           "fmeserver",
-		Short:         "A command line interface for interacting with FME Server.",
-		Long:          `A command line interface for interacting with FME Server.`,
-		Version:       appVersion,
-		SilenceErrors: true,
-		SilenceUsage:  true,
+		Use:               "fmeserver",
+		Short:             "A command line interface for interacting with FME Server.",
+		Long:              `A command line interface for interacting with FME Server. See available commands below. Get started with the login command.`,
+		Version:           appVersion,
+		SilenceErrors:     true,
+		SilenceUsage:      true,
+		DisableAutoGenTag: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// make sure the config file is set up correctly
 			_, err := os.Stat(viper.ConfigFileUsed())

@@ -94,8 +94,8 @@ func newRunCmd() *cobra.Command {
 	f := runFlags{}
 	cmd := &cobra.Command{
 		Use:   "run",
-		Short: "Run a workspace on FME Server",
-		Long: `Run a workspace on FME Server
+		Short: "Run a workspace on FME Server.",
+		Long: `Run a workspace on FME Server.
 		
 	Examples:
 	# Submit a job asynchronously
