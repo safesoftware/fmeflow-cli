@@ -29,7 +29,7 @@ func newDeploymentParameterUpdateCmd() *cobra.Command {
 		Example: `
 	Examples:
 	# Update a deployment parameter with the name "myParam" and the value "myValue"
-	fmeserver deploymentparameter update --name myParam --value myValue
+	fmeserver deploymentparameters update --name myParam --value myValue
 `,
 
 		Args: NoArgs,

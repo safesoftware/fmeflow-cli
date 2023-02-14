@@ -32,7 +32,7 @@ func newDeploymentParameterCreateCmd() *cobra.Command {
 		Example: `
 	Examples:
 	# Create a deployment parameter with the name "myParam" and the value "myValue"
-	fmeserver deploymentparameter create --name myParam --value myValue
+	fmeserver deploymentparameters create --name myParam --value myValue
 `,
 
 		Args: NoArgs,
