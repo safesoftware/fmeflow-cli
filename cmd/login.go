@@ -57,18 +57,17 @@ func newLoginCmd() *cobra.Command {
 		Short: "Save credentials for an FME Server",
 		Long: `Update the config file with the credentials to connect to FME Server. If just a URL is passed in, you will be prompted for a user and password for the FME Server. This will be used to generate an API token that will be saved to the config file for use connecting to FME Server.
 	Use the --token flag to pass in an existing API token. To log in with a password on the command line without being prompted, place the password in a text file and pass that in using the --password-file flag.
-	This will overwrite any existing credentials saved.
+	This will overwrite any existing credentials saved.`,
+
+		Example: `
+  # Prompt for user and password for the given FME Server URL  
+  fmeserver login https://my-fmeserver.internal
 	
-	Examples:
+  # Login to an FME Server using a pre-generated token
+  fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
 	
-	# Prompt for user and password for the given FME Server URL  
-	fmeserver login https://my-fmeserver.internal
-	
-	# Login to an FME Server using a pre-generated token
-	fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
-	
-	# Login to an FME Server using a passed in user and password file
-	fmeserver login https://my-fmeserver.internal --user admin --password passw0rd`,
+  # Login to an FME Server using a passed in user and password file (The password is contained in a file at the path /path/to/password-file)
+  fmeserver login https://my-fmeserver.internal --user admin --password-file /path/to/password-file`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
