@@ -37,7 +37,7 @@ jobs:
       run: |
         export GOOS=${{ matrix.os }}
         export GOARCH=${{ matrix.arch }}
-        go build -o fmeserver${{ matrix.exe-ext }} -ldflags="-X \"github.com/safesoftare/fmeserver-cli/cmd.appVersion=${{ env.APP_VERSION }}\""
+        go build -o fmeserver${{ matrix.exe-ext }} -ldflags="-X \"github.com/safesoftware/fmeserver-cli/cmd.appVersion=${{ env.APP_VERSION }}\""
 
     - name: Upload artifact for later steps
       uses: actions/upload-artifact@v3

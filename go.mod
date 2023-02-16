@@ -1,4 +1,4 @@
-module github.com/safesoftare/fmeserver-cli
+module github.com/safesoftware/fmeserver-cli
 
 go 1.18
 

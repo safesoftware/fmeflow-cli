@@ -18,7 +18,7 @@ var jsonOutput bool
 
 const notSet string = "not set"
 
-// this information will be collected at build time, by `-ldflags "-X github.com/safesoftare/fmeserver-cli/cmd.appVersion=0.1"`
+// this information will be collected at build time, by `-ldflags "-X github.com/safesoftware/fmeserver-cli/cmd.appVersion=0.1"`
 var appVersion = notSet
 
 var ErrSilent = errors.New("ErrSilent")
