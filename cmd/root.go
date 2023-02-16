@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 
@@ -36,32 +35,7 @@ func NewRootCommand() *cobra.Command {
 		SilenceUsage:      true,
 		DisableAutoGenTag: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// make sure the config file is set up correctly
-			_, err := os.Stat(viper.ConfigFileUsed())
-			if err != nil {
-				return fmt.Errorf("could not open the config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
-			}
-			fmeserverUrl := viper.GetString("url")
-
-			// check the fme server URL is valid
-			_, err = url.ParseRequestURI(fmeserverUrl)
-			if err != nil {
-				return fmt.Errorf("invalid FME Server url in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
-			}
-
-			// check there is a token to use for auth
-			fmeserverToken := viper.GetString("token")
-			if fmeserverToken == "" {
-				return fmt.Errorf("no token found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
-			}
-
-			// check there is a build set in the config file
-			fmeserverBuild := viper.GetString("build")
-			if fmeserverBuild == "" {
-				return fmt.Errorf("no build found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
-			}
-
-			return nil
+			return checkConfigFile(true)
 		},
 	}
 	cmds.ResetFlags()

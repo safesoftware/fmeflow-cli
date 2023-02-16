@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -15,6 +16,7 @@ import (
 
 type healthcheckFlags struct {
 	ready      bool
+	url        string
 	outputType string
 	noHeaders  bool
 	apiVersion apiVersionFlag
@@ -37,7 +39,7 @@ func newHealthcheckCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "healthcheck",
 		Short: "Retrieves the health status of FME Server",
-		Long:  "Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. Load balancer or other systems can monitor FME Server using this endpoint without supplying token or password credentials.",
+		Long:  "Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. This command can be used without calling the login command first. The FME Server url can be passed in using the --url flag without needing a config file. A config file without a token can also be used.",
 		Example: `
   # Check if the FME Server is healthy and accepting requests
   fmeserver healthcheck
@@ -49,11 +51,38 @@ func newHealthcheckCmd() *cobra.Command {
   fmeserver healthcheck --json
   
   # Check that the FME Server is healthy and output just the status
-  fmeserver healthcheck --output=custom-columns=STATUS:.status`,
+  fmeserver healthcheck --output=custom-columns=STATUS:.status
+  
+ # Check the FME Server is healthy without needing a config file
+ fmeserver healthcheck --url https://my-fmeserver.internal
+ 
+ # Check the FME Server is healthy with a manually created config file
+ cat << EOF >fmeserver-cli.yaml
+ build: 23235
+ url: https://my-fmeserver.internal
+ EOF
+ fmeserver healthcheck --config fmeserver-cli.yaml`,
 		Args: NoArgs,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// only check config if we didn't specify a url
+			if f.url == "" {
+				return checkConfigFile(false)
+			} else {
+				var err error
+				url, err := url.ParseRequestURI(f.url)
+				if err != nil {
+					return fmt.Errorf(urlErrorMsg)
+				}
+				if url.Path != "" {
+					return fmt.Errorf(urlErrorMsg)
+				}
+			}
+			return nil
+		},
 		RunE: healthcheckRun(&f),
 	}
 	cmd.Flags().BoolVar(&f.ready, "ready", false, "The health check will report the status of FME Server if it is ready to process jobs.")
+	cmd.Flags().StringVar(&f.url, "url", "", "The base URL of the FME Server to check the health of. Pass this in if checking the health of an FME Server that you haven't called the login command for.")
 	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
@@ -74,6 +103,7 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 
 		// get build to decide if we should use v3 or v4
 		// FME Server 2023.0 and later can use v4. Otherwise fall back to v3
+		// If called without a config file and thus no build number, default to v3
 		if f.apiVersion == "" {
 			fmeserverBuild := viper.GetInt("build")
 			if fmeserverBuild < healthcheckV4BuildThreshold {
@@ -92,7 +122,14 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 				endpoint += "/liveness"
 			}
 
-			request, err := buildFmeServerRequest(endpoint, "GET", nil)
+			var request http.Request
+			var err error
+			if f.url == "" {
+				request, err = buildFmeServerRequest(endpoint, "GET", nil)
+			} else {
+				request, err = buildFmeServerRequestNoAuth(f.url, endpoint, "GET", nil)
+			}
+
 			if err != nil {
 				return err
 			}
@@ -169,9 +206,12 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 				endpoint += "?ready=true"
 			}
 
-			request, err := buildFmeServerRequest(endpoint, "GET", nil)
-			if err != nil {
-				return err
+			var request http.Request
+			var err error
+			if f.url == "" {
+				request, err = buildFmeServerRequest(endpoint, "GET", nil)
+			} else {
+				request, err = buildFmeServerRequestNoAuth(f.url, endpoint, "GET", nil)
 			}
 			response, err := client.Do(&request)
 			if err != nil {

@@ -11,8 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testURL = "https://myfmeserver.example.com"
-
 func TestLogin(t *testing.T) {
 	tokenResponse := `{
 		"lastSaveDate": "2022-11-17T19:30:44Z",
@@ -71,20 +69,20 @@ func TestLogin(t *testing.T) {
 		{
 			name:               "unknown flag",
 			statusCode:         http.StatusOK,
-			args:               []string{"login", testURL, "--badflag"},
+			args:               []string{"login", urlPlaceholder, "--badflag"},
 			wantErrOutputRegex: "unknown flag: --badflag",
 		},
 		{
 			name:        "500 bad status code",
 			statusCode:  http.StatusInternalServerError,
 			wantErrText: "500 Internal Server Error",
-			args:        []string{"login", testURL, "--user", "admin", "--password-file", passwordFile.Name()},
+			args:        []string{"login", urlPlaceholder, "--user", "admin", "--password-file", passwordFile.Name()},
 		},
 		{
 			name:        "422 bad status code",
 			statusCode:  http.StatusNotFound,
 			wantErrText: "404 Not Found",
-			args:        []string{"login", testURL, "--user", "admin", "--password-file", passwordFile.Name()},
+			args:        []string{"login", urlPlaceholder, "--user", "admin", "--password-file", passwordFile.Name()},
 		},
 		{
 			name:            "login with user and password",
@@ -117,19 +115,19 @@ url: %s
 		{
 			name:        "missing password flag",
 			statusCode:  http.StatusOK,
-			args:        []string{"login", testURL, "--user", "admin"},
+			args:        []string{"login", urlPlaceholder, "--user", "admin"},
 			wantErrText: "if any flags in the group [user password-file] are set they must all be set; missing [password-file]",
 		},
 		{
 			name:        "missing user flag",
 			statusCode:  http.StatusOK,
-			args:        []string{"login", testURL, "--password-file", passwordFile.Name()},
+			args:        []string{"login", urlPlaceholder, "--password-file", passwordFile.Name()},
 			wantErrText: "if any flags in the group [user password-file] are set they must all be set; missing [user]",
 		},
 		{
 			name:        "token and password mutually exclusive",
 			statusCode:  http.StatusOK,
-			args:        []string{"login", testURL, "--user", "admin", "--password-file", passwordFile.Name(), "--token", "5ba5e0fd15c2403bc8b2e3aa1dfb975ca2197fbf"},
+			args:        []string{"login", urlPlaceholder, "--user", "admin", "--password-file", passwordFile.Name(), "--token", "5ba5e0fd15c2403bc8b2e3aa1dfb975ca2197fbf"},
 			wantErrText: "if any flags in the group [token password-file] are set none of the others can be; [password-file token] were all set",
 		},
 	}

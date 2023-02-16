@@ -3,8 +3,11 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"os"
 	"reflect"
 	"strings"
 	"unicode"
@@ -39,6 +42,11 @@ func buildFmeServerRequest(endpoint string, method string, body io.Reader) (http
 
 	req, err := http.NewRequest(method, fmeserverUrl+endpoint, body)
 	req.Header.Set("Authorization", "fmetoken token="+fmeserverToken)
+	return *req, err
+}
+
+func buildFmeServerRequestNoAuth(url, endpoint string, method string, body io.Reader) (http.Request, error) {
+	req, err := http.NewRequest(method, url+endpoint, body)
 	return *req, err
 }
 
@@ -162,4 +170,35 @@ func isEmpty(object interface{}) bool {
 		}
 	}
 	return false
+}
+
+func checkConfigFile(requireToken bool) error {
+	// make sure the config file is set up correctly
+	_, err := os.Stat(viper.ConfigFileUsed())
+	if err != nil {
+		return fmt.Errorf("could not open the config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+	}
+	fmeserverUrl := viper.GetString("url")
+
+	// check the fme server URL is valid
+	_, err = url.ParseRequestURI(fmeserverUrl)
+	if err != nil {
+		return fmt.Errorf("invalid FME Server url in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+	}
+
+	if requireToken {
+		// check there is a token to use for auth
+		fmeserverToken := viper.GetString("token")
+		if fmeserverToken == "" {
+			return fmt.Errorf("no token found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+		}
+	}
+
+	// check there is a build set in the config file
+	fmeserverBuild := viper.GetString("build")
+	if fmeserverBuild == "" {
+		return fmt.Errorf("no build found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+	}
+	return nil
+
 }

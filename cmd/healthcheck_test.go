@@ -104,6 +104,22 @@ func TestHealthcheck(t *testing.T) {
 			wantOutputJson: okResponseV3,
 			args:           []string{"healthcheck", "--json", "--api-version", "v3"},
 		},
+		{
+			name:            "v4 health check with url flag",
+			statusCode:      http.StatusOK,
+			body:            okResponseV4,
+			wantOutputRegex: "STATUS[\\s]*MESSAGE[\\s]*[\\s]*ok[\\s]*FME Server is healthy",
+			args:            []string{"healthcheck", "--url", urlPlaceholder},
+			omitConfig:      true,
+		},
+		{
+			name:            "v4 health check with no token in config file",
+			statusCode:      http.StatusOK,
+			body:            okResponseV4,
+			wantOutputRegex: "STATUS[\\s]*MESSAGE[\\s]*[\\s]*ok[\\s]*FME Server is healthy",
+			args:            []string{"healthcheck"},
+			omitConfigToken: true,
+		},
 	}
 	runTests(cases, t)
 }
