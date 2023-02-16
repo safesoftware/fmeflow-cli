@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/safesoftare/fmeserver-cli/cmd"
+	"github.com/safesoftware/fmeserver-cli/cmd"
 )
 
 func main() {

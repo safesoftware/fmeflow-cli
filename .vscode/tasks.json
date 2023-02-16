@@ -8,7 +8,7 @@
                 "command": "go",
                 "args": [
                     "build",
-                     "-ldflags=\\\"-X github.com/safesoftare/fmeserver-cli/cmd.appVersion=$(git rev-parse --short HEAD)\\\"",
+                     "-ldflags=\\\"-X github.com/safesoftware/fmeserver-cli/cmd.appVersion=$(git rev-parse --short HEAD)\\\"",
                     "-o", 
                     "fmeserver.exe"
                 ]
@@ -17,7 +17,7 @@
                 "command": "go",
                 "args": [
                     "build",
-                     "-ldflags=\"-X github.com/safesoftare/fmeserver-cli/cmd.appVersion=$(git rev-parse --short HEAD)\"",
+                     "-ldflags=\"-X github.com/safesoftware/fmeserver-cli/cmd.appVersion=$(git rev-parse --short HEAD)\"",
                     "-o", 
                     "fmeserver"
                 ]

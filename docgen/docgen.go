@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/safesoftare/fmeserver-cli/cmd"
+	"github.com/safesoftware/fmeserver-cli/cmd"
 	"github.com/spf13/cobra/doc"
 )
 
