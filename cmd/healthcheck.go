@@ -122,14 +122,11 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 				endpoint += "/liveness"
 			}
 
-			var request http.Request
-			var err error
-			if f.url == "" {
-				request, err = buildFmeServerRequest(endpoint, "GET", nil)
-			} else {
-				request, err = buildFmeServerRequestNoAuth(f.url, endpoint, "GET", nil)
+			if f.url != "" {
+				viper.Set("url", f.url)
 			}
 
+			request, err := buildFmeServerRequest(endpoint, "GET", nil)
 			if err != nil {
 				return err
 			}
@@ -206,12 +203,14 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 				endpoint += "?ready=true"
 			}
 
-			var request http.Request
-			var err error
-			if f.url == "" {
-				request, err = buildFmeServerRequest(endpoint, "GET", nil)
-			} else {
-				request, err = buildFmeServerRequestNoAuth(f.url, endpoint, "GET", nil)
+			if f.url != "" {
+				viper.Set("url", f.url)
+			}
+
+			request, err := buildFmeServerRequest(endpoint, "GET", nil)
+
+			if err != nil {
+				return err
 			}
 			response, err := client.Do(&request)
 			if err != nil {

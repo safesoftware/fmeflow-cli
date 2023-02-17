@@ -41,12 +41,9 @@ func buildFmeServerRequest(endpoint string, method string, body io.Reader) (http
 	fmeserverToken := viper.GetString("token")
 
 	req, err := http.NewRequest(method, fmeserverUrl+endpoint, body)
-	req.Header.Set("Authorization", "fmetoken token="+fmeserverToken)
-	return *req, err
-}
-
-func buildFmeServerRequestNoAuth(url, endpoint string, method string, body io.Reader) (http.Request, error) {
-	req, err := http.NewRequest(method, url+endpoint, body)
+	if fmeserverToken != "" {
+		req.Header.Set("Authorization", "fmetoken token="+fmeserverToken)
+	}
 	return *req, err
 }
 
