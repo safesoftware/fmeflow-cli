@@ -50,6 +50,8 @@ type loginFlags struct {
 	expiration   int
 }
 
+var urlErrorMsg = "invalid FME Server URL specified. URL should be of the form https://myfmeserverhostname.com"
+
 func newLoginCmd() *cobra.Command {
 	f := loginFlags{}
 	cmd := &cobra.Command{
@@ -80,7 +82,7 @@ func newLoginCmd() *cobra.Command {
 				cmd.Usage()
 				return fmt.Errorf("accepts at most 1 argument, received %d", len(args))
 			}
-			urlErrorMsg := "invalid FME Server URL specified. URL should be of the form https://myfmeserverhostname.com"
+
 			url, err := url.ParseRequestURI(args[0])
 			if err != nil {
 				return fmt.Errorf(urlErrorMsg)

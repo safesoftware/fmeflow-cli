@@ -22,7 +22,19 @@
                     "fmeserver"
                 ]
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+              }
+        },
+        {
+            "label": "Build Docker Image",
+            "type": "shell",
+            "command": "docker build -t safesoftware/fmeserver-cli .",
+            "group": {
+                "kind": "build"
+            }
         }
     ]
 }
