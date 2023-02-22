@@ -1,0 +1,9 @@
+This software includes the following third-party components:
+
+cobra (Apache-2.0: https://github.com/spf13/cobra/blob/main/LICENSE.txt)
+viper (MIT: https://github.com/spf13/viper/blob/master/LICENSE)
+pflag (BSD-3-Clause: https://github.com/spf13/pflag/blob/master/LICENSE)
+testify (MIT: https://github.com/stretchr/testify/blob/master/LICENSE)
+survey (MIT: https://github.com/go-survey/survey/blob/master/LICENSE)
+go-pretty (MIT: https://github.com/jedib0t/go-pretty/blob/main/LICENSE)
+client-go (Apache-2.0: https://github.com/kubernetes/client-go/blob/master/LICENSE)
