@@ -10,7 +10,8 @@ This is a command line interface that utilizes the FME Server REST API to intera
 
 ### Installing
 
-* Simply download the binary for your system from the [releases](https://github.com/safesoftware/fmeserver-cli/releases) page.
+* Simply download the binary for your system from the [releases](https://github.com/safesoftware/fmeserver-cli/releases) page and extract it.
+* On Unix systems, you may need to give the file execute permissions (e.g. `chmod +x fmeserver`). You can move the executable to a desired location (e.g. `mv fmeserver /usr/local/bin/fmeserver`)
 
 ### Executing program
 
@@ -43,11 +44,3 @@ go build -o fmeserver
 ```
 
 A great resource for adding new structs to represent JSON returned from FME Server is this [JSON to Go converter](https://mholt.github.io/json-to-go/) which will create a Go struct for you from a JSON sample.
-
-## Releasing a new version
-
-There is a github action that will run when a new release is created that will build the binary for 5 different platforms and automatically add them to the release as assets.
-
-## Acknowledgments
-
-* Created using [cobra](https://github.com/spf13/cobra)
