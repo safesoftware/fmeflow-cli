@@ -220,7 +220,7 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 		}
 		viper.Set("build", buildNum)
 		// ensure directory where config file is supposed to live exists
-		err = os.MkdirAll(filepath.Dir(viper.ConfigFileUsed()), 0600)
+		err = os.MkdirAll(filepath.Dir(viper.ConfigFileUsed()), 0700)
 		if err != nil {
 			return err
 		}
