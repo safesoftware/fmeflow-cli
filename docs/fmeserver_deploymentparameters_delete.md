@@ -16,10 +16,10 @@ fmeserver deploymentparameters delete [flags]
 
 	Examples:
 	# Delete adeployment parameter with the name "myParam"
-	fmeserver deploymentparameter delete --name myParam
+	fmeserver deploymentparameters delete --name myParam
 	
 	# Delete a repository with the name "myRepository" and no confirmation
-	fmeserver deploymentparameter delete --name myParam --no-prompt
+	fmeserver deploymentparameters delete --name myParam --no-prompt
 
 ```
 
