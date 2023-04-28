@@ -4,7 +4,7 @@ Retrieves the health status of FME Server
 
 ### Synopsis
 
-Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. Load balancer or other systems can monitor FME Server using this endpoint without supplying token or password credentials.
+Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. This command can be used without calling the login command first. The FME Server url can be passed in using the --url flag without needing a config file. A config file without a token can also be used.
 
 ```
 fmeserver healthcheck [flags]
@@ -25,6 +25,16 @@ fmeserver healthcheck [flags]
   
   # Check that the FME Server is healthy and output just the status
   fmeserver healthcheck --output=custom-columns=STATUS:.status
+  
+ # Check the FME Server is healthy without needing a config file
+ fmeserver healthcheck --url https://my-fmeserver.internal
+ 
+ # Check the FME Server is healthy with a manually created config file
+ cat << EOF >fmeserver-cli.yaml
+ build: 23235
+ url: https://my-fmeserver.internal
+ EOF
+ fmeserver healthcheck --config fmeserver-cli.yaml
 ```
 
 ### Options
@@ -34,6 +44,7 @@ fmeserver healthcheck [flags]
       --no-headers      Don't print column headers
   -o, --output string   Specify the output type. Should be one of table, json, or custom-columns (default "table")
       --ready           The health check will report the status of FME Server if it is ready to process jobs.
+      --url string      The base URL of the FME Server to check the health of. Pass this in if checking the health of an FME Server that you haven't called the login command for.
 ```
 
 ### Options inherited from parent commands

@@ -18,6 +18,7 @@ A command line interface for interacting with FME Server. See available commands
 
 * [fmeserver backup](fmeserver_backup.md)	 - Backs up the FME Server configuration
 * [fmeserver cancel](fmeserver_cancel.md)	 - Cancel a running job on FME Server
+* [fmeserver completion](fmeserver_completion.md)	 - Generate the autocompletion script for the specified shell
 * [fmeserver deploymentparameters](fmeserver_deploymentparameters.md)	 - List Deployment Parameters
 * [fmeserver engines](fmeserver_engines.md)	 - Get information about the FME Engines
 * [fmeserver healthcheck](fmeserver_healthcheck.md)	 - Retrieves the health status of FME Server

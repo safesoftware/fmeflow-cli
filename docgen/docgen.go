@@ -8,7 +8,9 @@ import (
 )
 
 func main() {
-	err := doc.GenMarkdownTree(cmd.NewRootCommand(), "../docs")
+	cmdRoot := cmd.NewRootCommand()
+	cmdRoot.InitDefaultCompletionCmd()
+	err := doc.GenMarkdownTree(cmdRoot, "../docs")
 	if err != nil {
 		log.Fatal(err)
 	}
