@@ -31,6 +31,9 @@ fmeserver info
 
 For full documentation of all commands, see the [Documentation](docs/fmeserver.md).
 
+## Supported Versions of FME Flow
+
+This CLI has been written with backwards compatibilty in mind. Officially this will support FME Flow 2022.2 and later. However, we have tested back to FME Server 2019 and are able to log in and run commands. Not all commands are guaranteed to work on builds before FME Flow 2022.2.
 
 ## Development
 
