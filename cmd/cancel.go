@@ -33,7 +33,7 @@ func newCancelCmd() *cobra.Command {
 		Long:  `Cancels the job and marks it as aborted in the completed jobs section, but does not remove it from the database.`,
 		Example: `
   # Cancel a job with id 42
-  fmeserver cancel --id 42
+  fmeflow cancel --id 42
 	`,
 		Args: NoArgs,
 		RunE: runCancel(&f),
@@ -56,8 +56,8 @@ func runCancel(f *cancelFlags) func(cmd *cobra.Command, args []string) error {
 		// get build to decide if we should use v3 or v4
 		// FME Server 2022.0 and later can use v4. Otherwise fall back to v3
 		if f.apiVersion == "" {
-			fmeserverBuild := viper.GetInt("build")
-			if fmeserverBuild < cancelV4BuildThreshold {
+			fmeflowBuild := viper.GetInt("build")
+			if fmeflowBuild < cancelV4BuildThreshold {
 				f.apiVersion = apiVersionFlagV3
 			} else {
 				f.apiVersion = apiVersionFlagV4
@@ -67,7 +67,7 @@ func runCancel(f *cancelFlags) func(cmd *cobra.Command, args []string) error {
 		if f.apiVersion == "v4" {
 			endpoint := "/fmeapiv4/jobs/" + f.id + "/cancel"
 
-			request, err := buildFmeServerRequest(endpoint, "POST", nil)
+			request, err := buildFmeFlowRequest(endpoint, "POST", nil)
 			if err != nil {
 				return err
 			}
@@ -114,7 +114,7 @@ func runCancel(f *cancelFlags) func(cmd *cobra.Command, args []string) error {
 		} else if f.apiVersion == "v3" {
 
 			// call the status endpoint to see if it is finished
-			request, err := buildFmeServerRequest("/fmerest/v3/transformations/jobs/running/"+f.id, "DELETE", nil)
+			request, err := buildFmeFlowRequest("/fmerest/v3/transformations/jobs/running/"+f.id, "DELETE", nil)
 			if err != nil {
 				return err
 			}

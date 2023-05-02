@@ -99,22 +99,22 @@ func newRunCmd() *cobra.Command {
 		
 	Examples:
 	# Submit a job asynchronously
-	fmeserver run --repository Samples --workspace austinApartments.fmw
+	fmeflow run --repository Samples --workspace austinApartments.fmw
 	
 	# Submit a job and wait for it to complete
-	fmeserver run --repository Samples --workspace austinApartments.fmw --wait
+	fmeflow run --repository Samples --workspace austinApartments.fmw --wait
 	
 	# Submit a job to a specific queue and set a time to live in the queue
-	fmeserver run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
+	fmeflow run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
 	
 	# Submit a job and pass in a few published parameters
-	fmeserver run --repository Samples --workspace austinDownload.fmw --published-parameter-list THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
+	fmeflow run --repository Samples --workspace austinDownload.fmw --published-parameter-list THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
 	
 	# Submit a job, wait for it to complete, and customize the output
-	fmeserver run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
+	fmeflow run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
 	
 	# Upload a local file to use as the source data for the translation
-	fmeserver run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait`,
+	fmeflow run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait`,
 		Args: NoArgs,
 		RunE: runRun(&f),
 	}
@@ -230,7 +230,7 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 
 			endpoint := "/fmerest/v3/transformations/" + submitEndpoint + "/" + f.repository + "/" + f.workspace
 
-			request, err := buildFmeServerRequest(endpoint, "POST", strings.NewReader(string(jobJson)))
+			request, err := buildFmeFlowRequest(endpoint, "POST", strings.NewReader(string(jobJson)))
 			if err != nil {
 				return err
 			}
@@ -285,7 +285,7 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 			defer file.Close()
 
 			endpoint := "/fmerest/v3/transformations/transactdata/" + f.repository + "/" + f.workspace
-			request, err := buildFmeServerRequest(endpoint, "POST", file)
+			request, err := buildFmeFlowRequest(endpoint, "POST", file)
 			if err != nil {
 				return err
 			}

@@ -71,22 +71,22 @@ func newJobsCmd() *cobra.Command {
 
 		Example: `
   # List all jobs (currently limited to the most recent 1000)
-  fmeserver jobs --all
+  fmeflow jobs --all
 	
   # List all running jobs
-  fmeserver jobs --running
+  fmeflow jobs --running
 	
   # List all jobs from a given repository
-  fmeserver jobs --repository Samples
+  fmeflow jobs --repository Samples
 	
   # List all jobs that ran a given workspace
-  fmeserver jobs --repository Samples --workspace austinApartments.fmw
+  fmeflow jobs --repository Samples --workspace austinApartments.fmw
 	
   # List all jobs in JSON format
-  fmeserver jobs --json
+  fmeflow jobs --json
 	
   # List the workspace, CPU time and peak memory usage for a given repository
-  fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
+  fmeflow jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
 	`,
 		Args: NoArgs,
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -238,7 +238,7 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 
 func getJobs(endpoint string, allJobs *Jobs, f *jobsFlags) error {
 	client := &http.Client{}
-	request, err := buildFmeServerRequest(endpoint, "GET", nil)
+	request, err := buildFmeFlowRequest(endpoint, "GET", nil)
 	if err != nil {
 		return err
 	}

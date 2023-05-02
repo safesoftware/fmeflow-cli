@@ -16,7 +16,7 @@ func TestLogin(t *testing.T) {
 		"lastSaveDate": "2022-11-17T19:30:44Z",
 		"createdDate": "2022-11-17T19:30:44Z",
 		"restricted": false,
-		"name": "fmeserver-cli-20221117135041",
+		"name": "fmeflow-cli-20221117135041",
 		"description": "test token from REST API documentation",
 		"type": "USER",
 		"user": "admin",

@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type FMEServerWorkspacesV4 struct {
+type FMEFlowWorkspacesV4 struct {
 	Items []struct {
 		AverageCPUPercent      float64   `json:"averageCpuPercent"`
 		AverageCPUTime         float64   `json:"averageCpuTime"`
@@ -39,7 +39,7 @@ type FMEServerWorkspacesV4 struct {
 	TotalCount int `json:"totalCount"`
 }
 
-type FMEServerWorkspaceDetailedV4 struct {
+type FMEFlowWorkspaceDetailedV4 struct {
 	AverageCPUPercent      float64 `json:"averageCpuPercent"`
 	AverageCPUTime         float64 `json:"averageCpuTime"`
 	AverageElapsedTime     float64 `json:"averageElapsedTime"`
@@ -205,14 +205,14 @@ type FMEServerWorkspaceDetailedV4 struct {
 	UserName  string `json:"userName"`
 }
 
-type FMEServerWorkspacesV3 struct {
-	Offset     int                    `json:"offset"`
-	Limit      int                    `json:"limit"`
-	TotalCount int                    `json:"totalCount"`
-	Items      []FMEServerWorkspaceV3 `json:"items"`
+type FMEFlowWorkspacesV3 struct {
+	Offset     int                  `json:"offset"`
+	Limit      int                  `json:"limit"`
+	TotalCount int                  `json:"totalCount"`
+	Items      []FMEFlowWorkspaceV3 `json:"items"`
 }
 
-type FMEServerWorkspaceV3 struct {
+type FMEFlowWorkspaceV3 struct {
 	LastSaveDate    time.Time `json:"lastSaveDate"`
 	AvgCPUPct       float64   `json:"avgCpuPct"`
 	AvgPeakMemUsage int       `json:"avgPeakMemUsage"`
@@ -230,7 +230,7 @@ type FMEServerWorkspaceV3 struct {
 	AvgElapsedTime  int       `json:"avgElapsedTime"`
 }
 
-type FMEServerWorkspaceDetailedV3 struct {
+type FMEFlowWorkspaceDetailedV3 struct {
 	LegalTermsConditions string  `json:"legalTermsConditions"`
 	AvgCPUPct            float64 `json:"avgCpuPct"`
 	Usage                string  `json:"usage"`
@@ -340,29 +340,29 @@ func newWorkspaceCmd() *cobra.Command {
 		Example: `
 	Examples:
 	# List all workspaces on the FME Server
-	fmeserver workspaces
+	fmeflow workspaces
 	
 	# List all workspaces in Samples repository
-	fmeserver workspaces --repository Samples
+	fmeflow workspaces --repository Samples
 	
 	# List all workspaces in the Samples repository and output it in json
-	fmeserver workspaces --repository Samples --json
+	fmeflow workspaces --repository Samples --json
 	
 	# List all workspaces in the Samples repository with custom columns showing the last publish date and number of times run
-	fmeserver workspaces --repository Samples --output="custom-columns=NAME:.name,PUBLISH DATE:.lastPublishDate,TOTAL RUNS:.totalRuns"
+	fmeflow workspaces --repository Samples --output="custom-columns=NAME:.name,PUBLISH DATE:.lastPublishDate,TOTAL RUNS:.totalRuns"
 	
 	# Get information on a single workspace 
-	fmeserver workspaces --repository Samples --name austinApartments.fmw
+	fmeflow workspaces --repository Samples --name austinApartments.fmw
 	
 	# Get the name, source format, and destination format for this workspace
-	fmeserver workspaces --repository Samples --name austinApartments.fmw --output=custom-columns=NAME:.name,SOURCE:.datasets.source[*].format,DEST:.datasets.destination[*].format`,
+	fmeflow workspaces --repository Samples --name austinApartments.fmw --output=custom-columns=NAME:.name,SOURCE:.datasets.source[*].format,DEST:.datasets.destination[*].format`,
 		Args: NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4
 			// FME Server 2023.0 and later can use v4. Otherwise fall back to v3
 			if f.apiVersion == "" {
-				fmeserverBuild := viper.GetInt("build")
-				if fmeserverBuild < repositoriesV4BuildThreshold {
+				fmeflowBuild := viper.GetInt("build")
+				if fmeflowBuild < repositoriesV4BuildThreshold {
 					f.apiVersion = apiVersionFlagV3
 				} else {
 					f.apiVersion = apiVersionFlagV4
@@ -412,7 +412,7 @@ func workspacesRun(f *workspaceFlags) func(cmd *cobra.Command, args []string) er
 				// add the repository name to the request if specified
 				url = url + "/" + f.repository + "/" + f.name
 			}
-			request, err := buildFmeServerRequest(url, "GET", nil)
+			request, err := buildFmeFlowRequest(url, "GET", nil)
 			if err != nil {
 				return err
 			}
@@ -466,8 +466,8 @@ func workspacesRun(f *workspaceFlags) func(cmd *cobra.Command, args []string) er
 				return err
 			}
 
-			var result FMEServerWorkspacesV4
-			var resultDetailed FMEServerWorkspaceDetailedV4
+			var result FMEFlowWorkspacesV4
+			var resultDetailed FMEFlowWorkspaceDetailedV4
 
 			if f.name == "" {
 				// if no name specified, request will return the full struct
@@ -555,7 +555,7 @@ func workspacesRun(f *workspaceFlags) func(cmd *cobra.Command, args []string) er
 				url += "/" + f.name
 			}
 
-			request, err := buildFmeServerRequest(url, "GET", nil)
+			request, err := buildFmeFlowRequest(url, "GET", nil)
 			if err != nil {
 				return err
 			}
@@ -581,8 +581,8 @@ func workspacesRun(f *workspaceFlags) func(cmd *cobra.Command, args []string) er
 			if err != nil {
 				return err
 			}
-			var result FMEServerWorkspacesV3
-			var resultDetailed FMEServerWorkspaceDetailedV3
+			var result FMEFlowWorkspacesV3
+			var resultDetailed FMEFlowWorkspaceDetailedV3
 			if f.name == "" {
 				// if no name specified, request will return the full struct
 				if err := json.Unmarshal(responseData, &result); err != nil {

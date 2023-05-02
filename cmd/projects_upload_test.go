@@ -16,7 +16,7 @@ func TestProjectUpload(t *testing.T) {
 	projectContents := "Pretend project file"
 
 	// generate random file to restore from
-	f, err := os.CreateTemp("", "fmeserver-project")
+	f, err := os.CreateTemp("", "fmeflow-project")
 	require.NoError(t, err)
 	defer os.Remove(f.Name()) // clean up
 	err = os.WriteFile(f.Name(), []byte(projectContents), 0644)

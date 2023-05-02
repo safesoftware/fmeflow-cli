@@ -32,7 +32,7 @@ func newDeploymentParameterCreateCmd() *cobra.Command {
 		Example: `
 	Examples:
 	# Create a deployment parameter with the name "myParam" and the value "myValue"
-	fmeserver deploymentparameters create --name myParam --value myValue
+	fmeflow deploymentparameters create --name myParam --value myValue
 `,
 
 		Args: NoArgs,
@@ -64,7 +64,7 @@ func deploymentParametersCreateRun(f *deploymentParameterCreateFlags) func(cmd *
 			return err
 		}
 
-		request, err := buildFmeServerRequest("/fmeapiv4/deploymentparameters", "POST", bytes.NewBuffer(jsonData))
+		request, err := buildFmeFlowRequest("/fmeapiv4/deploymentparameters", "POST", bytes.NewBuffer(jsonData))
 		if err != nil {
 			return err
 		}

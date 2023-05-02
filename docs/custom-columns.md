@@ -21,7 +21,7 @@ When crafting a `custom-column` output for a given command that supports it in t
 For example, let's output all the workspaces in the `Samples` repository.
 
 ```
-> fmeserver workspaces --repository Samples
+> fmeflow workspaces --repository Samples
  NAME                      TITLE                                                    LAST SAVE DATE                
  austinApartments.fmw      City of Austin: Apartments and other (SPATIALITE 2 KML)  2022-06-15 10:59:24 +0000 UTC 
  austinDownload.fmw        City of Austin: Data Download                            2022-06-15 13:40:29 +0000 UTC 
@@ -30,7 +30,7 @@ For example, let's output all the workspaces in the `Samples` repository.
 ```
 In order to see what data we can output in our `custom-columns` output, we should take a look at the raw JSON:
 ```
-> fmeserver workspaces --repository Samples --json
+> fmeflow workspaces --repository Samples --json
 {
   "items": [
     {
@@ -63,7 +63,7 @@ The output has been truncated here to organize it better, but we can now see wha
 
 This means to output the workspace name along with the average CPU percent and average elapsed time, our CLI command looks like this:
 ```
-> fmeserver workspaces --repository Samples --output custom-columns="NAME:.name,CPU PERCENT:.averageCpuPercent,ELAPSED TIME:.averageElapsedTime"
+> fmeflow workspaces --repository Samples --output custom-columns="NAME:.name,CPU PERCENT:.averageCpuPercent,ELAPSED TIME:.averageElapsedTime"
  NAME                      CPU PERCENT         ELAPSED TIME 
  austinApartments.fmw      13.242375601926163  1246         
  austinDownload.fmw        63.6535552193646    2644         
@@ -73,7 +73,7 @@ This means to output the workspace name along with the average CPU percent and a
 
 For a slightly more complicated example, specifying a specific workspace gives more data:
 ```
-> fmeserver workspaces --repository Samples --name "austinApartments.fmw" --json
+> fmeflow workspaces --repository Samples --name "austinApartments.fmw" --json
 {
   "name": "austinApartments.fmw",
   "title": "City of Austin: Apartments and other (SPATIALITE 2 KML)",
@@ -165,7 +165,7 @@ For a slightly more complicated example, specifying a specific workspace gives m
           }
         ],
         "format": "OGCKML",
-        "location": "/data/fmeserverdata/resources/system/temp/engineresults\\austinApartments.kml",
+        "location": "/data/fmeflowdata/resources/system/temp/engineresults\\austinApartments.kml",
         "name": "OGCKML_1",
         "properties": [
           {
@@ -191,12 +191,12 @@ For a slightly more complicated example, specifying a specific workspace gives m
 The JSON about a single workspace includes information on source and destination datasets, that are stored in a JSON list. In JSONPath, lists are accessed using `[]`, with a specific index being specified as a number such as `[0]`, or all results from that list being denoted as `[*]`. For examples, if we want to get all the source formats for this workspace, we would use the JSonPath query `.datasets.source[*].format`. A full example:
 
 ```
-> fmeserver workspaces --repository Samples --name "austinApartments.fmw" --output custom-columns="NAME:.name,SOURCE:.datasets.source[*].format,DEST:datasets.destination[*].format"
+> fmeflow workspaces --repository Samples --name "austinApartments.fmw" --output custom-columns="NAME:.name,SOURCE:.datasets.source[*].format,DEST:datasets.destination[*].format"
  NAME                  SOURCE             DEST   
  austinApartments.fmw  SPATIALITE_NATIVE  OGCKML
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
 

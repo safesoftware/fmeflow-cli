@@ -17,7 +17,7 @@ var jsonOutput bool
 
 const notSet string = "not set"
 
-// this information will be collected at build time, by `-ldflags "-X github.com/safesoftware/fmeserver-cli/cmd.appVersion=0.1"`
+// this information will be collected at build time, by `-ldflags "-X github.com/safesoftware/fmeflow-cli/cmd.appVersion=0.1"`
 var appVersion = notSet
 
 var ErrSilent = errors.New("ErrSilent")
@@ -27,7 +27,7 @@ var rootCmd = NewRootCommand()
 
 func NewRootCommand() *cobra.Command {
 	cmds := &cobra.Command{
-		Use:               "fmeserver",
+		Use:               "fmeflow",
 		Short:             "A command line interface for interacting with FME Server.",
 		Long:              `A command line interface for interacting with FME Server. See available commands below. Get started with the login command.`,
 		Version:           appVersion,
@@ -62,7 +62,7 @@ func NewRootCommand() *cobra.Command {
 	cobra.OnInitialize(initConfig)
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
-	cmds.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/.fmeserver-cli.yaml)")
+	cmds.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/.fmeflow-cli.yaml)")
 	cmds.PersistentFlags().BoolVar(&jsonOutput, "json", false, "Output JSON")
 
 	return cmds
@@ -92,7 +92,7 @@ func initConfig() {
 			defaultConfigDirectory = filepath.Join(home, ".config")
 		}
 
-		viper.SetConfigFile(filepath.Join(defaultConfigDirectory, ".fmeserver-cli.yaml"))
+		viper.SetConfigFile(filepath.Join(defaultConfigDirectory, ".fmeflow-cli.yaml"))
 
 	}
 	//fmt.Println(viper.ConfigFileUsed())

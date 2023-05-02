@@ -45,13 +45,13 @@ func newDeploymentParametersCmd() *cobra.Command {
 		Example: `
 	Examples:
 	# List all deployment parameters
-	fmeserver deploymentparameters
+	fmeflow deploymentparameters
 	
 	# List a single deployment parameter
-	fmeserver deploymentparameters --name testParameter
+	fmeflow deploymentparameters --name testParameter
 	
 	# Output all deploymentparameters in json format
-	fmeserver deploymentparameters --json`,
+	fmeflow deploymentparameters --json`,
 		Args: NoArgs,
 		RunE: deploymentParametersRun(&f),
 	}
@@ -84,7 +84,7 @@ func deploymentParametersRun(f *deploymentparametersFlags) func(cmd *cobra.Comma
 			// add the repository name to the request if specified
 			url = url + "/" + f.name
 		}
-		request, err := buildFmeServerRequest(url, "GET", nil)
+		request, err := buildFmeFlowRequest(url, "GET", nil)
 		if err != nil {
 			return err
 		}

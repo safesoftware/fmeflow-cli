@@ -1,4 +1,4 @@
-## fmeserver license machinekey
+## fmeflow license machinekey
 
 Retrieves machine key of the machine running FME Server.
 
@@ -7,7 +7,7 @@ Retrieves machine key of the machine running FME Server.
 Retrieves machine key of the machine running FME Server.
 
 ```
-fmeserver license machinekey [flags]
+fmeflow license machinekey [flags]
 ```
 
 ### Options
@@ -19,11 +19,11 @@ fmeserver license machinekey [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver license](fmeserver_license.md)	 - Interact with licensing an FME Server
+* [fmeflow license](fmeflow_license.md)	 - Interact with licensing an FME Server
 

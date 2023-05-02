@@ -1,4 +1,4 @@
-## fmeserver info
+## fmeflow info
 
 Retrieves build, version and time information about FME Server
 
@@ -7,7 +7,7 @@ Retrieves build, version and time information about FME Server
 Retrieves build, version and time information about FME Server
 
 ```
-fmeserver info [flags]
+fmeflow info [flags]
 ```
 
 ### Examples
@@ -15,13 +15,13 @@ fmeserver info [flags]
 ```
 
   # Output FME Server information in a table
-  fmeserver info
+  fmeflow info
 
   # Output FME Server information in json
-  fmeserver info --json
+  fmeflow info --json
 
   # Output just the build string with no column headers
-  fmeserver info --output=custom-columns="BUILD:.build" --no-headers
+  fmeflow info --output=custom-columns="BUILD:.build" --no-headers
 	
 ```
 
@@ -36,11 +36,11 @@ fmeserver info [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
 

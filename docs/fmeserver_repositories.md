@@ -1,4 +1,4 @@
-## fmeserver repositories
+## fmeflow repositories
 
 List repositories
 
@@ -7,7 +7,7 @@ List repositories
 Lists repositories on the given FME Server. Pass in a name to get information on a specific repository.
 
 ```
-fmeserver repositories [flags]
+fmeflow repositories [flags]
 ```
 
 ### Examples
@@ -16,19 +16,19 @@ fmeserver repositories [flags]
 
 	Examples:
 	# List all repositories
-	fmeserver repositories
+	fmeflow repositories
 	
 	# List all repositories owned by the admin user
-	fmeserver repositories --owner admin
+	fmeflow repositories --owner admin
 	
 	# List a single repository with the name "Samples"
-	fmeserver repositories --name Samples
+	fmeflow repositories --name Samples
 	
 	# Output just the name of all the repositories
-	fmeserver repositories --output=custom-columns=NAME:.name --no-headers
+	fmeflow repositories --output=custom-columns=NAME:.name --no-headers
 	
 	# Output all repositories in json format
-	fmeserver repositories --json
+	fmeflow repositories --json
 ```
 
 ### Options
@@ -45,13 +45,13 @@ fmeserver repositories [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
-* [fmeserver repositories create](fmeserver_repositories_create.md)	 - Create a new repository.
-* [fmeserver repositories delete](fmeserver_repositories_delete.md)	 - Delete a repository.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow repositories create](fmeflow_repositories_create.md)	 - Create a new repository.
+* [fmeflow repositories delete](fmeflow_repositories_delete.md)	 - Delete a repository.
 

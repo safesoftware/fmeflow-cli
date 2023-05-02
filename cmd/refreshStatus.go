@@ -24,13 +24,13 @@ func newRefreshStatusCmd() *cobra.Command {
 		Long:  "Check the status of a license refresh request.",
 		Example: `
 	# Output the license refresh status as a table
-	fmeserver license refresh status
+	fmeflow license refresh status
 	
 	# Output the license refresh status in json
-	fmeserver license refresh status --json
+	fmeflow license refresh status --json
 	
 	# Output just the status message
-	fmeserver license refresh status --output custom-columns=STATUS:.status --no-headers`,
+	fmeflow license refresh status --output custom-columns=STATUS:.status --no-headers`,
 		Args: NoArgs,
 		RunE: refreshStatusRun(&f),
 	}
@@ -51,7 +51,7 @@ func refreshStatusRun(f *licenseRefreshStatusFlags) func(cmd *cobra.Command, arg
 		client := &http.Client{}
 
 		// call the status endpoint to see if it is finished
-		request, err := buildFmeServerRequest("/fmerest/v3/licensing/refresh/status", "GET", nil)
+		request, err := buildFmeFlowRequest("/fmerest/v3/licensing/refresh/status", "GET", nil)
 		if err != nil {
 			return err
 		}

@@ -1,4 +1,4 @@
-## fmeserver deploymentparameters update
+## fmeflow deploymentparameters update
 
 Update a deployment parameter
 
@@ -7,7 +7,7 @@ Update a deployment parameter
 Update a deployment parameter.
 
 ```
-fmeserver deploymentparameters update [flags]
+fmeflow deploymentparameters update [flags]
 ```
 
 ### Examples
@@ -16,7 +16,7 @@ fmeserver deploymentparameters update [flags]
 
 	Examples:
 	# Update a deployment parameter with the name "myParam" and the value "myValue"
-	fmeserver deploymentparameters update --name myParam --value myValue
+	fmeflow deploymentparameters update --name myParam --value myValue
 
 ```
 
@@ -31,11 +31,11 @@ fmeserver deploymentparameters update [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver deploymentparameters](fmeserver_deploymentparameters.md)	 - List Deployment Parameters
+* [fmeflow deploymentparameters](fmeflow_deploymentparameters.md)	 - List Deployment Parameters
 

@@ -42,26 +42,26 @@ func newHealthcheckCmd() *cobra.Command {
 		Long:  "Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. This command can be used without calling the login command first. The FME Server url can be passed in using the --url flag without needing a config file. A config file without a token can also be used.",
 		Example: `
   # Check if the FME Server is healthy and accepting requests
-  fmeserver healthcheck
+  fmeflow healthcheck
 		
   # Check if the FME Server is healthy and ready to process jobs
-  fmeserver healthcheck --ready
+  fmeflow healthcheck --ready
 		
   # Check if the FME Server is healthy and output in json
-  fmeserver healthcheck --json
+  fmeflow healthcheck --json
   
   # Check that the FME Server is healthy and output just the status
-  fmeserver healthcheck --output=custom-columns=STATUS:.status
+  fmeflow healthcheck --output=custom-columns=STATUS:.status
   
  # Check the FME Server is healthy without needing a config file
- fmeserver healthcheck --url https://my-fmeserver.internal
+ fmeflow healthcheck --url https://my-fmeflow.internal
  
  # Check the FME Server is healthy with a manually created config file
- cat << EOF >fmeserver-cli.yaml
+ cat << EOF >fmeflow-cli.yaml
  build: 23235
- url: https://my-fmeserver.internal
+ url: https://my-fmeflow.internal
  EOF
- fmeserver healthcheck --config fmeserver-cli.yaml`,
+ fmeflow healthcheck --config fmeflow-cli.yaml`,
 		Args: NoArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// only check config if we didn't specify a url
@@ -105,8 +105,8 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 		// FME Server 2023.0 and later can use v4. Otherwise fall back to v3
 		// If called without a config file and thus no build number, default to v3
 		if f.apiVersion == "" {
-			fmeserverBuild := viper.GetInt("build")
-			if fmeserverBuild < healthcheckV4BuildThreshold {
+			fmeflowBuild := viper.GetInt("build")
+			if fmeflowBuild < healthcheckV4BuildThreshold {
 				f.apiVersion = apiVersionFlagV3
 			} else {
 				f.apiVersion = apiVersionFlagV4
@@ -126,7 +126,7 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 				viper.Set("url", f.url)
 			}
 
-			request, err := buildFmeServerRequest(endpoint, "GET", nil)
+			request, err := buildFmeFlowRequest(endpoint, "GET", nil)
 			if err != nil {
 				return err
 			}
@@ -207,7 +207,7 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 				viper.Set("url", f.url)
 			}
 
-			request, err := buildFmeServerRequest(endpoint, "GET", nil)
+			request, err := buildFmeFlowRequest(endpoint, "GET", nil)
 
 			if err != nil {
 				return err

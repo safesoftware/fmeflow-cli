@@ -1,4 +1,4 @@
-## fmeserver backup
+## fmeflow backup
 
 Backs up the FME Server configuration
 
@@ -7,7 +7,7 @@ Backs up the FME Server configuration
 Backs up the FME Server configuration to a local file or to a shared resource location on the FME Server.
 
 ```
-fmeserver backup [flags]
+fmeflow backup [flags]
 ```
 
 ### Examples
@@ -15,10 +15,10 @@ fmeserver backup [flags]
 ```
 
   # back up to a local file
-  fmeserver backup -f my_local_backup.fsconfig
+  fmeflow backup -f my_local_backup.fsconfig
 	
   # back up to the "Backup" folder in the FME Server Shared Resources with the file name my_fme_backup.fsconfig
-  fmeserver backup --resource --export-package my_fme_backup.fsconfig
+  fmeflow backup --resource --export-package my_fme_backup.fsconfig
 ```
 
 ### Options
@@ -36,11 +36,11 @@ fmeserver backup [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
 

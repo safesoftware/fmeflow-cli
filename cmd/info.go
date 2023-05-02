@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type FMEServerInfo struct {
+type FMEFlowInfo struct {
 	CurrentTime       string `json:"currentTime"`
 	LicenseManagement bool   `json:"licenseManagement"`
 	Build             string `json:"build"`
@@ -32,13 +32,13 @@ func newInfoCmd() *cobra.Command {
 		Long:  "Retrieves build, version and time information about FME Server",
 		Example: `
   # Output FME Server information in a table
-  fmeserver info
+  fmeflow info
 
   # Output FME Server information in json
-  fmeserver info --json
+  fmeflow info --json
 
   # Output just the build string with no column headers
-  fmeserver info --output=custom-columns="BUILD:.build" --no-headers
+  fmeflow info --output=custom-columns="BUILD:.build" --no-headers
 	`,
 		Args: NoArgs,
 		RunE: infoRun(&f),
@@ -59,7 +59,7 @@ func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
 		client := &http.Client{}
 
 		// call the status endpoint to see if it is finished
-		request, err := buildFmeServerRequest("/fmerest/v3/info", "GET", nil)
+		request, err := buildFmeFlowRequest("/fmerest/v3/info", "GET", nil)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		var result FMEServerInfo
+		var result FMEFlowInfo
 		if err := json.Unmarshal(responseData, &result); err != nil {
 			return err
 		} else {

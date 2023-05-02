@@ -10,26 +10,26 @@ This is a command line interface that utilizes the FME Server REST API to intera
 
 ### Installing
 
-* Simply download the binary for your system from the [releases](https://github.com/safesoftware/fmeserver-cli/releases) page and extract it.
-* On Unix systems, you may need to give the file execute permissions (e.g. `chmod +x fmeserver`). You can move the executable to a desired location (e.g. `mv fmeserver /usr/local/bin/fmeserver`)
+* Simply download the binary for your system from the [releases](https://github.com/safesoftware/fmeflow-cli/releases) page and extract it.
+* On Unix systems, you may need to give the file execute permissions (e.g. `chmod +x fmeflow`). You can move the executable to a desired location (e.g. `mv fmeflow /usr/local/bin/fmeflow`)
 
 ### Executing program
 
 * Execute the program to get a high level overview of each command
 ```
-fmeserver
+fmeflow
 ```
 * Log in to an existing FME Server. It is recommended to generate an API token using the FME Server Web UI initially and use that to log in.
 ```
-fmeserver login https://my-fmeserver.com --token my-token-here
+fmeflow login https://my-fmeflow.com --token my-token-here
 ```
-* Your token and URL will be saved to a config file located in $HOME/.fmeserver-cli.yaml. Config file location can be overridden with the `--config` flag
+* Your token and URL will be saved to a config file located in $HOME/.fmeflow-cli.yaml. Config file location can be overridden with the `--config` flag
 * Test your credentials work
 ```
-fmeserver info
+fmeflow info
 ```
 
-For full documentation of all commands, see the [Documentation](docs/fmeserver.md).
+For full documentation of all commands, see the [Documentation](docs/fmeflow.md).
 
 
 ## Development
@@ -40,7 +40,7 @@ go run main.go
 ```
 * Build binary
 ```
-go build -o fmeserver
+go build -o fmeflow
 ```
 
 A great resource for adding new structs to represent JSON returned from FME Server is this [JSON to Go converter](https://mholt.github.io/json-to-go/) which will create a Go struct for you from a JSON sample.

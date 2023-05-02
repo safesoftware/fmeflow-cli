@@ -50,7 +50,7 @@ type loginFlags struct {
 	expiration   int
 }
 
-var urlErrorMsg = "invalid FME Server URL specified. URL should be of the form https://myfmeserverhostname.com"
+var urlErrorMsg = "invalid FME Server URL specified. URL should be of the form https://myfmeflowhostname.com"
 
 func newLoginCmd() *cobra.Command {
 	f := loginFlags{}
@@ -63,13 +63,13 @@ func newLoginCmd() *cobra.Command {
 
 		Example: `
   # Prompt for user and password for the given FME Server URL  
-  fmeserver login https://my-fmeserver.internal
+  fmeflow login https://my-fmeflow.internal
 	
   # Login to an FME Server using a pre-generated token
-  fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
+  fmeflow login https://my-fmeflow.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
 	
   # Login to an FME Server using a passed in user and password file (The password is contained in a file at the path /path/to/password-file)
-  fmeserver login https://my-fmeserver.internal --user admin --password-file /path/to/password-file`,
+  fmeflow login https://my-fmeflow.internal --user admin --password-file /path/to/password-file`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
@@ -145,8 +145,8 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 
 			tokenRequest := TokenRequest{
 				Restricted:        false,
-				Name:              "fmeserver-cli-" + currentTime.Format("20060102150405"),
-				Description:       "Token generated for use with the fmeserver-cli.",
+				Name:              "fmeflow-cli-" + currentTime.Format("20060102150405"),
+				Description:       "Token generated for use with the fmeflow-cli.",
 				ExpirationTimeout: f.expiration,
 				User:              f.user,
 				Enabled:           true,
@@ -193,7 +193,7 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 		viper.Set("url", url)
 		viper.Set("token", f.token)
 
-		request, err := buildFmeServerRequest("/fmerest/v3/info", "GET", nil)
+		request, err := buildFmeFlowRequest("/fmerest/v3/info", "GET", nil)
 		if err != nil {
 			return err
 		}
@@ -209,7 +209,7 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		var result FMEServerInfo
+		var result FMEFlowInfo
 		if err := json.Unmarshal(responseData, &result); err != nil {
 			return err
 		}

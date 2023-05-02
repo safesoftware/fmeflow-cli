@@ -1,4 +1,4 @@
-## fmeserver run
+## fmeflow run
 
 Run a workspace on FME Server.
 
@@ -8,25 +8,25 @@ Run a workspace on FME Server.
 		
 	Examples:
 	# Submit a job asynchronously
-	fmeserver run --repository Samples --workspace austinApartments.fmw
+	fmeflow run --repository Samples --workspace austinApartments.fmw
 	
 	# Submit a job and wait for it to complete
-	fmeserver run --repository Samples --workspace austinApartments.fmw --wait
+	fmeflow run --repository Samples --workspace austinApartments.fmw --wait
 	
 	# Submit a job to a specific queue and set a time to live in the queue
-	fmeserver run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
+	fmeflow run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
 	
 	# Submit a job and pass in a few published parameters
-	fmeserver run --repository Samples --workspace austinDownload.fmw --published-parameter-list THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
+	fmeflow run --repository Samples --workspace austinDownload.fmw --published-parameter-list THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
 	
 	# Submit a job, wait for it to complete, and customize the output
-	fmeserver run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
+	fmeflow run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
 	
 	# Upload a local file to use as the source data for the translation
-	fmeserver run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait
+	fmeflow run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait
 
 ```
-fmeserver run [flags]
+fmeflow run [flags]
 ```
 
 ### Options
@@ -54,11 +54,11 @@ fmeserver run [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
 

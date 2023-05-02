@@ -67,7 +67,7 @@ func TestHealthcheck(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            okResponseV3,
 			wantOutputRegex: "^ok\n$",
-			fmeserverBuild:  22765,
+			fmeflowBuild:    22765,
 			args:            []string{"healthcheck"},
 		},
 		{
@@ -75,7 +75,7 @@ func TestHealthcheck(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            okResponseV4,
 			wantOutputRegex: "STATUS[\\s]*MESSAGE[\\s]*[\\s]*ok[\\s]*FME Server is healthy",
-			fmeserverBuild:  23200,
+			fmeflowBuild:    23200,
 			args:            []string{"healthcheck"},
 		},
 		{
@@ -87,7 +87,7 @@ func TestHealthcheck(t *testing.T) {
 				"extra": "Extra field"
 				}`,
 			wantOutputRegex: "STATUS[\\s]*MESSAGE[\\s]*[\\s]*ok[\\s]*FME Server is healthy",
-			fmeserverBuild:  23200,
+			fmeflowBuild:    23200,
 			args:            []string{"healthcheck"},
 		},
 		{

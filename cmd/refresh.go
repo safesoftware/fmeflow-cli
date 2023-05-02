@@ -29,7 +29,7 @@ func newRefreshCmd() *cobra.Command {
 		Long:  "Refreshes the installed license file with a current license from Safe Software.",
 		Example: `
   # Refresh the license
-  fmeserver license refresh`,
+  fmeflow license refresh`,
 		Args: NoArgs,
 		RunE: refreshRun(&f),
 	}
@@ -45,7 +45,7 @@ func refreshRun(f *refreshFlags) func(cmd *cobra.Command, args []string) error {
 		client := &http.Client{}
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
-		request, err := buildFmeServerRequest("/fmerest/v3/licensing/refresh", "POST", nil)
+		request, err := buildFmeFlowRequest("/fmerest/v3/licensing/refresh", "POST", nil)
 		if err != nil {
 			return err
 		}
@@ -68,7 +68,7 @@ func refreshRun(f *refreshFlags) func(cmd *cobra.Command, args []string) error {
 				fmt.Print(".")
 				time.Sleep(1 * time.Second)
 				// call the status endpoint to see if it is finished
-				request, err := buildFmeServerRequest("/fmerest/v3/licensing/refresh/status", "GET", nil)
+				request, err := buildFmeFlowRequest("/fmerest/v3/licensing/refresh/status", "GET", nil)
 				if err != nil {
 					return err
 				}

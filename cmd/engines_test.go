@@ -26,7 +26,7 @@ func TestEngines(t *testing.T) {
 			  "23166",
 			  "linux-x64"
 			],
-			"engineManagerNodeName": "fmeservercore",
+			"engineManagerNodeName": "fmeflowcore",
 			"maxTransactionResultFailure": 10,
 			"type": "STANDARD",
 			"buildNumber": 23166,
@@ -59,7 +59,7 @@ func TestEngines(t *testing.T) {
 			  "23166",
 			  "linux-x64"
 			],
-			"engineManagerNodeName": "fmeservercore",
+			"engineManagerNodeName": "fmeflowcore",
 			"maxTransactionResultFailure": 10,
 			"type": "STANDARD",
 			"buildNumber": 23166,
@@ -84,7 +84,7 @@ func TestEngines(t *testing.T) {
 			  "23166",
 			  "linux-x64"
 			],
-			"engineManagerNodeName": "fmeservercore",
+			"engineManagerNodeName": "fmeflowcore",
 			"maxTransactionResultFailure": 10,
 			"type": "STANDARD",
 			"buildNumber": 23166,
@@ -109,7 +109,7 @@ func TestEngines(t *testing.T) {
 			  "23166",
 			  "linux-x64"
 			],
-			"engineManagerNodeName": "fmeservercore",
+			"engineManagerNodeName": "fmeflowcore",
 			"maxTransactionResultFailure": 10,
 			"type": "STANDARD",
 			"buildNumber": 23166,
@@ -134,7 +134,7 @@ func TestEngines(t *testing.T) {
 			  "23166",
 			  "linux-x64"
 			],
-			"engineManagerNodeName": "fmeservercore",
+			"engineManagerNodeName": "fmeflowcore",
 			"maxTransactionResultFailure": 10,
 			"type": "STANDARD",
 			"buildNumber": 23166,
@@ -207,7 +207,7 @@ func TestEngines(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3FourEngines,
 			args:            []string{"engines", "--output=custom-columns=ENGINEMANAGER:.engineManagerNodeName,TRANSACTIONPORT:.transactionPort,CURRENTJOB:.currentJobID"},
-			wantOutputRegex: "[\\s]*ENGINEMANAGER[\\s]*TRANSACTIONPORT[\\s]*CURRENTJOB[\\s]*fmeservercore[\\s]*40935[\\s]*-1[\\s]*fmeservercore[\\s]*36883[\\s]*-1[\\s]*fmeservercore[\\s]*44089[\\s]*-1[\\s]*fmeservercore[\\s]*44795[\\s]*-1",
+			wantOutputRegex: "[\\s]*ENGINEMANAGER[\\s]*TRANSACTIONPORT[\\s]*CURRENTJOB[\\s]*fmeflowcore[\\s]*40935[\\s]*-1[\\s]*fmeflowcore[\\s]*36883[\\s]*-1[\\s]*fmeflowcore[\\s]*44089[\\s]*-1[\\s]*fmeflowcore[\\s]*44795[\\s]*-1",
 		},
 	}
 

@@ -30,7 +30,7 @@ func machineKeyRun() func(cmd *cobra.Command, args []string) error {
 		client := &http.Client{}
 
 		// call the status endpoint to see if it is finished
-		request, err := buildFmeServerRequest("/fmerest/v3/licensing/machinekey", "GET", nil)
+		request, err := buildFmeFlowRequest("/fmerest/v3/licensing/machinekey", "GET", nil)
 		if err != nil {
 			return err
 		}

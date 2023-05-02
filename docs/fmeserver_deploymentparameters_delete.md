@@ -1,4 +1,4 @@
-## fmeserver deploymentparameters delete
+## fmeflow deploymentparameters delete
 
 Delete a deployment parameter
 
@@ -7,7 +7,7 @@ Delete a deployment parameter
 Delete a deployment parameter.
 
 ```
-fmeserver deploymentparameters delete [flags]
+fmeflow deploymentparameters delete [flags]
 ```
 
 ### Examples
@@ -16,10 +16,10 @@ fmeserver deploymentparameters delete [flags]
 
 	Examples:
 	# Delete adeployment parameter with the name "myParam"
-	fmeserver deploymentparameters delete --name myParam
+	fmeflow deploymentparameters delete --name myParam
 	
 	# Delete a repository with the name "myRepository" and no confirmation
-	fmeserver deploymentparameters delete --name myParam --no-prompt
+	fmeflow deploymentparameters delete --name myParam --no-prompt
 
 ```
 
@@ -34,11 +34,11 @@ fmeserver deploymentparameters delete [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver deploymentparameters](fmeserver_deploymentparameters.md)	 - List Deployment Parameters
+* [fmeflow deploymentparameters](fmeflow_deploymentparameters.md)	 - List Deployment Parameters
 

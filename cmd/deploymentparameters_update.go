@@ -29,7 +29,7 @@ func newDeploymentParameterUpdateCmd() *cobra.Command {
 		Example: `
 	Examples:
 	# Update a deployment parameter with the name "myParam" and the value "myValue"
-	fmeserver deploymentparameters update --name myParam --value myValue
+	fmeflow deploymentparameters update --name myParam --value myValue
 `,
 
 		Args: NoArgs,
@@ -56,7 +56,7 @@ func deploymentParametersUpdateRun(f *deploymentParameterUpdateFlags) func(cmd *
 			return err
 		}
 
-		request, err := buildFmeServerRequest("/fmeapiv4/deploymentparameters/"+f.name, "PUT", bytes.NewBuffer(jsonData))
+		request, err := buildFmeFlowRequest("/fmeapiv4/deploymentparameters/"+f.name, "PUT", bytes.NewBuffer(jsonData))
 		if err != nil {
 			return err
 		}

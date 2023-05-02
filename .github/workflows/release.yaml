@@ -37,13 +37,13 @@ jobs:
       run: |
         export GOOS=${{ matrix.os }}
         export GOARCH=${{ matrix.arch }}
-        CGO_ENABLED=0 go build -o fmeserver${{ matrix.exe-ext }} -ldflags="-X \"github.com/safesoftware/fmeserver-cli/cmd.appVersion=${{ env.APP_VERSION }}\""
+        CGO_ENABLED=0 go build -o fmeflow${{ matrix.exe-ext }} -ldflags="-X \"github.com/safesoftware/fmeflow-cli/cmd.appVersion=${{ env.APP_VERSION }}\""
 
     - name: Upload artifact for later steps
       uses: actions/upload-artifact@v3
       with:
-        name: fmeserver-${{ matrix.os }}-${{ matrix.arch }}
-        path: fmeserver${{ matrix.exe-ext }}
+        name: fmeflow-${{ matrix.os }}-${{ matrix.arch }}
+        path: fmeflow${{ matrix.exe-ext }}
         if-no-files-found: error
 
   build-docker:
@@ -67,7 +67,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: safesoftware/fmeserver-cli:${{ env.APP_VERSION }}, safesoftware/fmeserver-cli:latest
+        tags: safesoftware/fmeflow-cli:${{ env.APP_VERSION }}, safesoftware/fmeflow-cli:latest
         platforms: linux/amd64,linux/arm64
         build-args: |
           APP_VERSION=${{ env.APP_VERSION }}
@@ -80,7 +80,7 @@ jobs:
     - name: Download
       uses: actions/download-artifact@v3
       with:
-        name: fmeserver-windows-amd64
+        name: fmeflow-windows-amd64
     
     - name: Sign
       env:
@@ -91,13 +91,13 @@ jobs:
         $buffer = [System.Convert]::FromBase64String($env:SIGNCERT)
         # Create new certificate object from the buffer and the certificate pass
         $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::New($buffer, $env:CERTPASS)
-        Set-AuthenticodeSignature -HashAlgorithm SHA256 -Certificate $certificate -TimestampServer http://timestamp.digicert.com -FilePath fmeserver.exe
+        Set-AuthenticodeSignature -HashAlgorithm SHA256 -Certificate $certificate -TimestampServer http://timestamp.digicert.com -FilePath fmeflow.exe
     
     - name: Reupload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: fmeserver-windows-amd64
-        path: fmeserver.exe
+        name: fmeflow-windows-amd64
+        path: fmeflow.exe
 
   sign-macosx:
     name: Sign Mac Binaries
@@ -112,7 +112,7 @@ jobs:
     - name: Download
       uses: actions/download-artifact@v3
       with:
-        name: fmeserver-${{ matrix.os }}-${{ matrix.arch }}
+        name: fmeflow-${{ matrix.os }}-${{ matrix.arch }}
 
     - name: Codesign binaries
       # Extract the secrets
@@ -138,7 +138,7 @@ jobs:
 
         # We finally codesign our app bundle, specifying the Hardened runtime option
         
-        /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime fmeserver -v
+        /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime fmeflow -v
     
     - name: "Notarize executable"
       # Extract the secrets we defined earlier as environment variables
@@ -158,7 +158,7 @@ jobs:
         # notarization service
 
         echo "Creating temp notarization archive"
-        ditto -c -k --keepParent "fmeserver" "notarization.zip"
+        ditto -c -k --keepParent "fmeflow" "notarization.zip"
 
         # Here we send the notarization request to the Apple's Notarization service, waiting for the result.
         # This typically takes a few seconds inside a CI environment, but it might take more depending on the App
@@ -171,8 +171,8 @@ jobs:
     - name: Reupload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: fmeserver-${{ matrix.os }}-${{ matrix.arch }}
-        path: fmeserver
+        name: fmeflow-${{ matrix.os }}-${{ matrix.arch }}
+        path: fmeflow
 
   compress-files:
     name: Compress binaries and release
@@ -204,7 +204,7 @@ jobs:
     - name: Download
       uses: actions/download-artifact@v3
       with:
-        name: fmeserver-${{ matrix.os }}-${{ matrix.arch }}
+        name: fmeflow-${{ matrix.os }}-${{ matrix.arch }}
         path: release
 
     - name: Copy license files for inclusion in zip package
@@ -218,13 +218,13 @@ jobs:
       with:
         type: ${{ matrix.type }}
         directory: release
-        filename: ../fmeserver-${{ matrix.os }}-${{ matrix.arch }}.${{ matrix.zip-ext }}
+        filename: ../fmeflow-${{ matrix.os }}-${{ matrix.arch }}.${{ matrix.zip-ext }}
 
     - name: Calculate MD5 hash
       run: |
-        MD5_SUM=$(md5sum fmeserver-${{ matrix.os }}-${{ matrix.arch }}.${{ matrix.zip-ext }} | cut -d ' ' -f 1)
-        echo ${MD5_SUM} >fmeserver-${{ matrix.os }}-${{ matrix.arch }}.${{ matrix.zip-ext }}.md5
-        cat fmeserver-${{ matrix.os }}-${{ matrix.arch }}.${{ matrix.zip-ext }}.md5
+        MD5_SUM=$(md5sum fmeflow-${{ matrix.os }}-${{ matrix.arch }}.${{ matrix.zip-ext }} | cut -d ' ' -f 1)
+        echo ${MD5_SUM} >fmeflow-${{ matrix.os }}-${{ matrix.arch }}.${{ matrix.zip-ext }}.md5
+        cat fmeflow-${{ matrix.os }}-${{ matrix.arch }}.${{ matrix.zip-ext }}.md5
 
     # Add compressed files and md5 hashes to the release
     - uses: AButler/upload-release-assets@v2.0

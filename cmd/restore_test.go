@@ -16,7 +16,7 @@ func TestRestore(t *testing.T) {
 	backupContents := "Pretend backup file"
 
 	// generate random file to restore from
-	f, err := os.CreateTemp("", "fmeserver-backup")
+	f, err := os.CreateTemp("", "fmeflow-backup")
 	require.NoError(t, err)
 	defer os.Remove(f.Name()) // clean up
 	err = os.WriteFile(f.Name(), []byte(backupContents), 0644)

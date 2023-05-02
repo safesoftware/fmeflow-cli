@@ -45,10 +45,10 @@ func newProjectUploadCmd() *cobra.Command {
 		},
 		Example: `
   # Restore from a backup in a local file
-  fmeserver projects upload --file ProjectPackage.fsproject
+  fmeflow projects upload --file ProjectPackage.fsproject
 
   # Restore from a backup in a local file using UPDATE mode
-  fmeserver projects upload --file ProjectPackage.fsproject --import-mode UPDATE`,
+  fmeflow projects upload --file ProjectPackage.fsproject --import-mode UPDATE`,
 		Args: NoArgs,
 		RunE: projectUploadRun(&f),
 	}
@@ -75,7 +75,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 		defer file.Close()
 
 		url = "/fmerest/v3/projects/import/upload"
-		request, err = buildFmeServerRequest(url, "POST", file)
+		request, err = buildFmeFlowRequest(url, "POST", file)
 		if err != nil {
 			return err
 		}

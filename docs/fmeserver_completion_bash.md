@@ -1,4 +1,4 @@
-## fmeserver completion bash
+## fmeflow completion bash
 
 Generate the autocompletion script for bash
 
@@ -11,23 +11,23 @@ If it is not installed already, you can install it via your OS's package manager
 
 To load completions in your current shell session:
 
-	source <(fmeserver completion bash)
+	source <(fmeflow completion bash)
 
 To load completions for every new session, execute once:
 
 #### Linux:
 
-	fmeserver completion bash > /etc/bash_completion.d/fmeserver
+	fmeflow completion bash > /etc/bash_completion.d/fmeflow
 
 #### macOS:
 
-	fmeserver completion bash > $(brew --prefix)/etc/bash_completion.d/fmeserver
+	fmeflow completion bash > $(brew --prefix)/etc/bash_completion.d/fmeflow
 
 You will need to start a new shell for this setup to take effect.
 
 
 ```
-fmeserver completion bash
+fmeflow completion bash
 ```
 
 ### Options
@@ -40,11 +40,11 @@ fmeserver completion bash
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver completion](fmeserver_completion.md)	 - Generate the autocompletion script for the specified shell
+* [fmeflow completion](fmeflow_completion.md)	 - Generate the autocompletion script for the specified shell
 

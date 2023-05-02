@@ -49,7 +49,7 @@ func licenseStatusRun(f *licenseStatusFlags) func(cmd *cobra.Command, args []str
 		client := &http.Client{}
 
 		// call the status endpoint to see if it is finished
-		request, err := buildFmeServerRequest("/fmerest/v3/licensing/license/status", "GET", nil)
+		request, err := buildFmeFlowRequest("/fmerest/v3/licensing/license/status", "GET", nil)
 		if err != nil {
 			return err
 		}

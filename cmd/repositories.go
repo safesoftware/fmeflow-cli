@@ -13,28 +13,28 @@ import (
 	"github.com/spf13/viper"
 )
 
-type FMEServerRepositoriesV3 struct {
-	Offset     int                     `json:"offset"`
-	Limit      int                     `json:"limit"`
-	TotalCount int                     `json:"totalCount"`
-	Items      []FMEServerRepositoryV3 `json:"items"`
+type FMEFlowRepositoriesV3 struct {
+	Offset     int                   `json:"offset"`
+	Limit      int                   `json:"limit"`
+	TotalCount int                   `json:"totalCount"`
+	Items      []FMEFlowRepositoryV3 `json:"items"`
 }
 
-type FMEServerRepositoryV3 struct {
+type FMEFlowRepositoryV3 struct {
 	Owner       string `json:"owner"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Sharable    bool   `json:"sharable"`
 }
 
-type FMEServerRepositoriesV4 struct {
-	Items      []FMEServerRepositoryV4 `json:"items"`
-	Limit      int                     `json:"limit"`
-	Offset     int                     `json:"offset"`
-	TotalCount int                     `json:"totalCount"`
+type FMEFlowRepositoriesV4 struct {
+	Items      []FMEFlowRepositoryV4 `json:"items"`
+	Limit      int                   `json:"limit"`
+	Offset     int                   `json:"offset"`
+	TotalCount int                   `json:"totalCount"`
 }
 
-type FMEServerRepositoryV4 struct {
+type FMEFlowRepositoryV4 struct {
 	CustomFormatCount      int    `json:"customFormatCount"`
 	CustomTransformerCount int    `json:"customTransformerCount"`
 	Description            string `json:"description"`
@@ -68,26 +68,26 @@ func newRepositoryCmd() *cobra.Command {
 		Example: `
 	Examples:
 	# List all repositories
-	fmeserver repositories
+	fmeflow repositories
 	
 	# List all repositories owned by the admin user
-	fmeserver repositories --owner admin
+	fmeflow repositories --owner admin
 	
 	# List a single repository with the name "Samples"
-	fmeserver repositories --name Samples
+	fmeflow repositories --name Samples
 	
 	# Output just the name of all the repositories
-	fmeserver repositories --output=custom-columns=NAME:.name --no-headers
+	fmeflow repositories --output=custom-columns=NAME:.name --no-headers
 	
 	# Output all repositories in json format
-	fmeserver repositories --json`,
+	fmeflow repositories --json`,
 		Args: NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4
 			// FME Server 2023.0 and later can use v4. Otherwise fall back to v3
 			if f.apiVersion == "" {
-				fmeserverBuild := viper.GetInt("build")
-				if fmeserverBuild < repositoriesV4BuildThreshold {
+				fmeflowBuild := viper.GetInt("build")
+				if fmeflowBuild < repositoriesV4BuildThreshold {
 					f.apiVersion = apiVersionFlagV3
 				} else {
 					f.apiVersion = apiVersionFlagV4
@@ -135,7 +135,7 @@ func repositoriesRun(f *repositoryFlags) func(cmd *cobra.Command, args []string)
 				// add the repository name to the request if specified
 				url = url + "/" + f.name
 			}
-			request, err := buildFmeServerRequest(url, "GET", nil)
+			request, err := buildFmeFlowRequest(url, "GET", nil)
 			if err != nil {
 				return err
 			}
@@ -183,7 +183,7 @@ func repositoriesRun(f *repositoryFlags) func(cmd *cobra.Command, args []string)
 				return err
 			}
 
-			var result FMEServerRepositoriesV4
+			var result FMEFlowRepositoriesV4
 
 			if f.name == "" {
 				// if no name specified, request will return the full struct
@@ -193,7 +193,7 @@ func repositoriesRun(f *repositoryFlags) func(cmd *cobra.Command, args []string)
 			} else {
 				// else, we are getting a single repository. We will just append this
 				// to the Item list in the full struct for easier parsing
-				var singleResult FMEServerRepositoryV4
+				var singleResult FMEFlowRepositoryV4
 				if err := json.Unmarshal(responseData, &singleResult); err != nil {
 					return err
 				}
@@ -263,7 +263,7 @@ func repositoriesRun(f *repositoryFlags) func(cmd *cobra.Command, args []string)
 				// add the repository name to the request if specified
 				url = url + "/" + f.name
 			}
-			request, err := buildFmeServerRequest(url, "GET", nil)
+			request, err := buildFmeFlowRequest(url, "GET", nil)
 			if err != nil {
 				return err
 			}
@@ -291,7 +291,7 @@ func repositoriesRun(f *repositoryFlags) func(cmd *cobra.Command, args []string)
 				return err
 			}
 
-			var result FMEServerRepositoriesV3
+			var result FMEFlowRepositoriesV3
 
 			if f.name == "" {
 				// if no name specified, request will return the full struct
@@ -301,7 +301,7 @@ func repositoriesRun(f *repositoryFlags) func(cmd *cobra.Command, args []string)
 			} else {
 				// else, we are getting a single repository. We will just append this
 				// to the Item list in the full struct for easier parsing
-				var singleResult FMEServerRepositoryV3
+				var singleResult FMEFlowRepositoryV3
 				if err := json.Unmarshal(responseData, &singleResult); err != nil {
 					return err
 				}

@@ -1,4 +1,4 @@
-## fmeserver license requestfile
+## fmeflow license requestfile
 
 Generates a JSON file for requesting a FME Server license file.
 
@@ -9,13 +9,13 @@ Generates a JSON file for requesting a FME Server license file.
 	Example:
 	
 	# Generate a license request file and output to the console
-	fmeserver license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc."
+	fmeflow license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc."
 	
 	# Generate a license request file and output to a local file
-	fmeserver license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --file my-request-file.json
+	fmeflow license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --file my-request-file.json
 
 ```
-fmeserver license requestfile [flags]
+fmeflow license requestfile [flags]
 ```
 
 ### Options
@@ -37,11 +37,11 @@ fmeserver license requestfile [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver license](fmeserver_license.md)	 - Interact with licensing an FME Server
+* [fmeflow license](fmeflow_license.md)	 - Interact with licensing an FME Server
 

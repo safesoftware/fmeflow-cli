@@ -1,4 +1,4 @@
-## fmeserver projects
+## fmeflow projects
 
 Lists projects on the FME Server
 
@@ -7,7 +7,7 @@ Lists projects on the FME Server
 Lists projects on the FME Server. Pass in a name to retrieve information on a single project.
 
 ```
-fmeserver projects [flags]
+fmeflow projects [flags]
 ```
 
 ### Examples
@@ -15,10 +15,10 @@ fmeserver projects [flags]
 ```
 
   # List all projects
-  fmeserver projects
+  fmeflow projects
 
   # List all projects owned by the user admin
-  fmeserver projects --owner admin
+  fmeflow projects --owner admin
 ```
 
 ### Options
@@ -34,13 +34,13 @@ fmeserver projects [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
-* [fmeserver projects download](fmeserver_projects_download.md)	 - Downloads an FME Server Project
-* [fmeserver projects upload](fmeserver_projects_upload.md)	 - Imports FME Server Projects from a downloaded package.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow projects download](fmeflow_projects_download.md)	 - Downloads an FME Server Project
+* [fmeflow projects upload](fmeflow_projects_upload.md)	 - Imports FME Server Projects from a downloaded package.
 
