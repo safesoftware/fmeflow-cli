@@ -1,4 +1,4 @@
-## fmeserver repositories delete
+## fmeflow repositories delete
 
 Delete a repository.
 
@@ -7,7 +7,7 @@ Delete a repository.
 Delete a repository.
 
 ```
-fmeserver repositories delete [flags]
+fmeflow repositories delete [flags]
 ```
 
 ### Examples
@@ -16,10 +16,10 @@ fmeserver repositories delete [flags]
 
 	Examples:
 	# Delete a repository with the name "myRepository"
-	fmeserver repositories delete --name myRepository
+	fmeflow repositories delete --name myRepository
 	
 	# Delete a repository with the name "myRepository" and no confirmation
-	fmeserver repositories delete --name myRepository --no-prompt
+	fmeflow repositories delete --name myRepository --no-prompt
 
 ```
 
@@ -34,11 +34,11 @@ fmeserver repositories delete [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver repositories](fmeserver_repositories.md)	 - List repositories
+* [fmeflow repositories](fmeflow_repositories.md)	 - List repositories
 

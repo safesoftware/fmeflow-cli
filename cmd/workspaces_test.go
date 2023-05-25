@@ -665,7 +665,7 @@ func TestWorkspaces(t *testing.T) {
 				}
 			  ],
 			  "format": "OGCKML",
-			  "location": "/data/fmeserverdata/resources/system/temp/engineresults\\austinApartments.kml",
+			  "location": "/data/fmeflowdata/resources/system/temp/engineresults\\austinApartments.kml",
 			  "name": "OGCKML_1",
 			  "properties": [
 				{
@@ -895,7 +895,7 @@ func TestWorkspaces(t *testing.T) {
 			{
 			  "format": "OGCKML",
 			  "name": "OGCKML_1",
-			  "location": "/data/fmeserverdata/resources/system/temp/engineresults\\austinApartments.kml",
+			  "location": "/data/fmeflowdata/resources/system/temp/engineresults\\austinApartments.kml",
 			  "source": false,
 			  "featuretypes": [
 				{

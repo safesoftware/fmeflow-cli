@@ -1,4 +1,4 @@
-## fmeserver workspaces
+## fmeflow workspaces
 
 List workspaces.
 
@@ -7,7 +7,7 @@ List workspaces.
 Lists workspaces that exist on the FME Server. Filter by repository, specify a name to retrieve a specific workspace, or specify a filter string to narrow down by name or title.
 
 ```
-fmeserver workspaces [flags]
+fmeflow workspaces [flags]
 ```
 
 ### Examples
@@ -16,22 +16,22 @@ fmeserver workspaces [flags]
 
 	Examples:
 	# List all workspaces on the FME Server
-	fmeserver workspaces
+	fmeflow workspaces
 	
 	# List all workspaces in Samples repository
-	fmeserver workspaces --repository Samples
+	fmeflow workspaces --repository Samples
 	
 	# List all workspaces in the Samples repository and output it in json
-	fmeserver workspaces --repository Samples --json
+	fmeflow workspaces --repository Samples --json
 	
 	# List all workspaces in the Samples repository with custom columns showing the last publish date and number of times run
-	fmeserver workspaces --repository Samples --output="custom-columns=NAME:.name,PUBLISH DATE:.lastPublishDate,TOTAL RUNS:.totalRuns"
+	fmeflow workspaces --repository Samples --output="custom-columns=NAME:.name,PUBLISH DATE:.lastPublishDate,TOTAL RUNS:.totalRuns"
 	
 	# Get information on a single workspace 
-	fmeserver workspaces --repository Samples --name austinApartments.fmw
+	fmeflow workspaces --repository Samples --name austinApartments.fmw
 	
 	# Get the name, source format, and destination format for this workspace
-	fmeserver workspaces --repository Samples --name austinApartments.fmw --output=custom-columns=NAME:.name,SOURCE:.datasets.source[*].format,DEST:.datasets.destination[*].format
+	fmeflow workspaces --repository Samples --name austinApartments.fmw --output=custom-columns=NAME:.name,SOURCE:.datasets.source[*].format,DEST:.datasets.destination[*].format
 ```
 
 ### Options
@@ -48,11 +48,11 @@ fmeserver workspaces [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
 

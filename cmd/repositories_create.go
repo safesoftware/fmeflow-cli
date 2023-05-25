@@ -34,17 +34,17 @@ func newRepositoryCreateCmd() *cobra.Command {
 		Example: `
 	Examples:
 	# Create a repository with the name "myRepository" and no description
-	fmeserver repositories create --name myRepository
+	fmeflow repositories create --name myRepository
 	
 	# Output just the name of all the repositories
-	fmeserver repositories create --name myRepository --description "This is my new repository"
+	fmeflow repositories create --name myRepository --description "This is my new repository"
 `,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4
 			// FME Server 2023.0 and later can use v4. Otherwise fall back to v3
 			if f.apiVersion == "" {
-				fmeserverBuild := viper.GetInt("build")
-				if fmeserverBuild < repositoriesV4BuildThreshold {
+				fmeflowBuild := viper.GetInt("build")
+				if fmeflowBuild < repositoriesV4BuildThreshold {
 					f.apiVersion = apiVersionFlagV3
 				} else {
 					f.apiVersion = apiVersionFlagV4
@@ -82,7 +82,7 @@ func repositoriesCreateRun(f *repositoryCreateFlags) func(cmd *cobra.Command, ar
 				return err
 			}
 
-			request, err := buildFmeServerRequest("/fmeapiv4/repositories", "POST", bytes.NewBuffer(jsonData))
+			request, err := buildFmeFlowRequest("/fmeapiv4/repositories", "POST", bytes.NewBuffer(jsonData))
 			if err != nil {
 				return err
 			}
@@ -138,7 +138,7 @@ func repositoriesCreateRun(f *repositoryCreateFlags) func(cmd *cobra.Command, ar
 				data.Add("description", f.description)
 			}
 
-			request, err := buildFmeServerRequest("/fmerest/v3/repositories", "POST", strings.NewReader(data.Encode()))
+			request, err := buildFmeFlowRequest("/fmerest/v3/repositories", "POST", strings.NewReader(data.Encode()))
 			if err != nil {
 				return err
 			}

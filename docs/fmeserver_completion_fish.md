@@ -1,4 +1,4 @@
-## fmeserver completion fish
+## fmeflow completion fish
 
 Generate the autocompletion script for fish
 
@@ -8,17 +8,17 @@ Generate the autocompletion script for the fish shell.
 
 To load completions in your current shell session:
 
-	fmeserver completion fish | source
+	fmeflow completion fish | source
 
 To load completions for every new session, execute once:
 
-	fmeserver completion fish > ~/.config/fish/completions/fmeserver.fish
+	fmeflow completion fish > ~/.config/fish/completions/fmeflow.fish
 
 You will need to start a new shell for this setup to take effect.
 
 
 ```
-fmeserver completion fish [flags]
+fmeflow completion fish [flags]
 ```
 
 ### Options
@@ -31,11 +31,11 @@ fmeserver completion fish [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver completion](fmeserver_completion.md)	 - Generate the autocompletion script for the specified shell
+* [fmeflow completion](fmeflow_completion.md)	 - Generate the autocompletion script for the specified shell
 

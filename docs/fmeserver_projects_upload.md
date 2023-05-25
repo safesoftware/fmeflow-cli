@@ -1,4 +1,4 @@
-## fmeserver projects upload
+## fmeflow projects upload
 
 Imports FME Server Projects from a downloaded package.
 
@@ -7,7 +7,7 @@ Imports FME Server Projects from a downloaded package.
 Imports FME Server Projects from a downloaded package. Useful for moving a project from one FME Server to another.
 
 ```
-fmeserver projects upload [flags]
+fmeflow projects upload [flags]
 ```
 
 ### Examples
@@ -15,10 +15,10 @@ fmeserver projects upload [flags]
 ```
 
   # Restore from a backup in a local file
-  fmeserver projects upload --file ProjectPackage.fsproject
+  fmeflow projects upload --file ProjectPackage.fsproject
 
   # Restore from a backup in a local file using UPDATE mode
-  fmeserver projects upload --file ProjectPackage.fsproject --import-mode UPDATE
+  fmeflow projects upload --file ProjectPackage.fsproject --import-mode UPDATE
 ```
 
 ### Options
@@ -35,11 +35,11 @@ fmeserver projects upload [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver projects](fmeserver_projects.md)	 - Lists projects on the FME Server
+* [fmeflow projects](fmeflow_projects.md)	 - Lists projects on the FME Server
 

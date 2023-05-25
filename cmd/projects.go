@@ -24,7 +24,7 @@ type ProjectsResource struct {
 	Id int `json:"id"`
 }
 
-type FMEServerProjects struct {
+type FMEFlowProjects struct {
 	Offset     int       `json:"offset"`
 	Limit      int       `json:"limit"`
 	TotalCount int       `json:"totalCount"`
@@ -103,10 +103,10 @@ func newProjectsCmd() *cobra.Command {
 		Long:  "Lists projects on the FME Server. Pass in a name to retrieve information on a single project.",
 		Example: `
   # List all projects
-  fmeserver projects
+  fmeflow projects
 
   # List all projects owned by the user admin
-  fmeserver projects --owner admin`,
+  fmeflow projects --owner admin`,
 		Args: NoArgs,
 		RunE: projectsRun(&f),
 	}
@@ -135,7 +135,7 @@ func projectsRun(f *projectsFlags) func(cmd *cobra.Command, args []string) error
 		}
 
 		// set up the URL to query
-		request, err := buildFmeServerRequest(url, "GET", nil)
+		request, err := buildFmeFlowRequest(url, "GET", nil)
 		if err != nil {
 			return err
 		}
@@ -164,7 +164,7 @@ func projectsRun(f *projectsFlags) func(cmd *cobra.Command, args []string) error
 			return err
 		}
 
-		var result FMEServerProjects
+		var result FMEFlowProjects
 		if f.name == "" {
 			// if no name specified, request will return the full struct
 			if err := json.Unmarshal(responseData, &result); err != nil {

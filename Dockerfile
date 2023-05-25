@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Build the executable
-RUN CGO_ENABLED=0 go build -o fmeserver -ldflags="-X \"github.com/safesoftware/fmeserver-cli/cmd.appVersion=${APP_VERSION}\""
+RUN CGO_ENABLED=0 go build -o fmeflow -ldflags="-X \"github.com/safesoftware/fmeflow-cli/cmd.appVersion=${APP_VERSION}\""
  
 # Use distroless for final image
 FROM gcr.io/distroless/static:nonroot
@@ -17,7 +17,7 @@ FROM gcr.io/distroless/static:nonroot
 USER nonroot:nonroot
  
 # copy compiled app
-COPY --from=build --chown=nonroot:nonroot /app/fmeserver /fmeserver
+COPY --from=build --chown=nonroot:nonroot /app/fmeflow /fmeflow
  
 # run 
-ENTRYPOINT ["/fmeserver"]
+ENTRYPOINT ["/fmeflow"]

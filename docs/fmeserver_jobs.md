@@ -1,4 +1,4 @@
-## fmeserver jobs
+## fmeflow jobs
 
 Lists jobs on FME Server
 
@@ -7,7 +7,7 @@ Lists jobs on FME Server
 Lists running, queued, and/or queued jobs on FME Server. Pass in a job id to get information on a specific job.
 
 ```
-fmeserver jobs [flags]
+fmeflow jobs [flags]
 ```
 
 ### Examples
@@ -15,22 +15,22 @@ fmeserver jobs [flags]
 ```
 
   # List all jobs (currently limited to the most recent 1000)
-  fmeserver jobs --all
+  fmeflow jobs --all
 	
   # List all running jobs
-  fmeserver jobs --running
+  fmeflow jobs --running
 	
   # List all jobs from a given repository
-  fmeserver jobs --repository Samples
+  fmeflow jobs --repository Samples
 	
   # List all jobs that ran a given workspace
-  fmeserver jobs --repository Samples --workspace austinApartments.fmw
+  fmeflow jobs --repository Samples --workspace austinApartments.fmw
 	
   # List all jobs in JSON format
-  fmeserver jobs --json
+  fmeflow jobs --json
 	
   # List the workspace, CPU time and peak memory usage for a given repository
-  fmeserver jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
+  fmeflow jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
 	
 ```
 
@@ -56,11 +56,11 @@ fmeserver jobs [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
 

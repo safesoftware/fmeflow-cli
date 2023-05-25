@@ -1,4 +1,4 @@
-## fmeserver completion zsh
+## fmeflow completion zsh
 
 Generate the autocompletion script for zsh
 
@@ -13,23 +13,23 @@ to enable it.  You can execute the following once:
 
 To load completions in your current shell session:
 
-	source <(fmeserver completion zsh); compdef _fmeserver fmeserver
+	source <(fmeflow completion zsh); compdef _fmeflow fmeflow
 
 To load completions for every new session, execute once:
 
 #### Linux:
 
-	fmeserver completion zsh > "${fpath[1]}/_fmeserver"
+	fmeflow completion zsh > "${fpath[1]}/_fmeflow"
 
 #### macOS:
 
-	fmeserver completion zsh > $(brew --prefix)/share/zsh/site-functions/_fmeserver
+	fmeflow completion zsh > $(brew --prefix)/share/zsh/site-functions/_fmeflow
 
 You will need to start a new shell for this setup to take effect.
 
 
 ```
-fmeserver completion zsh [flags]
+fmeflow completion zsh [flags]
 ```
 
 ### Options
@@ -42,11 +42,11 @@ fmeserver completion zsh [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver completion](fmeserver_completion.md)	 - Generate the autocompletion script for the specified shell
+* [fmeflow completion](fmeflow_completion.md)	 - Generate the autocompletion script for the specified shell
 

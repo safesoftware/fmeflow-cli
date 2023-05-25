@@ -41,10 +41,10 @@ func newBackupCmd() *cobra.Command {
 		},
 		Example: `
   # back up to a local file
-  fmeserver backup -f my_local_backup.fsconfig
+  fmeflow backup -f my_local_backup.fsconfig
 	
   # back up to the "Backup" folder in the FME Server Shared Resources with the file name my_fme_backup.fsconfig
-  fmeserver backup --resource --export-package my_fme_backup.fsconfig`,
+  fmeflow backup --resource --export-package my_fme_backup.fsconfig`,
 		Args: NoArgs,
 		RunE: backupRun(&f),
 	}
@@ -84,7 +84,7 @@ func backupRun(f *backupFlags) func(cmd *cobra.Command, args []string) error {
 				"exportPackageName": {f.outputBackupFile},
 			}
 
-			request, err := buildFmeServerRequest("/fmerest/v3/migration/backup/download", "POST", strings.NewReader(data.Encode()))
+			request, err := buildFmeFlowRequest("/fmerest/v3/migration/backup/download", "POST", strings.NewReader(data.Encode()))
 			if err != nil {
 				return err
 			}
@@ -132,7 +132,7 @@ func backupRun(f *backupFlags) func(cmd *cobra.Command, args []string) error {
 				data.Add("failureTopic", f.backupFailureTopic)
 			}
 
-			request, err := buildFmeServerRequest("/fmerest/v3/migration/backup/resource", "POST", strings.NewReader(data.Encode()))
+			request, err := buildFmeFlowRequest("/fmerest/v3/migration/backup/resource", "POST", strings.NewReader(data.Encode()))
 			if err != nil {
 				return err
 			}

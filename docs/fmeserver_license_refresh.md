@@ -1,4 +1,4 @@
-## fmeserver license refresh
+## fmeflow license refresh
 
 Refreshes the installed license file with a current license from Safe Software.
 
@@ -7,7 +7,7 @@ Refreshes the installed license file with a current license from Safe Software.
 Refreshes the installed license file with a current license from Safe Software.
 
 ```
-fmeserver license refresh [flags]
+fmeflow license refresh [flags]
 ```
 
 ### Examples
@@ -15,7 +15,7 @@ fmeserver license refresh [flags]
 ```
 
   # Refresh the license
-  fmeserver license refresh
+  fmeflow license refresh
 ```
 
 ### Options
@@ -28,12 +28,12 @@ fmeserver license refresh [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver license](fmeserver_license.md)	 - Interact with licensing an FME Server
-* [fmeserver license refresh status](fmeserver_license_refresh_status.md)	 - Check the status of a license refresh request.
+* [fmeflow license](fmeflow_license.md)	 - Interact with licensing an FME Server
+* [fmeflow license refresh status](fmeflow_license_refresh_status.md)	 - Check the status of a license refresh request.
 

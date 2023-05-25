@@ -1,4 +1,4 @@
-## fmeserver license status
+## fmeflow license status
 
 Retrieves status of the installed FME Server license.
 
@@ -7,7 +7,7 @@ Retrieves status of the installed FME Server license.
 Retrieves status of the installed FME Server license.
 
 ```
-fmeserver license status [flags]
+fmeflow license status [flags]
 ```
 
 ### Options
@@ -21,11 +21,11 @@ fmeserver license status [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver license](fmeserver_license.md)	 - Interact with licensing an FME Server
+* [fmeflow license](fmeflow_license.md)	 - Interact with licensing an FME Server
 

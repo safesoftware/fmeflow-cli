@@ -19,7 +19,7 @@ func TestInfo(t *testing.T) {
 	  }`
 
 	// generate random file to back up to
-	f, err := os.CreateTemp("", "fmeserver-backup")
+	f, err := os.CreateTemp("", "fmeflow-backup")
 	require.NoError(t, err)
 	defer os.Remove(f.Name()) // clean up
 

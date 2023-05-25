@@ -1,4 +1,4 @@
-## fmeserver restore
+## fmeflow restore
 
 Restores the FME Server configuration from an import package
 
@@ -7,7 +7,7 @@ Restores the FME Server configuration from an import package
 Restores the FME Server configuration from an import package
 
 ```
-fmeserver restore [flags]
+fmeflow restore [flags]
 ```
 
 ### Examples
@@ -15,16 +15,16 @@ fmeserver restore [flags]
 ```
 
   # Restore from a backup in a local file
-  fmeserver restore --file ServerConfigPackage.fsconfig
+  fmeflow restore --file ServerConfigPackage.fsconfig
 
   # Restore from a backup in a local file using UPDATE mode
-  fmeserver restore --file ServerConfigPackage.fsconfig --import-mode UPDATE
+  fmeflow restore --file ServerConfigPackage.fsconfig --import-mode UPDATE
   
   # Restore from a backup file stored in the Backup resource folder (FME_SHAREDRESOURCE_BACKUP) named ServerConfigPackage.fsconfig
-  fmeserver restore --resource --file ServerConfigPackage.fsconfig
+  fmeflow restore --resource --file ServerConfigPackage.fsconfig
   
   # Restore from a backup file stored in the Data resource folder (FME_SHAREDRESOURCE_DATA) named ServerConfigPackage.fsconfig and set a failure and success topic to notify
-  fmeserver restore --resource --resource-name FME_SHAREDRESOURCE_DATA --file ServerConfigPackage.fsconfig --failure-topic MY_FAILURE_TOPIC --success-topic MY_SUCCESS_TOPIC
+  fmeflow restore --resource --resource-name FME_SHAREDRESOURCE_DATA --file ServerConfigPackage.fsconfig --failure-topic MY_FAILURE_TOPIC --success-topic MY_SUCCESS_TOPIC
   
 ```
 
@@ -45,11 +45,11 @@ fmeserver restore [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
 

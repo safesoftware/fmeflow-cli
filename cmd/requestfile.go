@@ -35,10 +35,10 @@ func newLicenseRequestFileCmd() *cobra.Command {
 	Example:
 	
 	# Generate a license request file and output to the console
-	fmeserver license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc."
+	fmeflow license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc."
 	
 	# Generate a license request file and output to a local file
-	fmeserver license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --file my-request-file.json`,
+	fmeflow license requestfile --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --file my-request-file.json`,
 		Args: NoArgs,
 		RunE: licenseRequestFileRun(&f),
 	}
@@ -92,7 +92,7 @@ func licenseRequestFileRun(f *licenseRequestFileFlags) func(cmd *cobra.Command, 
 			data.Add("subscribeToUpdates", "true")
 		}
 
-		request, err := buildFmeServerRequest("/fmerest/v3/licensing/requestfile", "POST", strings.NewReader(data.Encode()))
+		request, err := buildFmeFlowRequest("/fmerest/v3/licensing/requestfile", "POST", strings.NewReader(data.Encode()))
 		if err != nil {
 			return err
 		}

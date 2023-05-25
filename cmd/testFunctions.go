@@ -31,7 +31,7 @@ type testCase struct {
 	wantFormParamsList map[string][]string // for URL forms with multiple values
 	wantFileContents   fileContents        // check file contents
 	wantBodyRegEx      string              // check the contents of the body sent
-	fmeserverBuild     int                 // build to pretend we are contacting
+	fmeflowBuild       int                 // build to pretend we are contacting
 	args               []string            // flags to pass into the command
 	httpServer         *httptest.Server    // custom http test server if needed
 	omitConfig         bool                // set this to true if testing a command with no config file set up
@@ -79,8 +79,8 @@ func runTests(tcs []testCase, t *testing.T) {
 				if !tc.omitConfigToken {
 					viper.Set("token", testToken)
 				}
-				if tc.fmeserverBuild != 0 {
-					viper.Set("build", tc.fmeserverBuild)
+				if tc.fmeflowBuild != 0 {
+					viper.Set("build", tc.fmeflowBuild)
 				} else {
 					viper.Set("build", 23159)
 				}

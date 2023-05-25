@@ -1,4 +1,4 @@
-## fmeserver projects download
+## fmeflow projects download
 
 Downloads an FME Server Project
 
@@ -7,7 +7,7 @@ Downloads an FME Server Project
 Downloads an FME Server Project to a local file. Useful for backing up or moving a project to another FME Server.
 
 ```
-fmeserver projects download [flags]
+fmeflow projects download [flags]
 ```
 
 ### Examples
@@ -15,10 +15,10 @@ fmeserver projects download [flags]
 ```
 
   # download a project named "Test Project" to a local file with default name
-  fmeserver projects download --name "Test Project"
+  fmeflow projects download --name "Test Project"
 	
   # download a project named "Test Project" to a local file named MyProject.fsproject
-  fmeserver projects download --name "Test Project" -f MyProject.fsproject
+  fmeflow projects download --name "Test Project" -f MyProject.fsproject
 ```
 
 ### Options
@@ -33,11 +33,11 @@ fmeserver projects download [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver projects](fmeserver_projects.md)	 - Lists projects on the FME Server
+* [fmeflow projects](fmeflow_projects.md)	 - Lists projects on the FME Server
 

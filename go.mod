@@ -1,4 +1,4 @@
-module github.com/safesoftware/fmeserver-cli
+module github.com/safesoftware/fmeflow-cli
 
 go 1.19
 

@@ -13,7 +13,7 @@ func TestProjectDownload(t *testing.T) {
 	okResponseV3 := `Random file contents`
 
 	// generate random file to back up to
-	f, err := os.CreateTemp("", "*fmeserver-project.fsproject")
+	f, err := os.CreateTemp("", "*fmeflow-project.fsproject")
 	require.NoError(t, err)
 	defer os.Remove(f.Name()) // clean up
 

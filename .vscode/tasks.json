@@ -8,18 +8,18 @@
                 "command": "go",
                 "args": [
                     "build",
-                     "-ldflags=\\\"-X github.com/safesoftware/fmeserver-cli/cmd.appVersion=$(git rev-parse --short HEAD)\\\"",
+                     "-ldflags=\\\"-X github.com/safesoftware/fmeflow-cli/cmd.appVersion=$(git rev-parse --short HEAD)\\\"",
                     "-o", 
-                    "fmeserver.exe"
+                    "fmeflow.exe"
                 ]
             },
             "linux": {
                 "command": "go",
                 "args": [
                     "build",
-                     "-ldflags=\"-X github.com/safesoftware/fmeserver-cli/cmd.appVersion=$(git rev-parse --short HEAD)\"",
+                     "-ldflags=\"-X github.com/safesoftware/fmeflow-cli/cmd.appVersion=$(git rev-parse --short HEAD)\"",
                     "-o", 
-                    "fmeserver"
+                    "fmeflow"
                 ]
             },
             "problemMatcher": [],
@@ -31,7 +31,7 @@
         {
             "label": "Build Docker Image",
             "type": "shell",
-            "command": "docker build -t safesoftware/fmeserver-cli .",
+            "command": "docker build -t safesoftware/fmeflow-cli .",
             "group": {
                 "kind": "build"
             }

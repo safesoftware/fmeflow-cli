@@ -40,10 +40,10 @@ func newLicenseRequestCmd() *cobra.Command {
   If no serial number is passed in, a trial license will be requested.`,
 		Example: `
   # Request a trial license and wait for it to be downloaded and installed
-  fmeserver license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --wait
+  fmeflow license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --wait
 	
   # Request a license with a serial number
-  fmeserver license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --serial-number "AAAA-BBBB-CCCC"
+  fmeflow license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --serial-number "AAAA-BBBB-CCCC"
 	`,
 		Args: NoArgs,
 		RunE: licenseRequestRun(&f),
@@ -98,7 +98,7 @@ func licenseRequestRun(f *licenseRequestFlags) func(cmd *cobra.Command, args []s
 			data.Add("subscribeToUpdates", "true")
 		}
 
-		request, err := buildFmeServerRequest("/fmerest/v3/licensing/request", "POST", strings.NewReader(data.Encode()))
+		request, err := buildFmeFlowRequest("/fmerest/v3/licensing/request", "POST", strings.NewReader(data.Encode()))
 		if err != nil {
 			return err
 		}
@@ -130,7 +130,7 @@ func licenseRequestRun(f *licenseRequestFlags) func(cmd *cobra.Command, args []s
 
 				time.Sleep(1 * time.Second)
 				// call the status endpoint to see if it is finished
-				request, err := buildFmeServerRequest("/fmerest/v3/licensing/request/status", "GET", nil)
+				request, err := buildFmeFlowRequest("/fmerest/v3/licensing/request/status", "GET", nil)
 				if err != nil {
 					return err
 				}

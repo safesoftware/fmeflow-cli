@@ -62,16 +62,16 @@ func newRestoreCmd() *cobra.Command {
 		},
 		Example: `
   # Restore from a backup in a local file
-  fmeserver restore --file ServerConfigPackage.fsconfig
+  fmeflow restore --file ServerConfigPackage.fsconfig
 
   # Restore from a backup in a local file using UPDATE mode
-  fmeserver restore --file ServerConfigPackage.fsconfig --import-mode UPDATE
+  fmeflow restore --file ServerConfigPackage.fsconfig --import-mode UPDATE
   
   # Restore from a backup file stored in the Backup resource folder (FME_SHAREDRESOURCE_BACKUP) named ServerConfigPackage.fsconfig
-  fmeserver restore --resource --file ServerConfigPackage.fsconfig
+  fmeflow restore --resource --file ServerConfigPackage.fsconfig
   
   # Restore from a backup file stored in the Data resource folder (FME_SHAREDRESOURCE_DATA) named ServerConfigPackage.fsconfig and set a failure and success topic to notify
-  fmeserver restore --resource --resource-name FME_SHAREDRESOURCE_DATA --file ServerConfigPackage.fsconfig --failure-topic MY_FAILURE_TOPIC --success-topic MY_SUCCESS_TOPIC
+  fmeflow restore --resource --resource-name FME_SHAREDRESOURCE_DATA --file ServerConfigPackage.fsconfig --failure-topic MY_FAILURE_TOPIC --success-topic MY_SUCCESS_TOPIC
   `,
 		Args: NoArgs,
 		RunE: restoreRun(&f),
@@ -103,7 +103,7 @@ func restoreRun(f *restoreFlags) func(cmd *cobra.Command, args []string) error {
 			defer file.Close()
 
 			url = "/fmerest/v3/migration/restore/upload"
-			request, err = buildFmeServerRequest(url, "POST", file)
+			request, err = buildFmeFlowRequest(url, "POST", file)
 			if err != nil {
 				return err
 			}
@@ -111,7 +111,7 @@ func restoreRun(f *restoreFlags) func(cmd *cobra.Command, args []string) error {
 		} else {
 			url = "/fmerest/v3/migration/restore/resource"
 			var err error
-			request, err = buildFmeServerRequest(url, "POST", nil)
+			request, err = buildFmeFlowRequest(url, "POST", nil)
 			if err != nil {
 				return err
 			}

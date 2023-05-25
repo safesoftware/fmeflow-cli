@@ -33,10 +33,10 @@ func newProjectDownloadCmd() *cobra.Command {
 		},
 		Example: `
   # download a project named "Test Project" to a local file with default name
-  fmeserver projects download --name "Test Project"
+  fmeflow projects download --name "Test Project"
 	
   # download a project named "Test Project" to a local file named MyProject.fsproject
-  fmeserver projects download --name "Test Project" -f MyProject.fsproject`,
+  fmeflow projects download --name "Test Project" -f MyProject.fsproject`,
 		Args: NoArgs,
 		RunE: projectDownloadRun(&f),
 	}
@@ -68,7 +68,7 @@ func projectDownloadRun(f *projectsDownloadFlags) func(cmd *cobra.Command, args 
 			"excludeSensitiveInfo": {strconv.FormatBool(f.excludeSensitiveInfo)},
 		}
 
-		request, err := buildFmeServerRequest("/fmerest/v3/projects/projects/"+f.name+"/export/download", "POST", strings.NewReader(data.Encode()))
+		request, err := buildFmeFlowRequest("/fmerest/v3/projects/projects/"+f.name+"/export/download", "POST", strings.NewReader(data.Encode()))
 		if err != nil {
 			return err
 		}

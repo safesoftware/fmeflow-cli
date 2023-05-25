@@ -35,14 +35,14 @@ var defaultStyle = table.Style{
 	},
 }
 
-func buildFmeServerRequest(endpoint string, method string, body io.Reader) (http.Request, error) {
+func buildFmeFlowRequest(endpoint string, method string, body io.Reader) (http.Request, error) {
 	// retrieve url and token
-	fmeserverUrl := viper.GetString("url")
-	fmeserverToken := viper.GetString("token")
+	fmeflowUrl := viper.GetString("url")
+	fmeflowToken := viper.GetString("token")
 
-	req, err := http.NewRequest(method, fmeserverUrl+endpoint, body)
-	if fmeserverToken != "" {
-		req.Header.Set("Authorization", "fmetoken token="+fmeserverToken)
+	req, err := http.NewRequest(method, fmeflowUrl+endpoint, body)
+	if fmeflowToken != "" {
+		req.Header.Set("Authorization", "fmetoken token="+fmeflowToken)
 	}
 	return *req, err
 }
@@ -175,25 +175,25 @@ func checkConfigFile(requireToken bool) error {
 	if err != nil {
 		return fmt.Errorf("could not open the config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
 	}
-	fmeserverUrl := viper.GetString("url")
+	fmeflowUrl := viper.GetString("url")
 
 	// check the fme server URL is valid
-	_, err = url.ParseRequestURI(fmeserverUrl)
+	_, err = url.ParseRequestURI(fmeflowUrl)
 	if err != nil {
 		return fmt.Errorf("invalid FME Server url in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
 	}
 
 	if requireToken {
 		// check there is a token to use for auth
-		fmeserverToken := viper.GetString("token")
-		if fmeserverToken == "" {
+		fmeflowToken := viper.GetString("token")
+		if fmeflowToken == "" {
 			return fmt.Errorf("no token found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
 		}
 	}
 
 	// check there is a build set in the config file
-	fmeserverBuild := viper.GetString("build")
-	if fmeserverBuild == "" {
+	fmeflowBuild := viper.GetString("build")
+	if fmeflowBuild == "" {
 		return fmt.Errorf("no build found in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
 	}
 	return nil

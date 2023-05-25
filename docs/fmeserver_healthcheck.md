@@ -1,4 +1,4 @@
-## fmeserver healthcheck
+## fmeflow healthcheck
 
 Retrieves the health status of FME Server
 
@@ -7,7 +7,7 @@ Retrieves the health status of FME Server
 Retrieves the health status of FME Server. The health status is normal if the FME Server REST API is responsive. Note that this endpoint does not require authentication. This command can be used without calling the login command first. The FME Server url can be passed in using the --url flag without needing a config file. A config file without a token can also be used.
 
 ```
-fmeserver healthcheck [flags]
+fmeflow healthcheck [flags]
 ```
 
 ### Examples
@@ -15,26 +15,26 @@ fmeserver healthcheck [flags]
 ```
 
   # Check if the FME Server is healthy and accepting requests
-  fmeserver healthcheck
+  fmeflow healthcheck
 		
   # Check if the FME Server is healthy and ready to process jobs
-  fmeserver healthcheck --ready
+  fmeflow healthcheck --ready
 		
   # Check if the FME Server is healthy and output in json
-  fmeserver healthcheck --json
+  fmeflow healthcheck --json
   
   # Check that the FME Server is healthy and output just the status
-  fmeserver healthcheck --output=custom-columns=STATUS:.status
+  fmeflow healthcheck --output=custom-columns=STATUS:.status
   
  # Check the FME Server is healthy without needing a config file
- fmeserver healthcheck --url https://my-fmeserver.internal
+ fmeflow healthcheck --url https://my-fmeflow.internal
  
  # Check the FME Server is healthy with a manually created config file
- cat << EOF >fmeserver-cli.yaml
+ cat << EOF >fmeflow-cli.yaml
  build: 23235
- url: https://my-fmeserver.internal
+ url: https://my-fmeflow.internal
  EOF
- fmeserver healthcheck --config fmeserver-cli.yaml
+ fmeflow healthcheck --config fmeflow-cli.yaml
 ```
 
 ### Options
@@ -50,11 +50,11 @@ fmeserver healthcheck [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
 

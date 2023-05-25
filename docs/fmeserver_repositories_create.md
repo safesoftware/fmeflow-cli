@@ -1,4 +1,4 @@
-## fmeserver repositories create
+## fmeflow repositories create
 
 Create a new repository.
 
@@ -7,7 +7,7 @@ Create a new repository.
 Create a new repository.
 
 ```
-fmeserver repositories create [flags]
+fmeflow repositories create [flags]
 ```
 
 ### Examples
@@ -16,10 +16,10 @@ fmeserver repositories create [flags]
 
 	Examples:
 	# Create a repository with the name "myRepository" and no description
-	fmeserver repositories create --name myRepository
+	fmeflow repositories create --name myRepository
 	
 	# Output just the name of all the repositories
-	fmeserver repositories create --name myRepository --description "This is my new repository"
+	fmeflow repositories create --name myRepository --description "This is my new repository"
 
 ```
 
@@ -34,11 +34,11 @@ fmeserver repositories create [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver repositories](fmeserver_repositories.md)	 - List repositories
+* [fmeflow repositories](fmeflow_repositories.md)	 - List repositories
 

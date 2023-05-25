@@ -1,4 +1,4 @@
-## fmeserver license request
+## fmeflow license request
 
 Request a license from the FME Server licensing server
 
@@ -8,7 +8,7 @@ Request a license file from the FME Server licensing server. First name, Last na
   If no serial number is passed in, a trial license will be requested.
 
 ```
-fmeserver license request [flags]
+fmeflow license request [flags]
 ```
 
 ### Examples
@@ -16,10 +16,10 @@ fmeserver license request [flags]
 ```
 
   # Request a trial license and wait for it to be downloaded and installed
-  fmeserver license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --wait
+  fmeflow license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --wait
 	
   # Request a license with a serial number
-  fmeserver license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --serial-number "AAAA-BBBB-CCCC"
+  fmeflow license request --first-name "Billy" --last-name "Bob" --email "billy.bob@example.com" --company "Example Company Inc." --serial-number "AAAA-BBBB-CCCC"
 	
 ```
 
@@ -42,12 +42,12 @@ fmeserver license request [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver license](fmeserver_license.md)	 - Interact with licensing an FME Server
-* [fmeserver license request status](fmeserver_license_request_status.md)	 - Check the status of a license request.
+* [fmeflow license](fmeflow_license.md)	 - Interact with licensing an FME Server
+* [fmeflow license request status](fmeflow_license_request_status.md)	 - Check the status of a license request.
 

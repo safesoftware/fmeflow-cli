@@ -25,10 +25,10 @@ func newDeploymentParameterDeleteCmd() *cobra.Command {
 		Example: `
 	Examples:
 	# Delete adeployment parameter with the name "myParam"
-	fmeserver deploymentparameters delete --name myParam
+	fmeflow deploymentparameters delete --name myParam
 	
 	# Delete a repository with the name "myRepository" and no confirmation
-	fmeserver deploymentparameters delete --name myParam --no-prompt
+	fmeflow deploymentparameters delete --name myParam --no-prompt
 `,
 		Args: NoArgs,
 		RunE: deploymentParameterDeleteRun(&f),
@@ -58,7 +58,7 @@ func deploymentParameterDeleteRun(f *deploymentParameterDeleteFlags) func(cmd *c
 			}
 		}
 
-		request, err := buildFmeServerRequest("/fmeapiv4/deploymentparameters/"+f.name, "DELETE", nil)
+		request, err := buildFmeFlowRequest("/fmeapiv4/deploymentparameters/"+f.name, "DELETE", nil)
 		if err != nil {
 			return err
 		}

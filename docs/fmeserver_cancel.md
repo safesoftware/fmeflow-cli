@@ -1,4 +1,4 @@
-## fmeserver cancel
+## fmeflow cancel
 
 Cancel a running job on FME Server
 
@@ -7,7 +7,7 @@ Cancel a running job on FME Server
 Cancels the job and marks it as aborted in the completed jobs section, but does not remove it from the database.
 
 ```
-fmeserver cancel [flags]
+fmeflow cancel [flags]
 ```
 
 ### Examples
@@ -15,7 +15,7 @@ fmeserver cancel [flags]
 ```
 
   # Cancel a job with id 42
-  fmeserver cancel --id 42
+  fmeflow cancel --id 42
 	
 ```
 
@@ -29,11 +29,11 @@ fmeserver cancel [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
 

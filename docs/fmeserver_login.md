@@ -1,4 +1,4 @@
-## fmeserver login
+## fmeflow login
 
 Save credentials for an FME Server
 
@@ -9,7 +9,7 @@ Update the config file with the credentials to connect to FME Server. If just a 
 	This will overwrite any existing credentials saved.
 
 ```
-fmeserver login [URL] [flags]
+fmeflow login [URL] [flags]
 ```
 
 ### Examples
@@ -17,13 +17,13 @@ fmeserver login [URL] [flags]
 ```
 
   # Prompt for user and password for the given FME Server URL  
-  fmeserver login https://my-fmeserver.internal
+  fmeflow login https://my-fmeflow.internal
 	
   # Login to an FME Server using a pre-generated token
-  fmeserver login https://my-fmeserver.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
+  fmeflow login https://my-fmeflow.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
 	
   # Login to an FME Server using a passed in user and password file (The password is contained in a file at the path /path/to/password-file)
-  fmeserver login https://my-fmeserver.internal --user admin --password-file /path/to/password-file
+  fmeflow login https://my-fmeflow.internal --user admin --password-file /path/to/password-file
 ```
 
 ### Options
@@ -39,11 +39,11 @@ fmeserver login [URL] [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
 

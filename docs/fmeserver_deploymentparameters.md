@@ -1,4 +1,4 @@
-## fmeserver deploymentparameters
+## fmeflow deploymentparameters
 
 List Deployment Parameters
 
@@ -7,7 +7,7 @@ List Deployment Parameters
 Lists Deployment Parameters on the given FME Server.
 
 ```
-fmeserver deploymentparameters [flags]
+fmeflow deploymentparameters [flags]
 ```
 
 ### Examples
@@ -16,13 +16,13 @@ fmeserver deploymentparameters [flags]
 
 	Examples:
 	# List all deployment parameters
-	fmeserver deploymentparameters
+	fmeflow deploymentparameters
 	
 	# List a single deployment parameter
-	fmeserver deploymentparameters --name testParameter
+	fmeflow deploymentparameters --name testParameter
 	
 	# Output all deploymentparameters in json format
-	fmeserver deploymentparameters --json
+	fmeflow deploymentparameters --json
 ```
 
 ### Options
@@ -37,14 +37,14 @@ fmeserver deploymentparameters [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.config/.fmeserver-cli.yaml)
+      --config string   config file (default is $HOME/.config/.fmeflow-cli.yaml)
       --json            Output JSON
 ```
 
 ### SEE ALSO
 
-* [fmeserver](fmeserver.md)	 - A command line interface for interacting with FME Server.
-* [fmeserver deploymentparameters create](fmeserver_deploymentparameters_create.md)	 - Create a deployment parameter
-* [fmeserver deploymentparameters delete](fmeserver_deploymentparameters_delete.md)	 - Delete a deployment parameter
-* [fmeserver deploymentparameters update](fmeserver_deploymentparameters_update.md)	 - Update a deployment parameter
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow deploymentparameters create](fmeflow_deploymentparameters_create.md)	 - Create a deployment parameter
+* [fmeflow deploymentparameters delete](fmeflow_deploymentparameters_delete.md)	 - Delete a deployment parameter
+* [fmeflow deploymentparameters update](fmeflow_deploymentparameters_update.md)	 - Update a deployment parameter
 

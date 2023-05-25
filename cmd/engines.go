@@ -52,16 +52,16 @@ func newEnginesCmd() *cobra.Command {
 		Long:  "Gets information and status about FME Engines currently connected to FME Server",
 		Example: `
   # List all engines
-  fmeserver engines
+  fmeflow engines
 	
   # Output number of engines
-  fmeserver engines --count
+  fmeflow engines --count
 	
   # Output engines in json form
-  fmeserver engines --json
+  fmeflow engines --json
 	
   # Output just the names of the engines with no column headers
-  fmeserver engines --output=custom-columns=NAME:.instanceName --no-headers`,
+  fmeflow engines --output=custom-columns=NAME:.instanceName --no-headers`,
 		Args: NoArgs,
 		RunE: enginesRun(&f),
 	}
@@ -85,7 +85,7 @@ func enginesRun(f *engineFlags) func(cmd *cobra.Command, args []string) error {
 		client := &http.Client{}
 
 		// call the status endpoint to see if it is finished
-		request, err := buildFmeServerRequest("/fmerest/v3/transformations/engines", "GET", nil)
+		request, err := buildFmeFlowRequest("/fmerest/v3/transformations/engines", "GET", nil)
 		if err != nil {
 			return err
 		}

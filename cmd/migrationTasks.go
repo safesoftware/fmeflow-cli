@@ -61,22 +61,22 @@ func newMigrationTasksCmd() *cobra.Command {
 		Long:  "Retrieves the records for migration tasks. Get all migration tasks or for a specific task by passing in the id.",
 		Example: `
   # Get all migration tasks
-  fmeserver migration tasks
+  fmeflow migration tasks
 	
   # Get all migration tasks in json
-  fmeserver migration tasks --json
+  fmeflow migration tasks --json
 	
   # Get the migration task for a given id
-  fmeserver migration tasks --id 1
+  fmeflow migration tasks --id 1
 	
   # Output the migration log for a given id to the console
-  fmeserver migration tasks --id 1 --log
+  fmeflow migration tasks --id 1 --log
 	
   # Output the migration log for a given id to a local file
-  fmeserver migration tasks --id 1 --log --file my-backup-log.txt
+  fmeflow migration tasks --id 1 --log --file my-backup-log.txt
 	
   # Output just the start and end time of the a given id
-  fmeserver migration tasks --id 1 --output="custom-columns=Start Time:.startDate,End Time:.finishedDate"`,
+  fmeflow migration tasks --id 1 --output="custom-columns=Start Time:.startDate,End Time:.finishedDate"`,
 		Args: NoArgs,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			if f.migrationTaskLog {
@@ -111,7 +111,7 @@ func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []s
 		if !f.migrationTaskLog { // output one or more tasks
 			var responseData []byte
 			if f.migrationTaskId == -1 {
-				request, err := buildFmeServerRequest("/fmerest/v3/migration/tasks", "GET", nil)
+				request, err := buildFmeFlowRequest("/fmerest/v3/migration/tasks", "GET", nil)
 				if err != nil {
 					return err
 				}
@@ -135,7 +135,7 @@ func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []s
 				}
 			} else {
 				endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(f.migrationTaskId)
-				request, err := buildFmeServerRequest(endpoint, "GET", nil)
+				request, err := buildFmeFlowRequest(endpoint, "GET", nil)
 				if err != nil {
 					return err
 				}
@@ -217,7 +217,7 @@ func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []s
 
 		} else if f.migrationTaskId != -1 && f.migrationTaskLog {
 			endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(f.migrationTaskId) + "/log"
-			request, err := buildFmeServerRequest(endpoint, "GET", nil)
+			request, err := buildFmeFlowRequest(endpoint, "GET", nil)
 			if err != nil {
 				return err
 			}

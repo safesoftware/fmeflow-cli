@@ -27,17 +27,17 @@ func newRepositoryDeleteCmd() *cobra.Command {
 		Example: `
 	Examples:
 	# Delete a repository with the name "myRepository"
-	fmeserver repositories delete --name myRepository
+	fmeflow repositories delete --name myRepository
 	
 	# Delete a repository with the name "myRepository" and no confirmation
-	fmeserver repositories delete --name myRepository --no-prompt
+	fmeflow repositories delete --name myRepository --no-prompt
 `,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4
 			// FME Server 2023.0 and later can use v4. Otherwise fall back to v3
 			if f.apiVersion == "" {
-				fmeserverBuild := viper.GetInt("build")
-				if fmeserverBuild < repositoriesV4BuildThreshold {
+				fmeflowBuild := viper.GetInt("build")
+				if fmeflowBuild < repositoriesV4BuildThreshold {
 					f.apiVersion = apiVersionFlagV3
 				} else {
 					f.apiVersion = apiVersionFlagV4
@@ -84,7 +84,7 @@ func repositoriesDeleteRun(f *repositoryDeleteFlags) func(cmd *cobra.Command, ar
 			url = "/fmerest/v3/repositories/" + f.name
 		}
 
-		request, err := buildFmeServerRequest(url, "DELETE", nil)
+		request, err := buildFmeFlowRequest(url, "DELETE", nil)
 		if err != nil {
 			return err
 		}
