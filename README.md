@@ -1,10 +1,10 @@
-# FME Server CLI
+# FME Flow CLI
 
-A command line interface for FME Server.
+A command line interface for FME Flow.
 
 ## Description
 
-This is a command line interface that utilizes the FME Server REST API to interact with a running FME Server. It is meant to ease the pain of using the REST API by providing intuitive commands and flags for various operations on an FME Server.
+This is a command line interface that utilizes the FME Flow REST API to interact with a running FME Flow instance. It is meant to ease the pain of using the REST API by providing intuitive commands and flags for various operations on an FME Flow instance.
 
 ## Getting Started
 
@@ -19,7 +19,7 @@ This is a command line interface that utilizes the FME Server REST API to intera
 ```
 fmeflow
 ```
-* Log in to an existing FME Server. It is recommended to generate an API token using the FME Server Web UI initially and use that to log in.
+* Log in to an existing FME Flow instance. It is recommended to generate an API token using the FME Flow Web UI initially and use that to log in.
 ```
 fmeflow login https://my-fmeflow.com --token my-token-here
 ```
@@ -33,7 +33,7 @@ For full documentation of all commands, see the [Documentation](docs/fmeflow.md)
 
 ## Supported Versions of FME Flow
 
-This CLI has been written with backwards compatibilty in mind. Officially this will support FME Flow 2022.2 and later. However, we have tested back to FME Server 2019 and are able to log in and run commands. Not all commands are guaranteed to work on builds before FME Flow 2022.2.
+This CLI has been written with backwards compatibilty in mind. Officially this will support FME Flow 2022.2 and later. However, we have tested back to FME Flow 2019 and are able to log in and run commands. Not all commands are guaranteed to work on builds before FME Flow 2022.2.
 
 ## Development
 
@@ -46,4 +46,4 @@ go run main.go
 go build -o fmeflow
 ```
 
-A great resource for adding new structs to represent JSON returned from FME Server is this [JSON to Go converter](https://mholt.github.io/json-to-go/) which will create a Go struct for you from a JSON sample.
+A great resource for adding new structs to represent JSON returned from FME Flow is this [JSON to Go converter](https://mholt.github.io/json-to-go/) which will create a Go struct for you from a JSON sample.
