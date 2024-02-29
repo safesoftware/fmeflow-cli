@@ -177,18 +177,15 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 					return err
 				}
 				// Unmarshal responseData into a string that is the json text
-				var result map[string]interface{}
-				if err := json.Unmarshal(responseData, &result); err != nil {
+				var responseMessage Message
+				if err := json.Unmarshal(responseData, &responseMessage); err != nil {
 					// if we fail to unmarshal the response, the body is not json. Return the response status
 					return errors.New(response.Status)
 				}
 
 				// if there is a message in the response, return that along with the response.Status
-				if result["message"] != nil {
-					return errors.New(response.Status + ": " + result["message"].(string))
-				} else {
-					return errors.New(response.Status)
-				}
+				return errors.New(response.Status + ": " + responseMessage.Message)
+
 			}
 
 			responseData, err := io.ReadAll(response.Body)
