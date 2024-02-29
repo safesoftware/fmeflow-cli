@@ -171,7 +171,23 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			} else if response.StatusCode != http.StatusCreated {
-				return errors.New(response.Status)
+				// there was an error logging in. Return the error message
+				responseData, err := io.ReadAll(response.Body)
+				if err != nil {
+					return err
+				}
+				// Unmarshal responseData into a string that is the json text
+				var result map[string]interface{}
+				if err := json.Unmarshal(responseData, &result); err != nil {
+					return err
+				}
+
+				// if there is a message in the response, return that along with the response.Status
+				if result["message"] != nil {
+					return errors.New(response.Status + ": " + result["message"].(string))
+				} else {
+					return errors.New(response.Status)
+				}
 			}
 
 			responseData, err := io.ReadAll(response.Body)
