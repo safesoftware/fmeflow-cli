@@ -46,8 +46,41 @@ func deploymentParameterDeleteRun(f *deploymentParameterDeleteFlags) func(cmd *c
 		// set up http
 		client := &http.Client{}
 
+		// check if deployment parameter exists first and error if it does not
+		request, err := buildFmeFlowRequest("/fmeapiv4/deploymentparameters/"+f.name, "GET", nil)
+		if err != nil {
+			return err
+		}
+		// send the request
+		response, err := client.Do(&request)
+		if err != nil {
+			return err
+		} else if response.StatusCode != http.StatusOK {
+			// if we didn't get a 200 OK, then the deployment parameter does not exist
+			// get the JSON response and throw a new error using the message
+			responseData, err := io.ReadAll(response.Body)
+			if err == nil {
+				var responseMessage Message
+				if err := json.Unmarshal(responseData, &responseMessage); err == nil {
+					// if json output is requested, output the JSON to stdout before erroring
+					if jsonOutput {
+						prettyJSON, err := prettyPrintJSON(responseData)
+						if err == nil {
+							fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+						} else {
+							return errors.New(response.Status)
+						}
+					}
+					return errors.New(responseMessage.Message)
+				} else {
+					return errors.New(response.Status)
+				}
+			}
+		}
+
+		// the parameter exists. Confirm deletion.
 		if !f.noprompt {
-			// prompt for a user and password
+			// prompt to confirm deletion
 			confirm := false
 			promptUser := &survey.Confirm{
 				Message: "Are you sure you want to delete the deployment parameter " + f.name + "?",
@@ -58,12 +91,12 @@ func deploymentParameterDeleteRun(f *deploymentParameterDeleteFlags) func(cmd *c
 			}
 		}
 
-		request, err := buildFmeFlowRequest("/fmeapiv4/deploymentparameters/"+f.name, "DELETE", nil)
+		request, err = buildFmeFlowRequest("/fmeapiv4/deploymentparameters/"+f.name, "DELETE", nil)
 		if err != nil {
 			return err
 		}
 
-		response, err := client.Do(&request)
+		response, err = client.Do(&request)
 		if err != nil {
 			return err
 		} else if response.StatusCode != http.StatusNoContent {
