@@ -85,12 +85,14 @@ func newLoginCmd() *cobra.Command {
 
 			// strip an trailing forward slashes from args[0]
 			args[0] = strings.TrimRight(args[0], "/")
+			// strip the /fmeserver from the end of the URL
+			args[0] = strings.TrimSuffix(args[0], "/fmeserver")
 
 			url, err := url.ParseRequestURI(args[0])
 			if err != nil {
 				return fmt.Errorf(urlErrorMsg)
 			}
-			if url.Path != "" && url.Path != "/fmeserver" {
+			if url.Path != "" {
 				return fmt.Errorf(urlErrorMsg)
 			}
 			return nil
