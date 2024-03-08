@@ -102,7 +102,7 @@ func projectDownloadRun(f *projectsDownloadFlags) func(cmd *cobra.Command, args 
 			return err
 		}
 
-		fmt.Fprintln(cmd.OutOrStdout(), "FME Server backed up to "+f.file)
+		fmt.Fprintln(cmd.OutOrStdout(), "Project exported to "+f.file)
 		return nil
 	}
 }
