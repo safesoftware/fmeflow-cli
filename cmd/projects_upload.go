@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -84,14 +85,14 @@ type ProjectSelectedItems struct {
 }
 
 type ProjectUploadV4 struct {
-	JobID     int         `json:"jobId"`
-	Status    string      `json:"status"`
-	Owner     string      `json:"owner"`
-	OwnerID   string      `json:"ownerID"`
-	Requested time.Time   `json:"requested"`
-	Generated time.Time   `json:"generated"`
-	FileName  string      `json:"fileName"`
-	Request   interface{} `json:"request"`
+	JobID     int              `json:"jobId"`
+	Status    string           `json:"status"`
+	Owner     string           `json:"owner"`
+	OwnerID   string           `json:"ownerID"`
+	Requested time.Time        `json:"requested"`
+	Generated time.Time        `json:"generated"`
+	FileName  string           `json:"fileName"`
+	Request   ProjectImportRun `json:"request"`
 }
 
 var projectUploadV4BuildThreshold = 23766
@@ -101,7 +102,11 @@ func newProjectUploadCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "upload",
 		Short: "Imports FME Server Projects from a downloaded package.",
-		Long:  "Imports FME Server Projects from a downloaded package. Useful for moving a project from one FME Server to another.",
+		Long: `Imports FME Server Projects from a downloaded package. The upload happens in two steps. The package is uploaded to the server, a preview is generated that contains the list of items, and then the import is run. This command can be run using a few different modes.
+- Using the --get-selectable flag will just generate the preview and output the selectable items in the package and then delete the import
+- Using the --quick flag will skip the preview and import everything in the package by default.
+- Using the --interactive flag will prompt the user to select items to import from the list of selectable items if any exist
+- Using the --selected-items flag will import only the items specified. The default is to import all items in the package.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4
 			// FME Server 2022.0 and later can use v4. Otherwise fall back to v3
@@ -129,7 +134,7 @@ func newProjectUploadCmd() *cobra.Command {
 					return errors.New("cannot set the importMode flag when using the V4 API")
 				}
 				if f.projectsImportMode != "" {
-					return errors.New("cannot set the projectsImportMode flag when using the V3 API")
+					return errors.New("cannot set the projectsImportMode flag when using the V4 API")
 				}
 			}
 
@@ -146,11 +151,23 @@ func newProjectUploadCmd() *cobra.Command {
 			return nil
 		},
 		Example: `
-  # Restore from a backup in a local file
+  # Upload a project and import all selectable items if any exist
   fmeflow projects upload --file ProjectPackage.fsproject
 
-  # Restore from a backup in a local file without overwriting
-  fmeflow projects upload --file ProjectPackage.fsproject --overwrite=false`,
+  # Upload a project without overwriting existing items
+  fmeflow projects upload --file ProjectPackage.fsproject --overwrite=false
+  
+  # Upload a project and perform a quick import
+  fmeflow projects upload --file ProjectPackage.fsproject --quick
+  
+  # Upload a project and be prompted for which items to import of the selectable items
+  fmeflow projects upload --file ProjectPackage.fsproject --interactive 
+ 
+  # Upload a project and get the list of selectable items
+  fmeflow projects upload --file ProjectPackage.fsproject --get-selectable
+  
+  # Upload a project and import only the specified selectable items
+  fme projects upload --file ProjectPackage.fsproject --selected-items="mysqldb:connection,slack con:connector"`,
 		Args: NoArgs,
 		RunE: projectUploadRun(&f),
 	}
@@ -427,6 +444,12 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 
 					// parse the selected items and add them to the selectedItemsStruct
 					if f.selectedItems != "" && f.selectedItems != "none" {
+						// validate that the selected items are the correct format
+						match, _ := regexp.MatchString(`^([^:,]+:[^:,]+,)*([^:,]+:[^:,]+)$`, f.selectedItems)
+						if !match {
+							return errors.New("invalid selected items. Must be a comma separated list of item ids and types. e.g. item1:itemtype1,item2:itemtype2")
+						}
+
 						// split the selected items on the comma
 						split := strings.Split(f.selectedItems, ",")
 						for _, element := range split {
@@ -434,6 +457,18 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 							split := strings.Split(element, ":")
 							id := split[0]
 							itemType := split[1]
+							// verify that the selected items are in the list of selectable items
+							found := false
+							for _, selectableItem := range selectableItems.Items {
+								if selectableItem.ID == id && selectableItem.Type == itemType {
+									found = true
+									break
+								}
+							}
+							if !found {
+								return errors.New("selected item " + id + " (" + itemType + ") is not in the list of selectable items")
+							}
+
 							selectedItemsStruct = append(selectedItemsStruct, ProjectSelectedItems{ID: id, Type: itemType})
 						}
 					}
