@@ -206,6 +206,7 @@ func newProjectUploadCmd() *cobra.Command {
 
 	return cmd
 }
+
 func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		client := &http.Client{}
@@ -228,17 +229,17 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 			// Create a form file writer for the file field
 			fileWriter, err := multiPartWriter.CreateFormFile("file", f.file)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			// Copy the file data to the form file writer
 			if _, err = io.Copy(fileWriter, file); err != nil {
-				panic(err)
+				return err
 			}
 
 			// Close the multipart writer to get the terminating boundary
 			if err = multiPartWriter.Close(); err != nil {
-				panic(err)
+				return err
 			}
 
 			url = "/fmeapiv4/migrations/imports/upload"
@@ -292,6 +293,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 					fmt.Fprint(cmd.OutOrStdout(), "Waiting for preview generation..")
 				}
 
+				// we have to loop until the preview is done generating
 				for !ready {
 					// get the status of the import
 					response, err = client.Do(&request)
@@ -314,7 +316,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 					if importStatus.Status == "ready" {
 						ready = true
 					} else if importStatus.Status == "generating_preview" {
-						// if it isn't ready, wait a second and try again
+						// if it is still generating the preview, wait a second and try again
 						if !jsonOutput && !f.getSelectable {
 							fmt.Fprint(cmd.OutOrStdout(), ".")
 						}
@@ -324,6 +326,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 						return errors.New("import task did not complete successfully. Status is \"" + importStatus.Status + "\". Please check the FME Flow web interface for the status of the import task")
 					}
 				}
+
 				// output a newline to cap off the waiting message
 				if !jsonOutput && !f.getSelectable {
 					fmt.Fprint(cmd.OutOrStdout(), "\n")
@@ -480,10 +483,10 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 				// finally, we can run the import
 				url = "/fmeapiv4/migrations/imports/" + taskId + "/run"
 				var run ProjectImportRun
+				// set the run struct
 				run.Overwrite = f.overwrite
 				run.PauseNotifications = f.pauseNotifications
 				run.DisableItems = f.disableProjectItems
-				run.SelectedItems = selectedItemsStruct
 
 				// if we have selected items, set them here. If we haven't set it, use the default
 				if selectedItemsStruct != nil {
@@ -553,6 +556,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 					}
 				}
 
+				// if we are waiting for the import to complete, we have to loop until it is done
 				if f.wait {
 					finished := false
 					url = "/fmeapiv4/migrations/imports/" + taskId
@@ -582,7 +586,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 						if err := json.Unmarshal(responseData, &importStatus); err != nil {
 							return err
 						}
-						//fmt.Fprintln(cmd.OutOrStdout(), importStatus.Status)
+
 						if importStatus.Status == "imported" {
 							finished = true
 						} else if importStatus.Status != "importing" {
