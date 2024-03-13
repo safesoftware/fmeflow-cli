@@ -46,7 +46,7 @@ func TestProjectDownload(t *testing.T) {
 			statusCode:       http.StatusOK,
 			args:             []string{"projects", "download", "--name", "TestProject", "--file", f.Name()},
 			body:             okResponseV3,
-			wantOutputRegex:  "FME Server backed up to",
+			wantOutputRegex:  "Project exported to",
 			wantFileContents: fileContents{file: f.Name(), contents: okResponseV3},
 		},
 		{
@@ -54,7 +54,7 @@ func TestProjectDownload(t *testing.T) {
 			statusCode:       http.StatusOK,
 			args:             []string{"projects", "download", "--name", "TestProject", "--file", f.Name(), "--exclude-sensitive-info"},
 			body:             okResponseV3,
-			wantOutputRegex:  "FME Server backed up to",
+			wantOutputRegex:  "Project exported to",
 			wantFileContents: fileContents{file: f.Name(), contents: okResponseV3},
 			wantFormParams:   map[string]string{"excludeSensitiveInfo": "true"},
 		},
