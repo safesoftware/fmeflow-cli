@@ -69,6 +69,10 @@ func newHealthcheckCmd() *cobra.Command {
 				return checkConfigFile(false)
 			} else {
 				var err error
+				// strip any trailing slashes from the url
+				f.url = strings.TrimRight(f.url, "/")
+				//strip any trailing /fmeserver from the url
+				f.url = strings.TrimSuffix(f.url, "/fmeserver")
 				url, err := url.ParseRequestURI(f.url)
 				if err != nil {
 					return fmt.Errorf(urlErrorMsg)
