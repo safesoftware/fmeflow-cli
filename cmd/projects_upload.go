@@ -101,8 +101,8 @@ func newProjectUploadCmd() *cobra.Command {
 	f := projectUploadFlags{}
 	cmd := &cobra.Command{
 		Use:   "upload",
-		Short: "Imports FME Server Projects from a downloaded package.",
-		Long: `Imports FME Server Projects from a downloaded package. The upload happens in two steps. The package is uploaded to the server, a preview is generated that contains the list of items, and then the import is run. This command can be run using a few different modes.
+		Short: "Imports FME Flow Projects from a downloaded package.",
+		Long: `Imports FME Flow Projects from a downloaded package. The upload happens in two steps. The package is uploaded to the server, a preview is generated that contains the list of items, and then the import is run. This command can be run using a few different modes.
 - Using the --get-selectable flag will just generate the preview and output the selectable items in the package and then delete the import
 - Using the --quick flag will skip the preview and import everything in the package by default.
 - Using the --interactive flag will prompt the user to select items to import from the list of selectable items if any exist
@@ -275,7 +275,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 			// the task id is an integer at the end of the location header
 			taskId := location[strings.LastIndex(location, "/")+1:]
 
-			var selectedItemsStruct []ProjectSelectedItems
+			var selectedItemsSlice []ProjectSelectedItems
 			// if this isn't a quick import, we need to get the selectable items by making another rest call.
 			// also, if it isn't a quick import, it takes a bit of time for the preview to be ready, so we have to wait for it
 			if !f.quick {
@@ -349,11 +349,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 				if err != nil {
 					return err
 				} else if response.StatusCode != http.StatusOK {
-					if response.StatusCode == http.StatusInternalServerError {
-						return fmt.Errorf("%w: check that the file specified is a valid project file", errors.New(response.Status))
-					} else {
-						return errors.New(response.Status)
-					}
+					return errors.New("error retrieving items: " + response.Status)
 				}
 
 				responseData, err := io.ReadAll(response.Body)
@@ -398,9 +394,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 						for _, element := range selectableItems.Items {
 							t.AppendRow(table.Row{element.ID, element.Type})
 						}
-						//if f.noHeaders {
-						//	t.ResetHeaders()
-						//}
+
 						fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 					}
 					return nil
@@ -428,7 +422,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 						split := strings.Split(element, " ")
 						id := split[0]
 						itemType := strings.Trim(split[1], "()")
-						selectedItemsStruct = append(selectedItemsStruct, ProjectSelectedItems{ID: id, Type: itemType})
+						selectedItemsSlice = append(selectedItemsSlice, ProjectSelectedItems{ID: id, Type: itemType})
 					}
 				} else {
 					// if we are not interactive, check the selected items flag to see what to import
@@ -441,11 +435,11 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 						selectedItemsString = strings.TrimSuffix(selectedItemsString, ",")
 						f.selectedItems = selectedItemsString
 					} else if f.selectedItems == "none" {
-						// if we don't want to select anything, set selectedItemsStruct to an empty list
-						selectedItemsStruct = []ProjectSelectedItems{}
+						// if we don't want to select anything, set selectedItemsSlice to an empty list
+						selectedItemsSlice = []ProjectSelectedItems{}
 					}
 
-					// parse the selected items and add them to the selectedItemsStruct
+					// parse the selected items and add them to the selectedItemsSlice
 					if f.selectedItems != "" && f.selectedItems != "none" {
 						// validate that the selected items are the correct format
 						match, _ := regexp.MatchString(`^([^:,]+:[^:,]+,)*([^:,]+:[^:,]+)$`, f.selectedItems)
@@ -472,7 +466,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 								return errors.New("selected item " + id + " (" + itemType + ") is not in the list of selectable items")
 							}
 
-							selectedItemsStruct = append(selectedItemsStruct, ProjectSelectedItems{ID: id, Type: itemType})
+							selectedItemsSlice = append(selectedItemsSlice, ProjectSelectedItems{ID: id, Type: itemType})
 						}
 					}
 				}
@@ -489,8 +483,8 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 				run.DisableItems = f.disableProjectItems
 
 				// if we have selected items, set them here. If we haven't set it, use the default
-				if selectedItemsStruct != nil {
-					run.SelectedItems = selectedItemsStruct
+				if selectedItemsSlice != nil {
+					run.SelectedItems = selectedItemsSlice
 				}
 
 				// if a topic is specified, add that
