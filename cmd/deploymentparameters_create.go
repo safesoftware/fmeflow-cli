@@ -12,15 +12,24 @@ import (
 )
 
 type NewDeplymentParameter struct {
-	Type  string `json:"type"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name           string `json:"name"`
+	Type           string `json:"type"`
+	Value          string `json:"value"`
+	ChoiceSettings struct {
+		ChoiceSet        string   `json:"choiceSet"`
+		Services         []string `json:"services,omitempty"`
+		ExcludedServices []string `json:"excludedServices,omitempty"`
+		Family           string   `json:"family,omitempty"`
+	} `json:"choiceSettings,omitempty"`
 }
 
 type deploymentParameterCreateFlags struct {
-	dpType string
-	value  string
-	name   string
+	dpType           deploymentParameterTypeFlag
+	value            string
+	name             string
+	dbType           string
+	includedServices []string
+	excludedServices []string
 }
 
 func newDeploymentParameterCreateCmd() *cobra.Command {
@@ -39,18 +48,33 @@ func newDeploymentParameterCreateCmd() *cobra.Command {
 		RunE: deploymentParametersCreateRun(&f),
 	}
 
-	cmd.Flags().StringVar(&f.dpType, "type", "text", "Type of parameter")
+	cmd.Flags().Var(&f.dpType, "type", "Type of parameter to create. Must be one of text, database, or web. Default is text.")
 	cmd.Flags().StringVar(&f.name, "name", "", "Name of the deployment parameter to create.")
-	cmd.Flags().StringVar(&f.value, "value", "", "The value to set the deployment parameter to.")
-	// currently type can only be set to "text". But in the future maybe there will be more options?
-	cmd.Flags().MarkHidden("type")
+	cmd.Flags().StringVar(&f.value, "value", "", "The value to set the deployment parameter to. (Optional)")
+	cmd.Flags().StringArrayVar(&f.includedServices, "included-service", []string{}, "Service to include in the deployment parameter. Can be passed in multiple times if there are multiple Web services to include.")
+	cmd.Flags().StringArrayVar(&f.excludedServices, "excluded-service", []string{}, "Service to exclude in the deployment parameter. Can be passed in multiple times if there are multiple Web services to exclude.")
+	cmd.Flags().StringVar(&f.dbType, "database-type", "", "The type of the database to use for the database deployment parameter. (Optional)")
+	cmd.RegisterFlagCompletionFunc("type", deploymentParameterTypeFlagCompletion)
 	cmd.MarkFlagRequired("name")
-	cmd.MarkFlagRequired("value")
 	return cmd
 }
 
 func deploymentParametersCreateRun(f *deploymentParameterCreateFlags) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+
+		if f.dpType == "" {
+			f.dpType = deploymentParameterTypeFlagText
+		}
+
+		// if type isnot web and includeServices or excludedServices is set, then error
+		if f.dpType != deploymentParameterTypeFlagWeb && (len(f.includedServices) > 0 || len(f.excludedServices) > 0) {
+			return errors.New("cannot include or exclude services for a non-web connection deployment parameter")
+		}
+
+		// if the type is not database and dbType is set, then error
+		if f.dpType != deploymentParameterTypeFlagDatabase && f.dbType != "" {
+			return errors.New("cannot set a database family for a non-database deployment parameter")
+		}
 
 		// set up http
 		client := &http.Client{}
@@ -58,7 +82,24 @@ func deploymentParametersCreateRun(f *deploymentParameterCreateFlags) func(cmd *
 		var newDepParam NewDeplymentParameter
 		newDepParam.Name = f.name
 		newDepParam.Value = f.value
-		newDepParam.Type = f.dpType
+
+		// set type specific settings
+		if f.dpType == deploymentParameterTypeFlagDatabase {
+			newDepParam.Type = "dropdown"
+			newDepParam.ChoiceSettings.ChoiceSet = "dbConnections"
+			if f.dbType != "" {
+				newDepParam.ChoiceSettings.Family = f.dbType
+			}
+		} else if f.dpType == deploymentParameterTypeFlagWeb {
+			newDepParam.Type = "dropdown"
+			newDepParam.ChoiceSettings.ChoiceSet = "webConnections"
+			newDepParam.ChoiceSettings.Services = f.includedServices
+			newDepParam.ChoiceSettings.ExcludedServices = f.excludedServices
+		} else {
+			// text type just sets type and nothing else
+			newDepParam.Type = f.dpType.String()
+		}
+
 		jsonData, err := json.Marshal(newDepParam)
 		if err != nil {
 			return err
