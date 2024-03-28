@@ -1,0 +1,259 @@
+package cmd
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/spf13/cobra"
+)
+
+type projectItemFlags struct {
+	id                  string
+	name                string
+	typeFlag            string
+	includeDependencies bool
+	filterString        string
+	filterProperties    string
+	outputType          string
+	noHeaders           bool
+}
+
+type ProjectItemV4 struct {
+	ID           string                    `json:"id"`
+	Name         string                    `json:"name"`
+	Type         string                    `json:"type"`
+	Owner        string                    `json:"owner"`
+	LastUpdated  time.Time                 `json:"lastUpdated"`
+	Dependencies []ProjectItemDependencyV4 `json:"dependencies"`
+}
+
+type ProjectItemDependencyV4 struct {
+	Name         string   `json:"name"`
+	ID           string   `json:"id"`
+	Type         string   `json:"type"`
+	Dependencies []string `json:"dependencies"`
+}
+type ProjectItemsV4 struct {
+	Items      []ProjectItemV4 `json:"items"`
+	TotalCount int             `json:"totalCount"`
+	Limit      int             `json:"limit"`
+	Offset     int             `json:"offset"`
+}
+
+func newProjectItemsCmd() *cobra.Command {
+	f := projectItemFlags{}
+	cmd := &cobra.Command{
+		Use:   "items",
+		Short: "Lists the items for the specified project",
+		Long:  `Lists the items contained in the specified project.`,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if f.id == "" && f.name == "" {
+				return errors.New("either id or name must be specified")
+			}
+			return nil
+		},
+		Example: `
+  # Get all items for a project via id
+  fmeflow projects items --id a64297e7-a119-4e10-ac37-5d0bba12194b
+
+  # Get all items for a project via name
+  fmeflow projects items --name test_project
+
+  # Get items with type workspace for a project via name
+  fmeflow projects items --name test_project --type workspace
+  
+  # Get all items for a project via name without dependencies
+  fmeflow projects items --name test_project --include-dependencies=false
+  
+  # Get all items for a project via name with a filter on name
+  fmeflow projects items --name test_project --filter-string "test_name" --filter-properties "name"`,
+		Args: NoArgs,
+		RunE: projectItemsRun(&f),
+	}
+
+	cmd.Flags().StringVar(&f.id, "id", "", "Id of project to get items for ")
+	cmd.Flags().StringVar(&f.name, "name", "", "Name of project to get items for")
+	cmd.Flags().StringVar(&f.typeFlag, "type", "", "Type of items to get")
+	cmd.Flags().BoolVar(&f.includeDependencies, "include-dependencies", true, "Include dependencies in the output")
+	cmd.Flags().StringVar(&f.filterString, "filter-string", "", "String to filter items by")
+	cmd.Flags().StringVar(&f.filterProperties, "filter-properties", "", "Comma separated list of properties to filter by")
+	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
+	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+
+	cmd.MarkFlagsMutuallyExclusive("id", "name")
+
+	return cmd
+}
+
+// this function is used to get the id of the project if the name is specified
+func getProjectId(name string) (string, error) {
+	client := &http.Client{}
+
+	url := "/fmeapiv4/projects"
+
+	request, err := buildFmeFlowRequest(url, "GET", nil)
+	if err != nil {
+		return "", err
+	}
+	q := request.URL.Query()
+	q.Add("filterString", name)
+	q.Add("filterProperties", "name")
+	request.URL.RawQuery = q.Encode()
+
+	response, err := client.Do(&request)
+	if err != nil {
+		return "", err
+	} else if response.StatusCode != http.StatusOK {
+		if response.StatusCode == http.StatusNotFound {
+			return "", fmt.Errorf("%w: check that the specified project exists", errors.New(response.Status))
+		} else {
+			return "", errors.New(response.Status)
+		}
+	}
+
+	// marshal into struct
+	var result FMEFlowProjectsV4
+
+	responseData, err := io.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+
+	err = json.Unmarshal(responseData, &result)
+	if err != nil {
+		return "", err
+	}
+
+	// loop through all items and find the one with the correct name
+	for _, project := range result.Items {
+		if project.Name == name {
+			return project.ID, nil
+		}
+	}
+
+	return "", fmt.Errorf("project with name %s not found", name)
+
+}
+
+func getProjectItems(id string) (ProjectItemsV4, []byte, error) {
+	client := &http.Client{}
+
+	url := "/fmeapiv4/projects/" + id + "/items"
+	request, err := buildFmeFlowRequest(url, "GET", nil)
+	if err != nil {
+		return ProjectItemsV4{}, []byte{}, err
+	}
+
+	response, err := client.Do(&request)
+	if err != nil {
+		return ProjectItemsV4{}, []byte{}, err
+	} else if response.StatusCode != http.StatusOK {
+		if response.StatusCode == http.StatusNotFound {
+			return ProjectItemsV4{}, []byte{}, fmt.Errorf("%w: check that the specified project exists", errors.New(response.Status))
+		} else {
+			return ProjectItemsV4{}, []byte{}, errors.New(response.Status)
+		}
+	}
+
+	// marshal into struct
+	var projectItems ProjectItemsV4
+
+	responseData, err := io.ReadAll(response.Body)
+	if err != nil {
+		return ProjectItemsV4{}, []byte{}, err
+	}
+
+	err = json.Unmarshal(responseData, &projectItems)
+	if err != nil {
+		return ProjectItemsV4{}, []byte{}, err
+	}
+
+	return projectItems, responseData, nil
+}
+
+func projectItemsRun(f *projectItemFlags) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		// --json overrides --output
+		if jsonOutput {
+			f.outputType = "json"
+		}
+
+		// if name isn't specified, just get the id
+		if f.name != "" {
+			id, err := getProjectId(f.name)
+			if err != nil {
+				return err
+			}
+			f.id = id
+		}
+
+		projectItems, responseData, err := getProjectItems(f.id)
+		if err != nil {
+			return err
+		}
+
+		if f.outputType == "table" {
+
+			t := table.NewWriter()
+			t.SetStyle(defaultStyle)
+
+			t.AppendHeader(table.Row{"ID", "Name", "Type", "Owner", "Last Updated"})
+
+			for _, element := range projectItems.Items {
+				t.AppendRow(table.Row{element.ID, element.Name, element.Type, element.Owner, element.LastUpdated})
+			}
+			if f.noHeaders {
+				t.ResetHeaders()
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+
+		} else if f.outputType == "json" {
+			prettyJSON, err := prettyPrintJSON(responseData)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+		} else if strings.HasPrefix(f.outputType, "custom-columns") {
+			// parse the columns and json queries
+			columnsString := ""
+			if strings.HasPrefix(f.outputType, "custom-columns=") {
+				columnsString = f.outputType[len("custom-columns="):]
+			}
+			if len(columnsString) == 0 {
+				return errors.New("custom-columns format specified but no custom columns given")
+			}
+
+			// we have to marshal the Items array, then create an array of marshalled items
+			// to pass to the creation of the table.
+			marshalledItems := [][]byte{}
+			for _, element := range projectItems.Items {
+				mJson, err := json.Marshal(element)
+				if err != nil {
+					return err
+				}
+				marshalledItems = append(marshalledItems, mJson)
+			}
+
+			columnsInput := strings.Split(columnsString, ",")
+			t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+			if err != nil {
+				return err
+			}
+			if f.noHeaders {
+				t.ResetHeaders()
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+
+		} else {
+			return errors.New("invalid output format specified")
+		}
+
+		return nil
+	}
+}

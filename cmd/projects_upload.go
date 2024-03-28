@@ -42,13 +42,13 @@ type ProjectUploadTask struct {
 }
 
 type ProjectItems struct {
-	Items      []ProjectItemV4 `json:"items"`
-	TotalCount int             `json:"totalCount"`
-	Limit      int             `json:"limit"`
-	Offset     int             `json:"offset"`
+	Items      []ProjectUploadItemV4 `json:"items"`
+	TotalCount int                   `json:"totalCount"`
+	Limit      int                   `json:"limit"`
+	Offset     int                   `json:"offset"`
 }
 
-type ProjectItemV4 struct {
+type ProjectUploadItemV4 struct {
 	ID            string `json:"id"`
 	JobID         int    `json:"jobId"`
 	Name          string `json:"name"`
