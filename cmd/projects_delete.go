@@ -27,7 +27,7 @@ func newProjectDeleteCmd() *cobra.Command {
 		Long:  `Deletes an FME Flow Project from the FME Server. Can optionally also delete the project contents and its dependencies.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if f.id == "" && f.name == "" {
-				return errors.New("either id or name must be specified")
+				return errors.New("required flag(s) \"id\" or \"name\" not set")
 			}
 
 			if f.dependencies && !f.all {

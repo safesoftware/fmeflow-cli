@@ -101,7 +101,7 @@ func TestProjectsDelete(t *testing.T) {
 		},
 		{
 			name:        "missing flag",
-			wantErrText: "either id or name must be specified",
+			wantErrText: "required flag(s) \"id\" or \"name\" not set",
 			args:        []string{"projects", "delete"},
 		},
 		{

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,10 +17,10 @@ import (
 type projectItemFlags struct {
 	id                  string
 	name                string
-	typeFlag            string
+	typeFlag            []string
 	includeDependencies bool
 	filterString        string
-	filterProperties    string
+	filterProperty      []string
 	outputType          string
 	noHeaders           bool
 }
@@ -53,9 +54,16 @@ func newProjectItemsCmd() *cobra.Command {
 		Short: "Lists the items for the specified project",
 		Long:  `Lists the items contained in the specified project.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			// can't specify both id and name
 			if f.id == "" && f.name == "" {
-				return errors.New("either id or name must be specified")
+				return errors.New("required flag(s) \"id\" or \"name\" not set")
 			}
+
+			// can't specify filter-property without filter-string
+			if f.filterString == "" && len(f.filterProperty) > 0 {
+				return errors.New("flag \"filter-property\" specified without flag \"filter-string\"")
+			}
+
 			return nil
 		},
 		Example: `
@@ -79,10 +87,10 @@ func newProjectItemsCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&f.id, "id", "", "Id of project to get items for ")
 	cmd.Flags().StringVar(&f.name, "name", "", "Name of project to get items for")
-	cmd.Flags().StringVar(&f.typeFlag, "type", "", "Type of items to get")
+	cmd.Flags().StringArrayVar(&f.typeFlag, "type", []string{}, "Type of items to get")
 	cmd.Flags().BoolVar(&f.includeDependencies, "include-dependencies", true, "Include dependencies in the output")
 	cmd.Flags().StringVar(&f.filterString, "filter-string", "", "String to filter items by")
-	cmd.Flags().StringVar(&f.filterProperties, "filter-properties", "", "Comma separated list of properties to filter by")
+	cmd.Flags().StringArrayVar(&f.filterProperty, "filter-property", []string{}, "Property to filter by. Should be one of \"name\" or \"owner\". Can only be set if filter-string is also set")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 
@@ -141,42 +149,6 @@ func getProjectId(name string) (string, error) {
 
 }
 
-func getProjectItems(id string) (ProjectItemsV4, []byte, error) {
-	client := &http.Client{}
-
-	url := "/fmeapiv4/projects/" + id + "/items"
-	request, err := buildFmeFlowRequest(url, "GET", nil)
-	if err != nil {
-		return ProjectItemsV4{}, []byte{}, err
-	}
-
-	response, err := client.Do(&request)
-	if err != nil {
-		return ProjectItemsV4{}, []byte{}, err
-	} else if response.StatusCode != http.StatusOK {
-		if response.StatusCode == http.StatusNotFound {
-			return ProjectItemsV4{}, []byte{}, fmt.Errorf("%w: check that the specified project exists", errors.New(response.Status))
-		} else {
-			return ProjectItemsV4{}, []byte{}, errors.New(response.Status)
-		}
-	}
-
-	// marshal into struct
-	var projectItems ProjectItemsV4
-
-	responseData, err := io.ReadAll(response.Body)
-	if err != nil {
-		return ProjectItemsV4{}, []byte{}, err
-	}
-
-	err = json.Unmarshal(responseData, &projectItems)
-	if err != nil {
-		return ProjectItemsV4{}, []byte{}, err
-	}
-
-	return projectItems, responseData, nil
-}
-
 func projectItemsRun(f *projectItemFlags) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
@@ -193,7 +165,54 @@ func projectItemsRun(f *projectItemFlags) func(cmd *cobra.Command, args []string
 			f.id = id
 		}
 
-		projectItems, responseData, err := getProjectItems(f.id)
+		client := &http.Client{}
+
+		url := "/fmeapiv4/projects/" + f.id + "/items"
+		request, err := buildFmeFlowRequest(url, "GET", nil)
+		if err != nil {
+			return err
+		}
+
+		q := request.URL.Query()
+		// loop through type flags and add them to the query
+		for _, t := range f.typeFlag {
+			q.Add("type", t)
+		}
+
+		// add the include dependencies flag
+		q.Add("includeDependencies", strconv.FormatBool(f.includeDependencies))
+
+		// add the filter string and filter properties
+		for _, t := range f.filterProperty {
+			q.Add("filterProperties", t)
+		}
+
+		if f.filterString != "" {
+			q.Add("filterString", f.filterString)
+		}
+
+		request.URL.RawQuery = q.Encode()
+
+		response, err := client.Do(&request)
+		if err != nil {
+			return err
+		} else if response.StatusCode != http.StatusOK {
+			if response.StatusCode == http.StatusNotFound {
+				return fmt.Errorf("%w: check that the specified project exists", errors.New(response.Status))
+			} else {
+				return errors.New(response.Status)
+			}
+		}
+
+		// marshal into struct
+		var projectItems ProjectItemsV4
+
+		responseData, err := io.ReadAll(response.Body)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(responseData, &projectItems)
 		if err != nil {
 			return err
 		}

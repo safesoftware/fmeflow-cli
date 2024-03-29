@@ -135,7 +135,19 @@ func newProjectsCmd() *cobra.Command {
   fmeflow projects
 
   # List all projects owned by the user admin
-  fmeflow projects --owner admin`,
+  fmeflow projects --owner admin
+  
+  # Get a single project by name
+  fmeflow projects --name "My Project"
+  
+  # Get a single project by id
+  fmeflow projects --id a64297e7-a119-4e10-ac37-5d0bba12194b
+  
+  # Get a single project by name and output as JSON
+  fmeflow projects --name "My Project" --output json
+  
+  # Get all projects and output as custom columns
+  fmeflow projects --output=custom-columns=ID:.id,NAME:.name`,
 		Args: NoArgs,
 		RunE: projectsRun(&f),
 	}
@@ -191,12 +203,35 @@ func projectsRun(f *projectsFlags) func(cmd *cobra.Command, args []string) error
 				return err
 			}
 
+			if f.owner != "" {
+				q := request.URL.Query()
+				q.Add("filterString", f.owner)
+				q.Add("filterProperties", "owner")
+				request.URL.RawQuery = q.Encode()
+			}
+
 			response, err := client.Do(&request)
 			if err != nil {
 				return err
 			} else if response.StatusCode != http.StatusOK {
-				if response.StatusCode == http.StatusNotFound {
-					return fmt.Errorf("%w: check that the specified project exists", errors.New(response.Status))
+				responseData, err := io.ReadAll(response.Body)
+				if err == nil {
+					var responseMessage Message
+					if err := json.Unmarshal(responseData, &responseMessage); err == nil {
+
+						// if json output is requested, output the JSON to stdout before erroring
+						if jsonOutput {
+							prettyJSON, err := prettyPrintJSON(responseData)
+							if err == nil {
+								fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+							} else {
+								return errors.New(response.Status)
+							}
+						}
+						return errors.New(responseMessage.Message)
+					} else {
+						return errors.New(response.Status)
+					}
 				} else {
 					return errors.New(response.Status)
 				}

@@ -6,6 +6,79 @@ import (
 )
 
 func TestProjects(t *testing.T) {
+	responsev4 := `{
+		"items": [
+		  {
+			"id": "a64297e7-a119-4e10-ac37-5d0bba12194b",
+			"name": "test1",
+			"hubUid": "",
+			"hubPublisherUid": "",
+			"description": "test1",
+			"readme": "",
+			"version": "1.0.0",
+			"lastUpdated": "2024-03-26T18:44:30.713Z",
+			"owner": "admin",
+			"ownerID": "fb2dd313-e5cf-432e-a24a-814e46929ab7",
+			"shareable": true,
+			"lastUpdateUser": "admin",
+			"lastUpdateUserID": "fb2dd313-e5cf-432e-a24a-814e46929ab7",
+			"hasIcon": false
+		  },
+		  {
+			"id": "5a70afe2-db56-4a15-8ea8-559a10c326ec",
+			"name": "test2",
+			"hubUid": null,
+			"hubPublisherUid": null,
+			"description": "test2",
+			"readme": null,
+			"version": "1.0.0",
+			"lastUpdated": "2024-03-26T18:45:32.991Z",
+			"owner": "admin",
+			"ownerID": "fb2dd313-e5cf-432e-a24a-814e46929ab7",
+			"shareable": true,
+			"lastUpdateUser": "admin",
+			"lastUpdateUserID": "fb2dd313-e5cf-432e-a24a-814e46929ab7",
+			"hasIcon": false
+		  },
+		  {
+			"id": "0adc89c8-5eda-4cbb-a599-eefd66b1c8b9",
+			"name": "testAutomation",
+			"hubUid": null,
+			"hubPublisherUid": null,
+			"description": "test",
+			"readme": null,
+			"version": "1.0.0",
+			"lastUpdated": "2024-03-26T22:52:38.092Z",
+			"owner": "admin",
+			"ownerID": "fb2dd313-e5cf-432e-a24a-814e46929ab7",
+			"shareable": true,
+			"lastUpdateUser": "admin",
+			"lastUpdateUserID": "fb2dd313-e5cf-432e-a24a-814e46929ab7",
+			"hasIcon": false
+		  }
+		],
+		"totalCount": 3,
+		"limit": 100,
+		"offset": 0
+	  }`
+
+	singleResponseV4 := `{
+		"id": "a64297e7-a119-4e10-ac37-5d0bba12194b",
+		"name": "test1",
+		"hubUid": "",
+		"hubPublisherUid": "",
+		"description": "test1",
+		"readme": "",
+		"version": "1.0.0",
+		"lastUpdated": "2024-03-26T18:44:30.713Z",
+		"owner": "admin",
+		"ownerID": "fb2dd313-e5cf-432e-a24a-814e46929ab7",
+		"shareable": true,
+		"lastUpdateUser": "admin",
+		"lastUpdateUserID": "fb2dd313-e5cf-432e-a24a-814e46929ab7",
+		"hasIcon": false
+	  }`
+
 	responseV3 := `{
 		"offset": -1,
 		"limit": -1,
@@ -313,6 +386,10 @@ func TestProjects(t *testing.T) {
 		]
 	  }`
 
+	paramMissingBody := `{
+		"message": "Unauthorized request by user admin due to lack of proper permissions or the object does not exist."
+	  }`
+
 	cases := []testCase{
 		{
 			name:               "unknown flag",
@@ -324,13 +401,56 @@ func TestProjects(t *testing.T) {
 			name:        "500 bad status code",
 			statusCode:  http.StatusInternalServerError,
 			wantErrText: "500 Internal Server Error",
-			args:        []string{"projects"},
+			args:        []string{"projects", "--api-version=v3"},
 		},
 		{
-			name:        "project not found",
+			name:        "project not found id v4",
+			args:        []string{"projects", "--id", "a64297e7-a119-4e10-ac37-5d0bba121940"},
+			statusCode:  http.StatusForbidden,
+			body:        paramMissingBody,
+			wantErrText: "Unauthorized request by user admin due to lack of proper permissions or the object does not exist.",
+		},
+		{
+			name:            "get project table output v4",
+			args:            []string{"projects"},
+			body:            responsev4,
+			statusCode:      http.StatusOK,
+			wantOutputRegex: "^[\\s]*ID[\\s]*NAME[\\s]*OWNER[\\s]*DESCRIPTION[\\s]*LAST UPDATED[\\s]*a64297e7-a119-4e10-ac37-5d0bba12194b[\\s]*test1[\\s]*admin[\\s]*test1[\\s]*2024-03-26 18:44:30.713 \\+0000 UTC[\\s]*5a70afe2-db56-4a15-8ea8-559a10c326ec[\\s]*test2[\\s]*admin[\\s]*test2[\\s]*2024-03-26 18:45:32.991 \\+0000 UTC[\\s]*0adc89c8-5eda-4cbb-a599-eefd66b1c8b9[\\s]*testAutomation[\\s]*admin[\\s]*test[\\s]*2024-03-26 22:52:38.092 \\+0000 UTC[\\s]*$",
+		},
+		{
+			name:           "get project json output v4",
+			args:           []string{"projects", "--json"},
+			body:           responsev4,
+			statusCode:     http.StatusOK,
+			wantOutputJson: responsev4,
+		},
+		{
+			name:            "get single project v4",
+			args:            []string{"projects", "--id", "a64297e7-a119-4e10-ac37-5d0bba12194b"},
+			body:            singleResponseV4,
+			statusCode:      http.StatusOK,
+			wantOutputRegex: "^[\\s]*ID[\\s]*NAME[\\s]*OWNER[\\s]*DESCRIPTION[\\s]*LAST UPDATED[\\s]*a64297e7-a119-4e10-ac37-5d0bba12194b[\\s]*test1[\\s]*admin[\\s]*test1[\\s]*2024-03-26 18:44:30.713 \\+0000 UTC[\\s]*$",
+		},
+		{
+			name:            "get project from owner v4",
+			args:            []string{"projects", "--owner", "admin"},
+			body:            responsev4,
+			statusCode:      http.StatusOK,
+			wantOutputRegex: "^[\\s]*ID[\\s]*NAME[\\s]*OWNER[\\s]*DESCRIPTION[\\s]*LAST UPDATED[\\s]*a64297e7-a119-4e10-ac37-5d0bba12194b[\\s]*test1[\\s]*admin[\\s]*test1[\\s]*2024-03-26 18:44:30.713 \\+0000 UTC[\\s]*5a70afe2-db56-4a15-8ea8-559a10c326ec[\\s]*test2[\\s]*admin[\\s]*test2[\\s]*2024-03-26 18:45:32.991 \\+0000 UTC[\\s]*0adc89c8-5eda-4cbb-a599-eefd66b1c8b9[\\s]*testAutomation[\\s]*admin[\\s]*test[\\s]*2024-03-26 22:52:38.092 \\+0000 UTC[\\s]*$",
+			wantFormParams:  map[string]string{"filterString": "admin", "filterProperties": "owner"},
+		},
+		{
+			name:            "get project custom columns v4",
+			args:            []string{"projects", "--output=custom-columns=ID:.id,NAME:.name"},
+			body:            responsev4,
+			statusCode:      http.StatusOK,
+			wantOutputRegex: "^[\\s]*ID[\\s]*NAME[\\s]*a64297e7-a119-4e10-ac37-5d0bba12194b[\\s]*test1[\\s]*5a70afe2-db56-4a15-8ea8-559a10c326ec[\\s]*test2[\\s]*0adc89c8-5eda-4cbb-a599-eefd66b1c8b9[\\s]*testAutomation[\\s]*$",
+		},
+		{
+			name:        "project not found v3",
 			statusCode:  http.StatusNotFound,
 			wantErrText: "404 Not Found: check that the specified project exists",
-			args:        []string{"projects", "--name", "Samples123"},
+			args:        []string{"projects", "--name", "Samples123", "--api-version=v3"},
 		},
 		{
 			name:            "get project table output v3",
@@ -361,7 +481,7 @@ func TestProjects(t *testing.T) {
 			wantOutputRegex: "^[\\s]*NAME[\\s]*OWNER[\\s]*DESCRIPTION[\\s]*LAST SAVED[\\s]*Test123[\\s]*admin[\\s]*My Description[\\s]*2023-01-17 16:34:45 \\+0000 UTC[\\s]*test2[\\s]*admin[\\s]*a[\\s]*2023-01-17 16:30:57 \\+0000 UTC[\\s]*$",
 		},
 		{
-			name:            "get project custom columns",
+			name:            "get project custom columns v3",
 			statusCode:      http.StatusOK,
 			args:            []string{"projects", "--output=custom-columns=NAME:.name,WORKSPACE:.workspaces[*].name", "--api-version=v3"},
 			body:            responseV3,
