@@ -10,6 +10,8 @@ HEADERNAME:.jsonPathForValue
 ```
 `HEADERNAME` will be the heading of the column in the table, and `.jsonPathForValue` will be the JSONPath expression to retrieve the data for that column from the returned JSON. This allows you to dynamically set column values to whatever data you need from the json.
 
+If a specified json query references a field that is missing on the json that it is querying, it will return an empty value instead of erroring.
+
 ### JSONPath
 
 JSONPath is a query language for JSON. The implementation of it in the FME Server CLI is heavily based on the implementation of it for the `kubectl` CLI for Kubernetes. More detailed documentation on how to use it can be found in the [Kubernetes documentation](https://kubernetes.io/docs/reference/kubectl/jsonpath/) for things that are not covered here.
