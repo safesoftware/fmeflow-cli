@@ -59,8 +59,9 @@ func newConnectionsCmd() *cobra.Command {
 	cmd.Flags().StringArrayVar(&f.category, "category", []string{}, "The categories of connections to return. Can be passed in multiple times")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
-	cmd.AddCommand(newProjectDownloadCmd())
-	cmd.AddCommand(newProjectUploadCmd())
+	cmd.AddCommand(newConnectionCreateCmd())
+	cmd.AddCommand(newConnectionUpdateCmd())
+	cmd.AddCommand(newConnectionDeleteCmd())
 
 	return cmd
 }
@@ -97,8 +98,6 @@ func connectionsRun(f *connectionsFlags) func(cmd *cobra.Command, args []string)
 			q.Add("categories", c)
 		}
 
-		//q.Add("filterString", f.owner)
-		//q.Add("filterProperties", "owner")
 		request.URL.RawQuery = q.Encode()
 
 		response, err := client.Do(&request)
