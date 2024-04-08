@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type NewDeplymentParameter struct {
+type NewDeploymentParameter struct {
 	Name           string `json:"name"`
 	Type           string `json:"type"`
 	Value          string `json:"value"`
@@ -66,7 +66,7 @@ func deploymentParametersCreateRun(f *deploymentParameterCreateFlags) func(cmd *
 			f.dpType = deploymentParameterTypeFlagText
 		}
 
-		// if type isnot web and includeServices or excludedServices is set, then error
+		// if type is not web and includeServices or excludedServices is set, then error
 		if f.dpType != deploymentParameterTypeFlagWeb && (len(f.includedServices) > 0 || len(f.excludedServices) > 0) {
 			return errors.New("cannot include or exclude services for a non-web connection deployment parameter")
 		}
@@ -79,7 +79,7 @@ func deploymentParametersCreateRun(f *deploymentParameterCreateFlags) func(cmd *
 		// set up http
 		client := &http.Client{}
 
-		var newDepParam NewDeplymentParameter
+		var newDepParam NewDeploymentParameter
 		newDepParam.Name = f.name
 		newDepParam.Value = f.value
 

@@ -68,7 +68,7 @@ func TestDeploymentParametersUpdate(t *testing.T) {
 			// check the json body is correct
 			body, err := io.ReadAll(r.Body)
 			require.NoError(t, err)
-			var result UpdateDeplymentParameter
+			var result UpdateDeploymentParameter
 			err = json.Unmarshal(body, &result)
 			require.NoError(t, err)
 			require.Equal(t, "text", result.Type)
@@ -93,7 +93,7 @@ func TestDeploymentParametersUpdate(t *testing.T) {
 			// check the json body is correct
 			body, err := io.ReadAll(r.Body)
 			require.NoError(t, err)
-			var result UpdateDeplymentParameter
+			var result UpdateDeploymentParameter
 			err = json.Unmarshal(body, &result)
 			require.NoError(t, err)
 			require.Equal(t, "dropdown", result.Type)
@@ -119,7 +119,7 @@ func TestDeploymentParametersUpdate(t *testing.T) {
 			// check the json body is correct
 			body, err := io.ReadAll(r.Body)
 			require.NoError(t, err)
-			var result UpdateDeplymentParameter
+			var result UpdateDeploymentParameter
 			err = json.Unmarshal(body, &result)
 			require.NoError(t, err)
 			require.Equal(t, "dropdown", result.Type)
@@ -146,7 +146,7 @@ func TestDeploymentParametersUpdate(t *testing.T) {
 			// check the json body is correct
 			body, err := io.ReadAll(r.Body)
 			require.NoError(t, err)
-			var result UpdateDeplymentParameter
+			var result UpdateDeploymentParameter
 			err = json.Unmarshal(body, &result)
 			require.NoError(t, err)
 			require.Equal(t, "dropdown", result.Type)

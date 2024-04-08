@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type UpdateDeplymentParameter struct {
+type UpdateDeploymentParameter struct {
 	Type           string          `json:"type,omitempty"`
 	Value          string          `json:"value"`
 	ChoiceSettings *ChoiceSettings `json:"choiceSettings,omitempty"`
@@ -119,7 +119,7 @@ func deploymentParametersUpdateRun(f *deploymentParameterUpdateFlags) func(cmd *
 			}
 		}
 
-		var newDepParam UpdateDeplymentParameter
+		var newDepParam UpdateDeploymentParameter
 		newDepParam.ChoiceSettings = new(ChoiceSettings)
 		newDepParam.Value = f.value
 
