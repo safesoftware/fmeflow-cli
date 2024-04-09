@@ -63,8 +63,8 @@ func newRepositoryCmd() *cobra.Command {
 	f := repositoryFlags{}
 	cmd := &cobra.Command{
 		Use:   "repositories",
-		Short: "List repositories",
-		Long:  `Lists repositories on the given FME Server. Pass in a name to get information on a specific repository.`,
+		Short: "List, Create and Delete repositories",
+		Long:  `Lists repositories on the given FME Server. Pass in a name to get information on a specific repository. Use the subcommands to create or delete repositories.`,
 		Example: `
 	Examples:
 	# List all repositories

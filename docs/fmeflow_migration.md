@@ -1,10 +1,10 @@
 ## fmeflow migration
 
-Returns information on migration tasks using the tasks subcommand.
+Returns information on migrations using the tasks subcommand.
 
 ### Synopsis
 
-Returns information on migration tasks using the tasks subcommand.
+Returns information on migrations using the tasks subcommand.
 
 ### Options
 

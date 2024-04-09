@@ -41,14 +41,12 @@ type deploymentparametersFlags struct {
 	noHeaders  bool
 }
 
-var deploymentParametersBuildThreshold = 23170
-
 func newDeploymentParametersCmd() *cobra.Command {
 	f := deploymentparametersFlags{}
 	cmd := &cobra.Command{
 		Use:   "deploymentparameters",
-		Short: "List Deployment Parameters",
-		Long:  `Lists Deployment Parameters on the given FME Server.`,
+		Short: "List, Create, Update and Delete Deployment Parameters",
+		Long:  `List Deployment Parameters. Use the subcommands to create, update, or delete a deployment parameter.`,
 		Example: `
 	Examples:
 	# List all deployment parameters

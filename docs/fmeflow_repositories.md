@@ -1,10 +1,10 @@
 ## fmeflow repositories
 
-List repositories
+List, Create and Delete repositories
 
 ### Synopsis
 
-Lists repositories on the given FME Server. Pass in a name to get information on a specific repository.
+Lists repositories on the given FME Server. Pass in a name to get information on a specific repository. Use the subcommands to create or delete repositories.
 
 ```
 fmeflow repositories [flags]

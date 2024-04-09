@@ -4,7 +4,7 @@ Interact with licensing an FME Server
 
 ### Synopsis
 
-Contains several subcommands for licensing tasks related to FME Server.
+Request a license file, refresh the license, check the status of the license, generate a license request file, and get the system code for licensing.
 	
 
 ### Options

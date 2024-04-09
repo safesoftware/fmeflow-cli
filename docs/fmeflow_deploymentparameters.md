@@ -1,10 +1,10 @@
 ## fmeflow deploymentparameters
 
-List Deployment Parameters
+List, Create, Update and Delete Deployment Parameters
 
 ### Synopsis
 
-Lists Deployment Parameters on the given FME Server.
+List Deployment Parameters. Use the subcommands to create, update, or delete a deployment parameter.
 
 ```
 fmeflow deploymentparameters [flags]
