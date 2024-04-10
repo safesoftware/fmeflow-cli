@@ -92,7 +92,7 @@ func TestProjectDownload(t *testing.T) {
 		{
 			name:             "download to file exclude selectable items v4 by id",
 			statusCode:       http.StatusOK,
-			args:             []string{"projects", "download", "--id", "a64297e7-a119-4e10-ac37-5d0bba12194b", "--file", f.Name(), "--exclude-selectable-items"},
+			args:             []string{"projects", "download", "--id", "a64297e7-a119-4e10-ac37-5d0bba12194b", "--file", f.Name(), "--exclude-all-selectable-items"},
 			body:             okResponse,
 			wantOutputRegex:  "Project exported to",
 			wantFileContents: fileContents{file: f.Name(), contents: okResponse},

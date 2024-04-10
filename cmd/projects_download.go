@@ -17,13 +17,13 @@ import (
 )
 
 type projectsDownloadFlags struct {
-	id                     string
-	file                   string
-	name                   string
-	excludeSensitiveInfo   bool
-	suppressFileRename     bool
-	excludeSelectableItems bool
-	apiVersion             apiVersionFlag
+	id                        string
+	file                      string
+	name                      string
+	excludeSensitiveInfo      bool
+	suppressFileRename        bool
+	excludeAllSelectableItems bool
+	apiVersion                apiVersionFlag
 }
 
 type projectExport struct {
@@ -87,7 +87,7 @@ func newProjectDownloadCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.id, "id", "", "ID of the project to download.")
 	cmd.Flags().BoolVar(&f.excludeSensitiveInfo, "exclude-sensitive-info", false, "Whether to exclude sensitive information from the exported package. Sensitive information will be excluded from connections, subscriptions, publications, schedule tasks, S3 resources, and user accounts. Other items in the project may still contain sensitive data, especially workspaces. Please be careful before sharing the project export pacakge with others.")
 	cmd.Flags().BoolVar(&f.suppressFileRename, "suppress-file-rename", false, "Specify this flag to not add .fsproject to the output file automatically")
-	cmd.Flags().BoolVar(&f.excludeSelectableItems, "exclude-selectable-items", false, "Excludes all selectable item in this package. Default is false.")
+	cmd.Flags().BoolVar(&f.excludeAllSelectableItems, "exclude-all-selectable-items", false, "Excludes all selectable item in this package. Default is false.")
 	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4.")
 	cmd.Flags().MarkHidden("suppress-file-rename")
 	cmd.Flags().MarkHidden("api-version")
@@ -123,7 +123,7 @@ func projectDownloadRun(f *projectsDownloadFlags) func(cmd *cobra.Command, args 
 
 			// create the export object
 			var export projectExport
-			export.ExcludeAllSelectableItems = f.excludeSelectableItems
+			export.ExcludeAllSelectableItems = f.excludeAllSelectableItems
 			export.ExportPackageName = f.file
 			export.IncludeSensitiveInfo = !f.excludeSensitiveInfo
 

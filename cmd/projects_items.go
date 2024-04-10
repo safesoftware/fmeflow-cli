@@ -99,56 +99,6 @@ func newProjectItemsCmd() *cobra.Command {
 	return cmd
 }
 
-// this function is used to get the id of the project if the name is specified
-func getProjectId(name string) (string, error) {
-	client := &http.Client{}
-
-	url := "/fmeapiv4/projects"
-
-	request, err := buildFmeFlowRequest(url, "GET", nil)
-	if err != nil {
-		return "", err
-	}
-	q := request.URL.Query()
-	q.Add("filterString", name)
-	q.Add("filterProperties", "name")
-	request.URL.RawQuery = q.Encode()
-
-	response, err := client.Do(&request)
-	if err != nil {
-		return "", err
-	} else if response.StatusCode != http.StatusOK {
-		if response.StatusCode == http.StatusNotFound {
-			return "", fmt.Errorf("%w: check that the specified project exists", errors.New(response.Status))
-		} else {
-			return "", errors.New(response.Status)
-		}
-	}
-
-	// marshal into struct
-	var result FMEFlowProjectsV4
-
-	responseData, err := io.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-
-	err = json.Unmarshal(responseData, &result)
-	if err != nil {
-		return "", err
-	}
-
-	// loop through all items and find the one with the correct name
-	for _, project := range result.Items {
-		if project.Name == name {
-			return project.ID, nil
-		}
-	}
-
-	return "", fmt.Errorf("project with name %s not found", name)
-
-}
-
 func projectItemsRun(f *projectItemFlags) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		// --json overrides --output
