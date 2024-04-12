@@ -27,8 +27,8 @@ fmeflow deploymentparameters delete [flags]
 
 ```
   -h, --help          help for delete
-      --name string   Name of the repository to create.
-  -y, --no-prompt     Description of the new repository.
+      --name string   Name of the Deployment Parameter to delete.
+  -y, --no-prompt     Do not prompt for confirmation.
 ```
 
 ### Options inherited from parent commands
