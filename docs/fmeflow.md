@@ -6,6 +6,13 @@ A command line interface for interacting with FME Server.
 
 A command line interface for interacting with FME Server. See available commands below. Get started with the login command.
 
+### Examples
+
+```
+# Get started with the login command
+fmeserver login https://my-fmeserver.internal
+```
+
 ### Options
 
 ```
