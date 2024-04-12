@@ -21,11 +21,18 @@ type DeploymentParameters struct {
 }
 
 type DeploymentParameter struct {
-	Name    string    `json:"name"`
-	Owner   string    `json:"owner"`
-	Type    string    `json:"type"`
-	Updated time.Time `json:"updated"`
-	Value   string    `json:"value"`
+	Name            string    `json:"name"`
+	Owner           string    `json:"owner"`
+	Type            string    `json:"type"`
+	Updated         time.Time `json:"updated"`
+	Value           string    `json:"value"`
+	ResourceMissing bool      `json:"resourceMissing"`
+	ChoiceSettings  struct {
+		ChoiceSet        string   `json:"choiceSet"`
+		Services         []string `json:"services"`
+		ExcludedServices []string `json:"excludedServices"`
+		Family           string   `json:"family"`
+	} `json:"choiceSettings,omitempty"`
 }
 
 type deploymentparametersFlags struct {
