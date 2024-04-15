@@ -44,9 +44,11 @@ func newConnectionCreateCmd() *cobra.Command {
 		Short: "Create a connection",
 		Long:  `Create a connection.`,
 		Example: `
-	Examples:
-	# Create a connection with the name "myConnection" and the category "PostgreSQL" and the type "database" with username "myUser" and password "myPassword"
-	fmeflow connections create --name myConnection --category database  --type PostgreSQL --username myUser --password myPassword
+  # Create a PostgreSQL connection
+  fmeflow connections create --name myPGSQLConnection --category database --type PostgreSQL --parameter HOST=myDBHost --parameter PORT=5432 --parameter DATASET=dbname --parameter USER_NAME=dbuser --parameter SSL_OPTIONS="" --parameter SSLMODE=prefer
+
+  # Create a Google Drive connection (web service must already exist on FME Flow)
+  fmeflow connections create --name googleDriveConn --category oauthV2 --type "Google Drive"
 `,
 
 		Args: NoArgs,
@@ -56,7 +58,7 @@ func newConnectionCreateCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.name, "name", "", "Name of the connection to create.")
 	cmd.Flags().StringVar(&f.category, "category", "", "Category of the connection to create. Typically it is one of: \"basic\", \"database\", \"token\", \"oauthV1\", \"oauthV2\".")
 	cmd.Flags().StringVar(&f.connectionType, "type", "", "Type of connection.")
-	cmd.Flags().StringVar(&f.authenticationMethod, "authenticationMethod", "", "Authentication method of the connection to create.")
+	cmd.Flags().StringVar(&f.authenticationMethod, "authentication-method", "", "Authentication method of the connection to create.")
 	cmd.Flags().StringVar(&f.username, "username", "", "Username of the connection to create.")
 	cmd.Flags().StringVar(&f.password, "password", "", "Password of the connection to create.")
 	cmd.Flags().StringArrayVar(&f.parameter, "parameter", []string{}, "Parameters of the connection to create. Must be of the form name=value. Can be specified multiple times.")

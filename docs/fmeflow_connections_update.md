@@ -4,7 +4,7 @@ Update a connection
 
 ### Synopsis
 
-Update a connection.
+Update a connection. Only things that need to be modified need to be specified.
 
 ```
 fmeflow connections update [flags]
@@ -14,16 +14,15 @@ fmeflow connections update [flags]
 
 ```
 
-	Examples:
-	# Update a connection with the name "myConnection" and the category "PostgreSQL" and the type "database" with username "myUser" and password "myPassword"
-	fmeflow connections update --name myConnection --category database --username myUser --password myPassword
+  # Update a PostgreSQL connection with the name "myPGSQLConnection" and modify the host to "myDBHost"
+  fmeflow connections update --name myPGSQLConnection --parameter HOST=myDBHost
 
 ```
 
 ### Options
 
 ```
-      --authenticationMethod string   Authentication method of the connection to update.
+      --authentication-method string   Authentication method of the connection to update.
   -h, --help                          help for update
       --name string                   Name of the connection to update.
       --parameter stringArray         Parameters of the connection to update. Must be of the form name=value. Can be specified multiple times.

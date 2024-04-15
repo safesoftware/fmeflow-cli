@@ -190,7 +190,7 @@ For a slightly more complicated example, specifying a specific workspace gives m
 }
 ```
 
-The JSON about a single workspace includes information on source and destination datasets, that are stored in a JSON list. In JSONPath, lists are accessed using `[]`, with a specific index being specified as a number such as `[0]`, or all results from that list being denoted as `[*]`. For examples, if we want to get all the source formats for this workspace, we would use the JSonPath query `.datasets.source[*].format`. A full example:
+The JSON about a single workspace includes information on source and destination datasets, that are stored in a JSON list. In JSONPath, lists are accessed using `[]`, with a specific index being specified as a number such as `[0]`, or all results from that list being denoted as `[*]`. For example, if we want to get all the source formats for this workspace, we would use the JSonPath query `.datasets.source[*].format`. A full example:
 
 ```
 > fmeflow workspaces --repository Samples --name "austinApartments.fmw" --output custom-columns="NAME:.name,SOURCE:.datasets.source[*].format,DEST:datasets.destination[*].format"

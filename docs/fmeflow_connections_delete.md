@@ -14,9 +14,8 @@ fmeflow connections delete [flags]
 
 ```
 
-	Examples:
-	# Delete a connection with the name "myConnection"
-	fmeflow connections delete --name myConnection
+  # Delete a connection with the name "myConnection"
+  fmeflow connections delete --name myConnection
 
 ```
 

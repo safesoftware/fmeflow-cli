@@ -42,13 +42,22 @@ func newConnectionsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "connections",
 		Short: "Lists connections on FME Flow",
-		Long:  "Lists connections on FME Flow. Pass in a name to retrieve information on a single project.",
+		Long:  "Lists connections on FME Flow. Pass in a name to retrieve information on a single connection.",
 		Example: `
-  # List all projects
-  fmeflow projects
+  # List all connections
+  fmeflow connections
 
-  # List all projects owned by the user admin
-  fmeflow projects --owner admin`,
+  # Get a single connection with the name "myConnection"
+  fmeflow connections --name myConnection
+  
+  # List all connections of type "Google Drive"
+  fmeflow connections --type "Google Drive"
+  
+  # List all database connections
+  fmeflow connections --category database
+  
+  # List the PostgreSQL connections with custom columns showing the name and host of the database connections
+  fmeflow connections --category "database" --type "PostgreSQL" --output=custom-columns="NAME:.name,HOST:.parameters.HOST" `,
 		Args: NoArgs,
 		RunE: connectionsRun(&f),
 	}

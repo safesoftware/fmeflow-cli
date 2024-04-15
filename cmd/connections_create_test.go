@@ -38,13 +38,13 @@ func TestConnectionsCreate(t *testing.T) {
 		{
 			name:            "create connection",
 			statusCode:      http.StatusCreated,
-			args:            []string{"connections", "create", "--name", "test123aa", "--category", "database", "--type", "PostgreSQL", "--username", "test", "--password", "test", "--parameter", "HOST=a", "--parameter", "PORT=5432", "--parameter", "DATASET=dbname", "--parameter", "USER_NAME=a", "--parameter", "SSL_OPTIONS=a", "--parameter", "SSLMODE=prefer"},
+			args:            []string{"connections", "create", "--name", "test123aa", "--category", "database", "--type", "PostgreSQL", "--parameter", "HOST=a", "--parameter", "PORT=5432", "--parameter", "DATASET=dbname", "--parameter", "USER_NAME=a", "--parameter", "SSL_OPTIONS=a", "--parameter", "SSLMODE=prefer"},
 			wantOutputRegex: "^[\\s]*Connection successfully created.[\\s]*$",
 		},
 		{
 			name:           "create connection json output",
 			statusCode:     http.StatusCreated,
-			args:           []string{"connections", "create", "--name", "test123aa", "--category", "database", "--type", "PostgreSQL", "--username", "test", "--password", "test", "--parameter", "HOST=a", "--parameter", "PORT=5432", "--parameter", "DATASET=dbname", "--parameter", "USER_NAME=a", "--parameter", "SSL_OPTIONS=a", "--parameter", "SSLMODE=prefer", "--json"},
+			args:           []string{"connections", "create", "--name", "test123aa", "--category", "database", "--type", "PostgreSQL", "--parameter", "HOST=a", "--parameter", "PORT=5432", "--parameter", "DATASET=dbname", "--parameter", "USER_NAME=a", "--parameter", "SSL_OPTIONS=a", "--parameter", "SSLMODE=prefer", "--json"},
 			wantOutputJson: "{}",
 		},
 		{

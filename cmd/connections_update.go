@@ -33,11 +33,10 @@ func newConnectionUpdateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update a connection",
-		Long:  `Update a connection.`,
+		Long:  `Update a connection. Only things that need to be modified need to be specified.`,
 		Example: `
-	Examples:
-	# Update a connection with the name "myConnection" and the category "PostgreSQL" and the type "database" with username "myUser" and password "myPassword"
-	fmeflow connections update --name myConnection --category database --username myUser --password myPassword
+  # Update a PostgreSQL connection with the name "myPGSQLConnection" and modify the host to "myDBHost"
+  fmeflow connections update --name myPGSQLConnection --parameter HOST=myDBHost
 `,
 
 		Args: NoArgs,
@@ -45,7 +44,7 @@ func newConnectionUpdateCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&f.name, "name", "", "Name of the connection to update.")
-	cmd.Flags().StringVar(&f.authenticationMethod, "authenticationMethod", "", "Authentication method of the connection to update.")
+	cmd.Flags().StringVar(&f.authenticationMethod, "authentication-method", "", "Authentication method of the connection to update.")
 	cmd.Flags().StringVar(&f.username, "username", "", "Username of the connection to update.")
 	cmd.Flags().StringVar(&f.password, "password", "", "Password of the connection to update.")
 	cmd.Flags().StringArrayVar(&f.parameter, "parameter", []string{}, "Parameters of the connection to update. Must be of the form name=value. Can be specified multiple times.")

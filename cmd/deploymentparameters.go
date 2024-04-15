@@ -50,15 +50,14 @@ func newDeploymentParametersCmd() *cobra.Command {
 		Short: "List Deployment Parameters",
 		Long:  `Lists Deployment Parameters on the given FME Server.`,
 		Example: `
-	Examples:
-	# List all deployment parameters
-	fmeflow deploymentparameters
+  # List all deployment parameters
+  fmeflow deploymentparameters
 	
-	# List a single deployment parameter
-	fmeflow deploymentparameters --name testParameter
+  # List a single deployment parameter
+  fmeflow deploymentparameters --name testParameter
 	
-	# Output all deploymentparameters in json format
-	fmeflow deploymentparameters --json`,
+  # Output all deploymentparameters in json format
+  fmeflow deploymentparameters --json`,
 		Args: NoArgs,
 		RunE: deploymentParametersRun(&f),
 	}

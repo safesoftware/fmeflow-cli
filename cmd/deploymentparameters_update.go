@@ -40,9 +40,9 @@ func newDeploymentParameterUpdateCmd() *cobra.Command {
 		Short: "Update a deployment parameter",
 		Long:  `Update a deployment parameter.`,
 		Example: `
-	Examples:
-	# Update a deployment parameter with the name "myParam" and the value "myValue"
-	fmeflow deploymentparameters update --name myParam --value myValue
+
+  # Update a deployment parameter with the name "myParam" and the value "myValue"
+  fmeflow deploymentparameters update --name myParam --value myValue
 `,
 
 		Args: NoArgs,
