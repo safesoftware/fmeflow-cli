@@ -56,6 +56,7 @@ fmeserver login https://my-fmeserver.internal`,
 	cmds.AddCommand(newWorkspaceCmd())
 	cmds.AddCommand(newProjectsCmd())
 	cmds.AddCommand(newDeploymentParametersCmd())
+	cmds.AddCommand(newConnectionsCmd())
 	cmds.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		cmd.PrintErrln(err)
 		cmd.PrintErrln(cmd.UsageString())

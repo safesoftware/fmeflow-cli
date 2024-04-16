@@ -72,6 +72,7 @@ func createTableFromCustomColumns(jsonItems [][]byte, columnsInput []string) (ta
 			json.Unmarshal(element, &v)
 
 			j := jsonpath.New("Parser")
+			j.AllowMissingKeys(true)
 			if err := j.Parse(columnQuery); err != nil {
 				return nil, err
 			}

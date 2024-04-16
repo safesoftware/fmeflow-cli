@@ -14,18 +14,21 @@ fmeflow deploymentparameters create [flags]
 
 ```
 
-	Examples:
-	# Create a deployment parameter with the name "myParam" and the value "myValue"
-	fmeflow deploymentparameters create --name myParam --value myValue
+  # Create a deployment parameter with the name "myParam" and the value "myValue"
+  fmeflow deploymentparameters create --name myParam --value myValue
 
 ```
 
 ### Options
 
 ```
-  -h, --help           help for create
-      --name string    Name of the deployment parameter to create.
-      --value string   The value to set the deployment parameter to.
+      --database-type string           The type of the database to use for the database deployment parameter. (Optional)
+      --excluded-service stringArray   Service to exclude in the deployment parameter. Can be passed in multiple times if there are multiple Web services to exclude.
+  -h, --help                           help for create
+      --included-service stringArray   Service to include in the deployment parameter. Can be passed in multiple times if there are multiple Web services to include.
+      --name string                    Name of the deployment parameter to create.
+      --type string                    Type of parameter to create. Must be one of text, database, or web. Default is text.
+      --value string                   The value to set the deployment parameter to. (Optional)
 ```
 
 ### Options inherited from parent commands

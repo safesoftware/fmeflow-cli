@@ -6,6 +6,13 @@ A command line interface for interacting with FME Server.
 
 A command line interface for interacting with FME Server. See available commands below. Get started with the login command.
 
+### Examples
+
+```
+# Get started with the login command
+fmeflow login https://my-fmeserver.internal
+```
+
 ### Options
 
 ```
@@ -19,6 +26,7 @@ A command line interface for interacting with FME Server. See available commands
 * [fmeflow backup](fmeflow_backup.md)	 - Backs up the FME Server configuration
 * [fmeflow cancel](fmeflow_cancel.md)	 - Cancel a running job on FME Server
 * [fmeflow completion](fmeflow_completion.md)	 - Generate the autocompletion script for the specified shell
+* [fmeflow connections](fmeflow_connections.md)	 - Lists connections on FME Flow
 * [fmeflow deploymentparameters](fmeflow_deploymentparameters.md)	 - List Deployment Parameters
 * [fmeflow engines](fmeflow_engines.md)	 - Get information about the FME Engines
 * [fmeflow healthcheck](fmeflow_healthcheck.md)	 - Retrieves the health status of FME Server

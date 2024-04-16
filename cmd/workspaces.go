@@ -338,24 +338,23 @@ func newWorkspaceCmd() *cobra.Command {
 		Short: "List workspaces.",
 		Long:  `Lists workspaces that exist on the FME Server. Filter by repository, specify a name to retrieve a specific workspace, or specify a filter string to narrow down by name or title.`,
 		Example: `
-	Examples:
-	# List all workspaces on the FME Server
-	fmeflow workspaces
+  # List all workspaces on the FME Server
+  fmeflow workspaces
 	
-	# List all workspaces in Samples repository
-	fmeflow workspaces --repository Samples
+  # List all workspaces in Samples repository
+  fmeflow workspaces --repository Samples
 	
-	# List all workspaces in the Samples repository and output it in json
-	fmeflow workspaces --repository Samples --json
+  # List all workspaces in the Samples repository and output it in json
+  fmeflow workspaces --repository Samples --json
 	
-	# List all workspaces in the Samples repository with custom columns showing the last publish date and number of times run
-	fmeflow workspaces --repository Samples --output="custom-columns=NAME:.name,PUBLISH DATE:.lastPublishDate,TOTAL RUNS:.totalRuns"
+  # List all workspaces in the Samples repository with custom columns showing the last publish date and number of times run
+  fmeflow workspaces --repository Samples --output="custom-columns=NAME:.name,PUBLISH DATE:.lastPublishDate,TOTAL RUNS:.totalRuns"
 	
-	# Get information on a single workspace 
-	fmeflow workspaces --repository Samples --name austinApartments.fmw
+  # Get information on a single workspace 
+  fmeflow workspaces --repository Samples --name austinApartments.fmw
 	
-	# Get the name, source format, and destination format for this workspace
-	fmeflow workspaces --repository Samples --name austinApartments.fmw --output=custom-columns=NAME:.name,SOURCE:.datasets.source[*].format,DEST:.datasets.destination[*].format`,
+  # Get the name, source format, and destination format for this workspace
+  fmeflow workspaces --repository Samples --name austinApartments.fmw --output=custom-columns=NAME:.name,SOURCE:.datasets.source[*].format,DEST:.datasets.destination[*].format`,
 		Args: NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4

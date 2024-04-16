@@ -66,21 +66,20 @@ func newRepositoryCmd() *cobra.Command {
 		Short: "List repositories",
 		Long:  `Lists repositories on the given FME Server. Pass in a name to get information on a specific repository.`,
 		Example: `
-	Examples:
-	# List all repositories
-	fmeflow repositories
+  # List all repositories
+  fmeflow repositories
 	
-	# List all repositories owned by the admin user
-	fmeflow repositories --owner admin
+  # List all repositories owned by the admin user
+  fmeflow repositories --owner admin
 	
-	# List a single repository with the name "Samples"
-	fmeflow repositories --name Samples
+  # List a single repository with the name "Samples"
+  fmeflow repositories --name Samples
 	
-	# Output just the name of all the repositories
-	fmeflow repositories --output=custom-columns=NAME:.name --no-headers
+  # Output just the name of all the repositories
+  fmeflow repositories --output=custom-columns=NAME:.name --no-headers
 	
-	# Output all repositories in json format
-	fmeflow repositories --json`,
+  # Output all repositories in json format
+  fmeflow repositories --json`,
 		Args: NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4

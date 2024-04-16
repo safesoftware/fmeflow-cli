@@ -14,15 +14,14 @@ fmeflow deploymentparameters [flags]
 
 ```
 
-	Examples:
-	# List all deployment parameters
-	fmeflow deploymentparameters
+  # List all deployment parameters
+  fmeflow deploymentparameters
 	
-	# List a single deployment parameter
-	fmeflow deploymentparameters --name testParameter
+  # List a single deployment parameter
+  fmeflow deploymentparameters --name testParameter
 	
-	# Output all deploymentparameters in json format
-	fmeflow deploymentparameters --json
+  # Output all deploymentparameters in json format
+  fmeflow deploymentparameters --json
 ```
 
 ### Options

@@ -39,9 +39,8 @@ func newDeploymentParameterCreateCmd() *cobra.Command {
 		Short: "Create a deployment parameter",
 		Long:  `Create a deployment parameter.`,
 		Example: `
-	Examples:
-	# Create a deployment parameter with the name "myParam" and the value "myValue"
-	fmeflow deploymentparameters create --name myParam --value myValue
+  # Create a deployment parameter with the name "myParam" and the value "myValue"
+  fmeflow deploymentparameters create --name myParam --value myValue
 `,
 
 		Args: NoArgs,

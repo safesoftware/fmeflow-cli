@@ -11,42 +11,41 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type deploymentParameterDeleteFlags struct {
+type ConnectionDeleteFlags struct {
 	name     string
 	noprompt bool
 }
 
-func newDeploymentParameterDeleteCmd() *cobra.Command {
-	f := deploymentParameterDeleteFlags{}
+func newConnectionDeleteCmd() *cobra.Command {
+	f := ConnectionDeleteFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete",
-		Short: "Delete a deployment parameter",
-		Long:  `Delete a deployment parameter.`,
+		Short: "Delete a connection",
+		Long:  `Delete a connection.`,
 		Example: `
-  # Delete adeployment parameter with the name "myParam"
-  fmeflow deploymentparameters delete --name myParam
-	
-  # Delete a repository with the name "myRepository" and no confirmation
-  fmeflow deploymentparameters delete --name myParam --no-prompt
+  # Delete a connection with the name "myConnection"
+  fmeflow connections delete --name myConnection
 `,
+
 		Args: NoArgs,
-		RunE: deploymentParameterDeleteRun(&f),
+		RunE: connectionDeleteRun(&f),
 	}
 
-	cmd.Flags().BoolVarP(&f.noprompt, "no-prompt", "y", false, "Do not prompt for confirmation.")
-	cmd.Flags().StringVar(&f.name, "name", "", "Name of the Deployment Parameter to delete.")
+	cmd.Flags().StringVar(&f.name, "name", "", "Name of the connection to delete.")
+	cmd.Flags().BoolVarP(&f.noprompt, "no-prompt", "y", false, "Description of the new repository.")
+
 	cmd.MarkFlagRequired("name")
 	return cmd
 }
 
-func deploymentParameterDeleteRun(f *deploymentParameterDeleteFlags) func(cmd *cobra.Command, args []string) error {
+func connectionDeleteRun(f *ConnectionDeleteFlags) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 
 		// set up http
 		client := &http.Client{}
 
 		// check if deployment parameter exists first and error if it does not
-		request, err := buildFmeFlowRequest("/fmeapiv4/deploymentparameters/"+f.name, "GET", nil)
+		request, err := buildFmeFlowRequest("/fmeapiv4/connections/"+f.name, "GET", nil)
 		if err != nil {
 			return err
 		}
@@ -90,7 +89,9 @@ func deploymentParameterDeleteRun(f *deploymentParameterDeleteFlags) func(cmd *c
 			}
 		}
 
-		request, err = buildFmeFlowRequest("/fmeapiv4/deploymentparameters/"+f.name, "DELETE", nil)
+		// get the current values of the connection we are going to update
+		url := "/fmeapiv4/connections/" + f.name
+		request, err = buildFmeFlowRequest(url, "DELETE", nil)
 		if err != nil {
 			return err
 		}
@@ -99,8 +100,6 @@ func deploymentParameterDeleteRun(f *deploymentParameterDeleteFlags) func(cmd *c
 		if err != nil {
 			return err
 		} else if response.StatusCode != http.StatusNoContent {
-			// attempt to parse the body into JSON as there could be a valuable message in there
-			// if fail, just output the status code
 			responseData, err := io.ReadAll(response.Body)
 			if err == nil {
 				var responseMessage Message
@@ -125,10 +124,11 @@ func deploymentParameterDeleteRun(f *deploymentParameterDeleteFlags) func(cmd *c
 		}
 
 		if !jsonOutput {
-			fmt.Fprintln(cmd.OutOrStdout(), "Deployment Parameter successfully deleted.")
+			fmt.Fprintln(cmd.OutOrStdout(), "Connection successfully deleted.")
 		} else {
 			fmt.Fprintln(cmd.OutOrStdout(), "{}")
 		}
+
 		return nil
 	}
 }
