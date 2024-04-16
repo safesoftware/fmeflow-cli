@@ -137,7 +137,7 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 			response, err := client.Do(&request)
 			if err != nil {
 				return err
-			} else if response.StatusCode != 200 && response.StatusCode != 503 {
+			} else if response.StatusCode != http.StatusOK && response.StatusCode != http.StatusServiceUnavailable {
 				return errors.New(response.Status)
 			}
 
@@ -148,7 +148,14 @@ func healthcheckRun(f *healthcheckFlags) func(cmd *cobra.Command, args []string)
 
 			var resultV4 HealthcheckV4
 			if err := json.Unmarshal(responseData, &resultV4); err != nil {
-				return err
+				// if we fail to unmarshal, it is likely that the server is returning a 503, but not from FME Flow
+				// return the raw status code in this case
+				if response.StatusCode != http.StatusOK {
+					return errors.New(response.Status)
+				} else {
+					// if we get here, we failed to unmarshal despite the status code being 200
+					return err
+				}
 			}
 			if f.outputType == "table" {
 				t := createTableWithDefaultColumns(resultV4)

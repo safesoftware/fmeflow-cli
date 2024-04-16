@@ -14,12 +14,11 @@ fmeflow deploymentparameters delete [flags]
 
 ```
 
-	Examples:
-	# Delete adeployment parameter with the name "myParam"
-	fmeflow deploymentparameters delete --name myParam
+  # Delete adeployment parameter with the name "myParam"
+  fmeflow deploymentparameters delete --name myParam
 	
-	# Delete a repository with the name "myRepository" and no confirmation
-	fmeflow deploymentparameters delete --name myParam --no-prompt
+  # Delete a repository with the name "myRepository" and no confirmation
+  fmeflow deploymentparameters delete --name myParam --no-prompt
 
 ```
 
@@ -27,8 +26,8 @@ fmeflow deploymentparameters delete [flags]
 
 ```
   -h, --help          help for delete
-      --name string   Name of the repository to create.
-  -y, --no-prompt     Description of the new repository.
+      --name string   Name of the Deployment Parameter to delete.
+  -y, --no-prompt     Do not prompt for confirmation.
 ```
 
 ### Options inherited from parent commands

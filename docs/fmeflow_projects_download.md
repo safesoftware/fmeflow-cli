@@ -24,10 +24,12 @@ fmeflow projects download [flags]
 ### Options
 
 ```
-      --exclude-sensitive-info   Whether to exclude sensitive information from the exported package. Sensitive information will be excluded from connections, subscriptions, publications, schedule tasks, S3 resources, and user accounts. Other items in the project may still contain sensitive data, especially workspaces. Please be careful before sharing the project export pacakge with others.
-  -f, --file string              Path to file to download the backup to. (default "ProjectPackage.fsproject")
-  -h, --help                     help for download
-      --name string              Name of the project to download.
+      --exclude-all-selectable-items   Excludes all selectable item in this package. Default is false.
+      --exclude-sensitive-info         Whether to exclude sensitive information from the exported package. Sensitive information will be excluded from connections, subscriptions, publications, schedule tasks, S3 resources, and user accounts. Other items in the project may still contain sensitive data, especially workspaces. Please be careful before sharing the project export pacakge with others.
+  -f, --file string                    Path to file to download the backup to. (default "ProjectPackage.fsproject")
+  -h, --help                           help for download
+      --id string                      ID of the project to download.
+      --name string                    Name of the project to download.
 ```
 
 ### Options inherited from parent commands

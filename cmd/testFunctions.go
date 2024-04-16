@@ -29,6 +29,7 @@ type testCase struct {
 	wantErrOutputRegex string              // regex of the expected stderr to be returned
 	wantFormParams     map[string]string   // array to ensure that all required URL form parameters exist
 	wantFormParamsList map[string][]string // for URL forms with multiple values
+	wantURLContains    string              // check the URL contains a certain string
 	wantFileContents   fileContents        // check file contents
 	wantBodyRegEx      string              // check the contents of the body sent
 	fmeflowBuild       int                 // build to pretend we are contacting
@@ -50,6 +51,9 @@ func runTests(tcs []testCase, t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.httpServer == nil {
 				tc.httpServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if tc.wantURLContains != "" {
+						require.Contains(t, r.URL.String(), tc.wantURLContains)
+					}
 					r.ParseForm()
 					urlParams := r.Form
 					for param, value := range tc.wantFormParams {

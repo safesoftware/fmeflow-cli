@@ -25,12 +25,11 @@ func newRepositoryDeleteCmd() *cobra.Command {
 		Short: "Delete a repository.",
 		Long:  `Delete a repository.`,
 		Example: `
-	Examples:
-	# Delete a repository with the name "myRepository"
-	fmeflow repositories delete --name myRepository
+  # Delete a repository with the name "myRepository"
+  fmeflow repositories delete --name myRepository
 	
-	# Delete a repository with the name "myRepository" and no confirmation
-	fmeflow repositories delete --name myRepository --no-prompt
+  # Delete a repository with the name "myRepository" and no confirmation
+  fmeflow repositories delete --name myRepository --no-prompt
 `,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4

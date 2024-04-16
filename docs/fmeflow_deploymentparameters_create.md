@@ -14,9 +14,8 @@ fmeflow deploymentparameters create [flags]
 
 ```
 
-	Examples:
-	# Create a deployment parameter with the name "myParam" and the value "myValue"
-	fmeflow deploymentparameters create --name myParam --value myValue
+  # Create a deployment parameter with the name "myParam" and the value "myValue"
+  fmeflow deploymentparameters create --name myParam --value myValue
 
 ```
 
