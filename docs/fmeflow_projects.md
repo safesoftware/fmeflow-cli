@@ -54,7 +54,7 @@ fmeflow projects [flags]
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 * [fmeflow projects delete](fmeflow_projects_delete.md)	 - Deletes an FME Flow Project
 * [fmeflow projects download](fmeflow_projects_download.md)	 - Downloads an FME Server Project
 * [fmeflow projects items](fmeflow_projects_items.md)	 - Lists the items for the specified project

@@ -23,11 +23,11 @@ fmeflow connections update [flags]
 
 ```
       --authentication-method string   Authentication method of the connection to update.
-  -h, --help                          help for update
-      --name string                   Name of the connection to update.
-      --parameter stringArray         Parameters of the connection to update. Must be of the form name=value. Can be specified multiple times.
-      --password string               Password of the connection to update.
-      --username string               Username of the connection to update.
+  -h, --help                           help for update
+      --name string                    Name of the connection to update.
+      --parameter stringArray          Parameters of the connection to update. Must be of the form name=value. Can be specified multiple times.
+      --password string                Password of the connection to update.
+      --username string                Username of the connection to update.
 ```
 
 ### Options inherited from parent commands

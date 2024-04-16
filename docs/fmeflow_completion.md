@@ -23,7 +23,7 @@ See each sub-command's help for details on how to use the generated script.
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 * [fmeflow completion bash](fmeflow_completion_bash.md)	 - Generate the autocompletion script for bash
 * [fmeflow completion fish](fmeflow_completion_fish.md)	 - Generate the autocompletion script for fish
 * [fmeflow completion powershell](fmeflow_completion_powershell.md)	 - Generate the autocompletion script for powershell

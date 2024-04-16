@@ -28,10 +28,10 @@ var rootCmd = NewRootCommand()
 func NewRootCommand() *cobra.Command {
 	cmds := &cobra.Command{
 		Use:   "fmeflow",
-		Short: "A command line interface for interacting with FME Server.",
-		Long:  `A command line interface for interacting with FME Server. See available commands below. Get started with the login command.`,
+		Short: "A command line interface for interacting with FME Flow.",
+		Long:  `A command line interface for interacting with FME Flow. See available commands below. Get started with the login command.`,
 		Example: `# Get started with the login command
-fmeserver login https://my-fmeserver.internal`,
+fmeflow login https://my-fmeflow.internal`,
 		Version:           appVersion,
 		SilenceErrors:     true,
 		SilenceUsage:      true,

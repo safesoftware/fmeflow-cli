@@ -42,7 +42,7 @@ fmeflow deploymentparameters [flags]
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 * [fmeflow deploymentparameters create](fmeflow_deploymentparameters_create.md)	 - Create a deployment parameter
 * [fmeflow deploymentparameters delete](fmeflow_deploymentparameters_delete.md)	 - Delete a deployment parameter
 * [fmeflow deploymentparameters update](fmeflow_deploymentparameters_update.md)	 - Update a deployment parameter

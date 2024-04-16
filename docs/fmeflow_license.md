@@ -22,7 +22,7 @@ Request a license file, refresh the license, check the status of the license, ge
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 * [fmeflow license machinekey](fmeflow_license_machinekey.md)	 - Retrieves machine key of the machine running FME Server.
 * [fmeflow license refresh](fmeflow_license_refresh.md)	 - Refreshes the installed license file with a current license from Safe Software.
 * [fmeflow license request](fmeflow_license_request.md)	 - Request a license from the FME Server licensing server

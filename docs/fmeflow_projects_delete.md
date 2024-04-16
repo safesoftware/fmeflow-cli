@@ -47,5 +47,5 @@ fmeflow projects delete [flags]
 
 ### SEE ALSO
 
-* [fmeflow projects](fmeflow_projects.md)	 - Lists projects on the FME Server
+* [fmeflow projects](fmeflow_projects.md)	 - List, Upload and Download projects on the FME Server
 

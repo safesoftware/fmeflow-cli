@@ -50,7 +50,7 @@ fmeflow repositories [flags]
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 * [fmeflow repositories create](fmeflow_repositories_create.md)	 - Create a new repository.
 * [fmeflow repositories delete](fmeflow_repositories_delete.md)	 - Delete a repository.
 
