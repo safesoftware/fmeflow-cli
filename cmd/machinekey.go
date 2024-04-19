@@ -17,8 +17,8 @@ type MachineKey struct {
 func newMachineKeyCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "machinekey",
-		Short: "Retrieves machine key of the machine running FME Server.",
-		Long:  `Retrieves machine key of the machine running FME Server.`,
+		Short: "Retrieves machine key of the machine running FME Flow.",
+		Long:  `Retrieves machine key of the machine running FME Flow.`,
 		Args:  NoArgs,
 		RunE:  machineKeyRun(),
 	}

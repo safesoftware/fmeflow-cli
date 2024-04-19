@@ -51,7 +51,7 @@ fmeflow connections [flags]
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 * [fmeflow connections create](fmeflow_connections_create.md)	 - Create a connection
 * [fmeflow connections delete](fmeflow_connections_delete.md)	 - Delete a connection
 * [fmeflow connections update](fmeflow_connections_update.md)	 - Update a connection

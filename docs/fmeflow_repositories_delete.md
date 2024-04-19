@@ -39,5 +39,5 @@ fmeflow repositories delete [flags]
 
 ### SEE ALSO
 
-* [fmeflow repositories](fmeflow_repositories.md)	 - List repositories
+* [fmeflow repositories](fmeflow_repositories.md)	 - List, Create and Delete repositories
 

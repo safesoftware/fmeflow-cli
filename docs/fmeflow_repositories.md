@@ -1,10 +1,10 @@
 ## fmeflow repositories
 
-List repositories
+List, Create and Delete repositories
 
 ### Synopsis
 
-Lists repositories on the given FME Server. Pass in a name to get information on a specific repository.
+Lists repositories on the given FME Server. Pass in a name to get information on a specific repository. Use the subcommands to create or delete repositories.
 
 ```
 fmeflow repositories [flags]
@@ -50,7 +50,7 @@ fmeflow repositories [flags]
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 * [fmeflow repositories create](fmeflow_repositories_create.md)	 - Create a new repository.
 * [fmeflow repositories delete](fmeflow_repositories_delete.md)	 - Delete a repository.
 

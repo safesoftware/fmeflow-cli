@@ -64,5 +64,5 @@ fmeflow run [flags]
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 

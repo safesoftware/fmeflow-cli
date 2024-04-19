@@ -41,5 +41,5 @@ fmeflow deploymentparameters update [flags]
 
 ### SEE ALSO
 
-* [fmeflow deploymentparameters](fmeflow_deploymentparameters.md)	 - List Deployment Parameters
+* [fmeflow deploymentparameters](fmeflow_deploymentparameters.md)	 - List, Create, Update and Delete Deployment Parameters
 
