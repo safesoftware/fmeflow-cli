@@ -50,7 +50,7 @@ type loginFlags struct {
 	expiration   int
 }
 
-var urlErrorMsg = "invalid FME Server URL specified. URL should be of the form https://myfmeflowhostname.com"
+var urlErrorMsg = "invalid FME Flow URL specified. URL should be of the form https://myfmeflowhostname.com"
 
 func newLoginCmd() *cobra.Command {
 	f := loginFlags{}
@@ -82,6 +82,11 @@ func newLoginCmd() *cobra.Command {
 				cmd.Usage()
 				return fmt.Errorf("accepts at most 1 argument, received %d", len(args))
 			}
+
+			// strip an trailing forward slashes from args[0]
+			args[0] = strings.TrimRight(args[0], "/")
+			// strip the /fmeserver from the end of the URL
+			args[0] = strings.TrimSuffix(args[0], "/fmeserver")
 
 			url, err := url.ParseRequestURI(args[0])
 			if err != nil {
@@ -171,7 +176,21 @@ func loginRun(f *loginFlags) func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			} else if response.StatusCode != http.StatusCreated {
-				return errors.New(response.Status)
+				// there was an error logging in. Return the error message
+				responseData, err := io.ReadAll(response.Body)
+				if err != nil {
+					return err
+				}
+				// Unmarshal responseData into a string that is the json text
+				var responseMessage Message
+				if err := json.Unmarshal(responseData, &responseMessage); err != nil {
+					// if we fail to unmarshal the response, the body is not json. Return the response status
+					return errors.New(response.Status)
+				}
+
+				// if there is a message in the response, return that along with the response.Status
+				return errors.New(response.Status + ": " + responseMessage.Message)
+
 			}
 
 			responseData, err := io.ReadAll(response.Body)

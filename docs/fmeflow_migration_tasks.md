@@ -53,5 +53,5 @@ fmeflow migration tasks [flags]
 
 ### SEE ALSO
 
-* [fmeflow migration](fmeflow_migration.md)	 - Returns information on migration tasks using the tasks subcommand.
+* [fmeflow migration](fmeflow_migration.md)	 - Returns information on migrations using the tasks subcommand.
 

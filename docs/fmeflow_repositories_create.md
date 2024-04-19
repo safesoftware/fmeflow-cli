@@ -14,12 +14,11 @@ fmeflow repositories create [flags]
 
 ```
 
-	Examples:
-	# Create a repository with the name "myRepository" and no description
-	fmeflow repositories create --name myRepository
+  # Create a repository with the name "myRepository" and no description
+  fmeflow repositories create --name myRepository
 	
-	# Output just the name of all the repositories
-	fmeflow repositories create --name myRepository --description "This is my new repository"
+  # Output just the name of all the repositories
+  fmeflow repositories create --name myRepository --description "This is my new repository"
 
 ```
 
@@ -40,5 +39,5 @@ fmeflow repositories create [flags]
 
 ### SEE ALSO
 
-* [fmeflow repositories](fmeflow_repositories.md)	 - List repositories
+* [fmeflow repositories](fmeflow_repositories.md)	 - List, Create and Delete repositories
 

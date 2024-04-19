@@ -21,11 +21,18 @@ type DeploymentParameters struct {
 }
 
 type DeploymentParameter struct {
-	Name    string    `json:"name"`
-	Owner   string    `json:"owner"`
-	Type    string    `json:"type"`
-	Updated time.Time `json:"updated"`
-	Value   string    `json:"value"`
+	Name            string    `json:"name"`
+	Owner           string    `json:"owner"`
+	Type            string    `json:"type"`
+	Updated         time.Time `json:"updated"`
+	Value           string    `json:"value"`
+	ResourceMissing bool      `json:"resourceMissing"`
+	ChoiceSettings  struct {
+		ChoiceSet        string   `json:"choiceSet"`
+		Services         []string `json:"services"`
+		ExcludedServices []string `json:"excludedServices"`
+		Family           string   `json:"family"`
+	} `json:"choiceSettings,omitempty"`
 }
 
 type deploymentparametersFlags struct {
@@ -34,24 +41,21 @@ type deploymentparametersFlags struct {
 	noHeaders  bool
 }
 
-var deploymentParametersBuildThreshold = 23170
-
 func newDeploymentParametersCmd() *cobra.Command {
 	f := deploymentparametersFlags{}
 	cmd := &cobra.Command{
 		Use:   "deploymentparameters",
-		Short: "List Deployment Parameters",
-		Long:  `Lists Deployment Parameters on the given FME Server.`,
+		Short: "List, Create, Update and Delete Deployment Parameters",
+		Long:  `List Deployment Parameters. Use the subcommands to create, update, or delete a deployment parameter.`,
 		Example: `
-	Examples:
-	# List all deployment parameters
-	fmeflow deploymentparameters
+  # List all deployment parameters
+  fmeflow deploymentparameters
 	
-	# List a single deployment parameter
-	fmeflow deploymentparameters --name testParameter
+  # List a single deployment parameter
+  fmeflow deploymentparameters --name testParameter
 	
-	# Output all deploymentparameters in json format
-	fmeflow deploymentparameters --json`,
+  # Output all deploymentparameters in json format
+  fmeflow deploymentparameters --json`,
 		Args: NoArgs,
 		RunE: deploymentParametersRun(&f),
 	}

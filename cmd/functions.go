@@ -180,7 +180,7 @@ func checkConfigFile(requireToken bool) error {
 	// check the fme server URL is valid
 	_, err = url.ParseRequestURI(fmeflowUrl)
 	if err != nil {
-		return fmt.Errorf("invalid FME Server url in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
+		return fmt.Errorf("invalid FME Flow url in config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
 	}
 
 	if requireToken {

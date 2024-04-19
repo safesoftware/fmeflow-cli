@@ -1,10 +1,10 @@
 ## fmeflow deploymentparameters
 
-List Deployment Parameters
+List, Create, Update and Delete Deployment Parameters
 
 ### Synopsis
 
-Lists Deployment Parameters on the given FME Server.
+List Deployment Parameters. Use the subcommands to create, update, or delete a deployment parameter.
 
 ```
 fmeflow deploymentparameters [flags]
@@ -14,15 +14,14 @@ fmeflow deploymentparameters [flags]
 
 ```
 
-	Examples:
-	# List all deployment parameters
-	fmeflow deploymentparameters
+  # List all deployment parameters
+  fmeflow deploymentparameters
 	
-	# List a single deployment parameter
-	fmeflow deploymentparameters --name testParameter
+  # List a single deployment parameter
+  fmeflow deploymentparameters --name testParameter
 	
-	# Output all deploymentparameters in json format
-	fmeflow deploymentparameters --json
+  # Output all deploymentparameters in json format
+  fmeflow deploymentparameters --json
 ```
 
 ### Options
@@ -43,7 +42,7 @@ fmeflow deploymentparameters [flags]
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 * [fmeflow deploymentparameters create](fmeflow_deploymentparameters_create.md)	 - Create a deployment parameter
 * [fmeflow deploymentparameters delete](fmeflow_deploymentparameters_delete.md)	 - Delete a deployment parameter
 * [fmeflow deploymentparameters update](fmeflow_deploymentparameters_update.md)	 - Update a deployment parameter

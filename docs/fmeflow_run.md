@@ -5,28 +5,32 @@ Run a workspace on FME Server.
 ### Synopsis
 
 Run a workspace on FME Server.
-		
-	Examples:
-	# Submit a job asynchronously
-	fmeflow run --repository Samples --workspace austinApartments.fmw
-	
-	# Submit a job and wait for it to complete
-	fmeflow run --repository Samples --workspace austinApartments.fmw --wait
-	
-	# Submit a job to a specific queue and set a time to live in the queue
-	fmeflow run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
-	
-	# Submit a job and pass in a few published parameters
-	fmeflow run --repository Samples --workspace austinDownload.fmw --published-parameter-list THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
-	
-	# Submit a job, wait for it to complete, and customize the output
-	fmeflow run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
-	
-	# Upload a local file to use as the source data for the translation
-	fmeflow run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait
 
 ```
 fmeflow run [flags]
+```
+
+### Examples
+
+```
+
+  # Submit a job asynchronously
+  fmeflow run --repository Samples --workspace austinApartments.fmw
+	
+  # Submit a job and wait for it to complete
+  fmeflow run --repository Samples --workspace austinApartments.fmw --wait
+	
+  # Submit a job to a specific queue and set a time to live in the queue
+  fmeflow run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
+	
+  # Submit a job and pass in a few published parameters
+  fmeflow run --repository Samples --workspace austinDownload.fmw --published-parameter-list THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
+	
+  # Submit a job, wait for it to complete, and customize the output
+  fmeflow run --repository Samples --workspace austinApartments.fmw --wait --output="custom-columns=Time Requested:.timeRequested,Time Started:.timeStarted,Time Finished:.timeFinished"
+	
+  # Upload a local file to use as the source data for the translation
+  fmeflow run --repository Samples --workspace austinApartments.fmw --file Landmarks-edited.sqlite --wait
 ```
 
 ### Options
@@ -60,5 +64,5 @@ fmeflow run [flags]
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 

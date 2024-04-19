@@ -14,12 +14,11 @@ fmeflow repositories delete [flags]
 
 ```
 
-	Examples:
-	# Delete a repository with the name "myRepository"
-	fmeflow repositories delete --name myRepository
+  # Delete a repository with the name "myRepository"
+  fmeflow repositories delete --name myRepository
 	
-	# Delete a repository with the name "myRepository" and no confirmation
-	fmeflow repositories delete --name myRepository --no-prompt
+  # Delete a repository with the name "myRepository" and no confirmation
+  fmeflow repositories delete --name myRepository --no-prompt
 
 ```
 
@@ -40,5 +39,5 @@ fmeflow repositories delete [flags]
 
 ### SEE ALSO
 
-* [fmeflow repositories](fmeflow_repositories.md)	 - List repositories
+* [fmeflow repositories](fmeflow_repositories.md)	 - List, Create and Delete repositories
 

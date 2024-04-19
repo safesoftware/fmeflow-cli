@@ -1,10 +1,10 @@
 ## fmeflow license machinekey
 
-Retrieves machine key of the machine running FME Server.
+Retrieves machine key of the machine running FME Flow.
 
 ### Synopsis
 
-Retrieves machine key of the machine running FME Server.
+Retrieves machine key of the machine running FME Flow.
 
 ```
 fmeflow license machinekey [flags]

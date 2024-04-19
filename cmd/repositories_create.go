@@ -32,12 +32,11 @@ func newRepositoryCreateCmd() *cobra.Command {
 		Short: "Create a new repository.",
 		Long:  `Create a new repository.`,
 		Example: `
-	Examples:
-	# Create a repository with the name "myRepository" and no description
-	fmeflow repositories create --name myRepository
+  # Create a repository with the name "myRepository" and no description
+  fmeflow repositories create --name myRepository
 	
-	# Output just the name of all the repositories
-	fmeflow repositories create --name myRepository --description "This is my new repository"
+  # Output just the name of all the repositories
+  fmeflow repositories create --name myRepository --description "This is my new repository"
 `,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4

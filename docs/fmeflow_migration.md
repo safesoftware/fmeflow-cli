@@ -1,10 +1,10 @@
 ## fmeflow migration
 
-Returns information on migration tasks using the tasks subcommand.
+Returns information on migrations using the tasks subcommand.
 
 ### Synopsis
 
-Returns information on migration tasks using the tasks subcommand.
+Returns information on migrations using the tasks subcommand.
 
 ### Options
 
@@ -21,6 +21,6 @@ Returns information on migration tasks using the tasks subcommand.
 
 ### SEE ALSO
 
-* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Server.
+* [fmeflow](fmeflow.md)	 - A command line interface for interacting with FME Flow.
 * [fmeflow migration tasks](fmeflow_migration_tasks.md)	 - Retrieves the records for migration tasks.
 

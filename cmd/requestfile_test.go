@@ -17,7 +17,7 @@ func TestLicenseRequestFile(t *testing.T) {
 		"fmeBuild": "FME Server 2023.0 - Build 23166 - linux-x64",
 		"code": "fc1e6bdd-3ccd-4749-a9aa-7f4ef9039c06",
 		"serialNumber": "AAAA-AAAA-AAAA",
-		"fmeServerUri": "https://bobbie.base.safe.com/fmerest/v3/",
+		"fmeServerUri": "https://somehost/fmerest/v3/",
 		"industry": "Industry",
 		"publicIp": "127.0.0.1",
 		"subscribeToUpdates": false,

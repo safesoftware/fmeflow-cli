@@ -2,10 +2,30 @@ package cmd
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeploymentParametersDelete(t *testing.T) {
+	customHttpServerHandler := func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Method == "GET" {
+			w.WriteHeader(http.StatusOK)
+			_, err := w.Write([]byte(""))
+			require.NoError(t, err)
+
+		}
+		if r.Method == "DELETE" {
+			w.WriteHeader(http.StatusNoContent)
+			_, err := w.Write([]byte(""))
+			require.NoError(t, err)
+
+		}
+
+	}
+
 	paramMissingBody := `{
 		"message": "Unauthorized request by user admin due to lack of proper permissions or the object does not exist."
 	  }`
@@ -33,6 +53,7 @@ func TestDeploymentParametersDelete(t *testing.T) {
 			statusCode:      http.StatusNoContent,
 			args:            []string{"deploymentparameters", "delete", "--name", "myDep", "--no-prompt"},
 			wantOutputRegex: "^Deployment Parameter successfully deleted.[\\s]*$",
+			httpServer:      httptest.NewServer(http.HandlerFunc(customHttpServerHandler)),
 		},
 		{
 			name:        "delete parameter not found",
