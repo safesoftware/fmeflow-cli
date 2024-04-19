@@ -35,7 +35,7 @@ fmeflow login https://my-fmeflow.internal
 * [fmeflow license](fmeflow_license.md)	 - Interact with licensing an FME Server
 * [fmeflow login](fmeflow_login.md)	 - Save credentials for an FME Server
 * [fmeflow migration](fmeflow_migration.md)	 - Returns information on migrations using the tasks subcommand.
-* [fmeflow projects](fmeflow_projects.md)	 - List, Upload and Download projects on the FME Server
+* [fmeflow projects](fmeflow_projects.md)	 - List, Upload and Download projects on FME Flow
 * [fmeflow repositories](fmeflow_repositories.md)	 - List, Create and Delete repositories
 * [fmeflow restore](fmeflow_restore.md)	 - Restores the FME Server configuration from an import package
 * [fmeflow run](fmeflow_run.md)	 - Run a workspace on FME Server.

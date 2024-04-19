@@ -1,10 +1,10 @@
 ## fmeflow projects
 
-List, Upload and Download projects on the FME Server
+List, Upload and Download projects on FME Flow
 
 ### Synopsis
 
-List projects on the FME Server. Pass in a name to retrieve information on a single project. Use the upload and download sub commands to upload and download projects.
+List projects on FME Flow. Pass in a name to retrieve information on a single project. Use the upload and download sub commands to upload and download projects.
 
 ```
 fmeflow projects [flags]

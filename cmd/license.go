@@ -9,7 +9,7 @@ func newLicenseCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "license",
 		Short: "Interact with licensing an FME Server",
-		Long: `Request a license file, refresh the license, check the status of the license, generate a license request file, and get the system code for licensing.
+		Long: `Request a license file, refresh the license, check the status of the license, generate a license request file, and get the machine key for licensing.
 	`,
 		Args: NoArgs,
 	}
