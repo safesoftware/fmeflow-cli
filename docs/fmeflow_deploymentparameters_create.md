@@ -14,8 +14,14 @@ fmeflow deploymentparameters create [flags]
 
 ```
 
-  # Create a deployment parameter with the name "myParam" and the value "myValue"
-  fmeflow deploymentparameters create --name myParam --value myValue
+  # Create a Web deployment parameter including the slack service and specifying a slack connection
+  fmeflow deploymentparameters create --type web --name slack_connection --included-service Slack --value slack_connection_value
+
+  # Create a Database deployment parameter for PostgreSQL specifying a pgsql connection
+  fmeflow deploymentparameters create --type database --name pgsql_param --database-type PostgreSQL --value pgsql_connection_value
+
+  # Create a Text deployment parameter
+  fmeflow deploymentparameters create --name text_connection --value text_connection_value --type text
 
 ```
 
