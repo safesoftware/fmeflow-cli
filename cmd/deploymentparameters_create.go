@@ -40,7 +40,7 @@ func newDeploymentParameterCreateCmd() *cobra.Command {
 		Long:  `Create a deployment parameter.`,
 		Example: `
   # Create a Web deployment parameter including the slack service and specifying a slack connection
-  fmeflow deploymentparameters create --type web --name slack_connection --included-service Slack --value slack_conntion_value
+  fmeflow deploymentparameters create --type web --name slack_connection --included-service Slack --value slack_connection_value
 
   # Create a Database deployment parameter for PostgreSQL specifying a pgsql connection
   fmeflow deploymentparameters create --type database --name pgsql_param --database-type PostgreSQL --value pgsql_connection_value
