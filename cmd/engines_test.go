@@ -148,6 +148,143 @@ func TestEngines(t *testing.T) {
 		]
 	  }`
 
+	// V4 API responses (different JSON structure)
+	responseV4 := `{
+		"offset": -1,
+		"limit": -1,
+		"totalCount": 1,
+		"items": [
+		  {
+			"name": "387f74cd4e1f",
+			"hostname": "387f74cd4e1f", 
+			"assignedQueues": [
+			  "Default"
+			],
+			"registrationProperties": [
+			  "Standard",
+			  "387f74cd4e1f",
+			  "387f74cd4e1f",
+			  "25300",
+			  "linux-x64"
+			],
+			"engineManagerHostname": "fmeflowcore",
+			"type": "standard",
+			"buildNumber": 25300,
+			"platform": "linux-x64",
+			"currentJobID": -1,
+			"state": "idle",
+			"hostProperties": {
+			  "physicalMemory": 0,
+			  "processorCount": 0
+			}
+		  }
+		]
+	  }`
+
+	responseV4FourEngines := `{
+		"offset": -1,
+		"limit": -1,
+		"totalCount": 4,
+		"items": [
+		  {
+			"name": "eaf909ea8a98",
+			"hostname": "eaf909ea8a98",
+			"assignedQueues": [
+			  "Default"
+			],
+			"registrationProperties": [
+			  "Standard",
+			  "eaf909ea8a98",
+			  "eaf909ea8a98",
+			  "25300",
+			  "linux-x64"
+			],
+			"engineManagerHostname": "fmeflowcore",
+			"type": "standard",
+			"buildNumber": 25300,
+			"platform": "linux-x64",
+			"currentJobID": -1,
+			"state": "idle",
+			"hostProperties": {
+			  "physicalMemory": 0,
+			  "processorCount": 0
+			}
+		  },
+		  {
+			"name": "10f259e906e5",
+			"hostname": "10f259e906e5",
+			"assignedQueues": [
+			  "Default"
+			],
+			"registrationProperties": [
+			  "Standard",
+			  "10f259e906e5",
+			  "10f259e906e5",
+			  "25300",
+			  "linux-x64"
+			],
+			"engineManagerHostname": "fmeflowcore",
+			"type": "standard",
+			"buildNumber": 25300,
+			"platform": "linux-x64",
+			"currentJobID": -1,
+			"state": "idle",
+			"hostProperties": {
+			  "physicalMemory": 0,
+			  "processorCount": 0
+			}
+		  },
+		  {
+			"name": "fe1da0f5536d",
+			"hostname": "fe1da0f5536d",
+			"assignedQueues": [
+			  "Default"
+			],
+			"registrationProperties": [
+			  "Standard",
+			  "fe1da0f5536d",
+			  "fe1da0f5536d",
+			  "25300",
+			  "linux-x64"
+			],
+			"engineManagerHostname": "fmeflowcore",
+			"type": "standard",
+			"buildNumber": 25300,
+			"platform": "linux-x64",
+			"currentJobID": -1,
+			"state": "idle",
+			"hostProperties": {
+			  "physicalMemory": 0,
+			  "processorCount": 0
+			}
+		  },
+		  {
+			"name": "005cafdec613",
+			"hostname": "005cafdec613",
+			"assignedQueues": [
+			  "Default"
+			],
+			"registrationProperties": [
+			  "Standard",
+			  "005cafdec613",
+			  "005cafdec613",
+			  "25300",
+			  "linux-x64"
+			],
+			"engineManagerHostname": "fmeflowcore",
+			"type": "standard",
+			"buildNumber": 25300,
+			"platform": "linux-x64",
+			"currentJobID": -1,
+			"state": "idle",
+			"hostProperties": {
+			  "physicalMemory": 0,
+			  "processorCount": 0
+			}
+		  }
+		]
+	  }`
+
 	cases := []testCase{
 		{
 			name:               "unknown flag",
@@ -208,6 +345,56 @@ func TestEngines(t *testing.T) {
 			body:            responseV3FourEngines,
 			args:            []string{"engines", "--output=custom-columns=ENGINEMANAGER:.engineManagerNodeName,TRANSACTIONPORT:.transactionPort,CURRENTJOB:.currentJobID"},
 			wantOutputRegex: "[\\s]*ENGINEMANAGER[\\s]*TRANSACTIONPORT[\\s]*CURRENTJOB[\\s]*fmeflowcore[\\s]*40935[\\s]*-1[\\s]*fmeflowcore[\\s]*36883[\\s]*-1[\\s]*fmeflowcore[\\s]*44089[\\s]*-1[\\s]*fmeflowcore[\\s]*44795[\\s]*-1",
+		},
+
+		// V4 API Tests
+		{
+			name:            "get engines v4",
+			statusCode:      http.StatusOK,
+			body:            responseV4,
+			args:            []string{"engines"},
+			fmeflowBuild:    25300, // Force V4 API usage (>= 25208 threshold)
+			wantOutputRegex: "NAME[\\s]*HOST[\\s]*BUILD[\\s]*PLATFORM[\\s]*TYPE[\\s]*CURRENT JOB ID[\\s]*REGISTRATION PROPERTIES[\\s]*QUEUES[\\s]*[\\s]*387f74cd4e1f[\\s]*387f74cd4e1f[\\s]*25300[\\s]*linux-x64[\\s]*standard[\\s]*-1[\\s]*\\[Standard 387f74cd4e1f 387f74cd4e1f 25300 linux-x64\\][\\s]*\\[Default\\]",
+		},
+		{
+			name:            "get engines v4 no headers",
+			statusCode:      http.StatusOK,
+			body:            responseV4,
+			args:            []string{"engines", "--no-headers"},
+			fmeflowBuild:    25300, // Force V4 API usage (>= 25208 threshold)
+			wantOutputRegex: "[\\s]*387f74cd4e1f[\\s]*387f74cd4e1f[\\s]*25300[\\s]*linux-x64[\\s]*standard[\\s]*-1[\\s]*\\[Standard 387f74cd4e1f 387f74cd4e1f 25300 linux-x64\\][\\s]*\\[Default\\]",
+		},
+		{
+			name:           "get engines v4 json",
+			statusCode:     http.StatusOK,
+			args:           []string{"engines", "--json"},
+			body:           responseV4,
+			fmeflowBuild:   25300, // Force V4 API usage (>= 25208 threshold)
+			wantOutputJson: responseV4,
+		},
+		{
+			name:           "get engines v4 json via output type",
+			statusCode:     http.StatusOK,
+			args:           []string{"engines", "--output=json"},
+			body:           responseV4,
+			fmeflowBuild:   25300, // Force V4 API usage (>= 25208 threshold)
+			wantOutputJson: responseV4,
+		},
+		{
+			name:            "get engines v4 count",
+			statusCode:      http.StatusOK,
+			body:            responseV4FourEngines,
+			args:            []string{"engines", "--count"},
+			fmeflowBuild:    25300, // Force V4 API usage (>= 25208 threshold)
+			wantOutputRegex: "4",
+		},
+		{
+			name:            "get engines v4 custom columns",
+			statusCode:      http.StatusOK,
+			body:            responseV4FourEngines,
+			args:            []string{"engines", "--output=custom-columns=ENGINEMANAGER:.engineManagerHostname,PHYSMEM:.hostProperties.physicalMemory,CURRENTJOB:.currentJobID"},
+			fmeflowBuild:    25300, // Force V4 API usage (>= 25208 threshold)
+			wantOutputRegex: "[\\s]*ENGINEMANAGER[\\s]*PHYSMEM[\\s]*CURRENTJOB[\\s]*fmeflowcore[\\s]*0[\\s]*-1[\\s]*fmeflowcore[\\s]*0[\\s]*-1[\\s]*fmeflowcore[\\s]*0[\\s]*-1[\\s]*fmeflowcore[\\s]*0[\\s]*-1",
 		},
 	}
 

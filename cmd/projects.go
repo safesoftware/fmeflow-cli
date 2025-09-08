@@ -288,7 +288,7 @@ func projectsRun(f *projectsFlags) func(cmd *cobra.Command, args []string) error
 				}
 			}
 
-			// marshal into struct
+			// unmarshal into struct
 			var result FMEFlowProjectsV4
 
 			responseData, err := io.ReadAll(response.Body)
