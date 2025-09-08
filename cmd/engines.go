@@ -70,6 +70,8 @@ type engineFlags struct {
 	apiVersion apiVersionFlag
 }
 
+var enginesV4BuildThreshold = 25208
+
 // enginesCmd represents the engines command
 func newEnginesCmd() *cobra.Command {
 	f := engineFlags{}
@@ -111,7 +113,7 @@ func enginesRun(f *engineFlags) func(cmd *cobra.Command, args []string) error {
 		}
 
 		if f.apiVersion == "" {
-			if viper.GetInt("build") < projectsV4BuildThreshold {
+			if viper.GetInt("build") < enginesV4BuildThreshold {
 				f.apiVersion = apiVersionFlagV3
 			} else {
 				f.apiVersion = apiVersionFlagV4
