@@ -23,8 +23,8 @@ fmeflow engines [flags]
   # Output engines in json form
   fmeflow engines --json
 	
-  # Output just the names of the engines with no column headers
-  fmeflow engines --output=custom-columns=NAME:.instanceName --no-headers
+  # Output just the names of the engines with no column headers (V4)
+  fmeflow engines --output=custom-columns=NAME:.name --no-headers
 ```
 
 ### Options
