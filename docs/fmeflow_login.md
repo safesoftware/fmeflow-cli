@@ -22,7 +22,7 @@ fmeflow login [URL] [flags]
   # Login to an FME Server using a pre-generated token
   fmeflow login https://my-fmeflow.internal --token 5937391ad3a87f19ba14dc6082867373087d031b
 	
-  # Login to an FME Server using a passed in user and password file (The password is contained in a file at the path /path/to/password-file)
+  # Login to an FME Server using a passed in user and password file (The password is contained in a file at the path /path/to/password-file). You will be prompted to enter the user and password if you did not pass it using the flags. However any flags in the group [user password-file] are set they must all be set. 
   fmeflow login https://my-fmeflow.internal --user admin --password-file /path/to/password-file
 ```
 
