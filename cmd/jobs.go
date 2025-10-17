@@ -134,13 +134,19 @@ func newJobsCmd() *cobra.Command {
 		Long:  "Lists running, queued, and/or queued jobs on FME Server. Pass in a job id to get information on a specific job.",
 
 		Example: `
-  # V3
 
   # List all jobs (currently limited to the most recent 1000)
   fmeflow jobs --all
 	
   # List all running jobs
   fmeflow jobs --running
+
+  # Mix and match multiple statuses in V4
+  fmeflow jobs --active
+  fmeflow jobs --running --success
+  fmeflow jobs --queued --failure
+  fmeflow jobs --running --success --cancelled
+  etc.
 	
   # List all jobs from a given repository
   fmeflow jobs --repository Samples
@@ -153,25 +159,6 @@ func newJobsCmd() *cobra.Command {
 	
   # List the workspace, CPU time and peak memory usage for a given repository
   fmeflow jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
-
-  # V4
-  # List all jobs
-  fmeflow jobs
-
-  # List all jobs with status of success or failure
-  fmeflow jobs --status success --status failure
-
-  # List all jobs from a given repository
-  fmeflow jobs --repository Samples
-	
-  # List all jobs that ran a given workspace
-  fmeflow jobs --repository Samples --workspace austinApartments.fmw
-
-  # List all jobs in JSON format
-  fmeflow jobs --json
-
-  # List the workspace, CPU time and peak memory usage for a given repository
-  fmeflow jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemoryUsage"
 	`,
 		Args: NoArgs,
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -182,12 +169,12 @@ func newJobsCmd() *cobra.Command {
 		RunE: jobsRun(&f),
 	}
 	cmd.Flags().BoolVar(&f.jobsRunning, "running", false, "Retrieve running jobs")
-	cmd.Flags().BoolVar(&f.jobsCompleted, "completed", false, "Retrieve completed jobs. For v3 API only")
+	cmd.Flags().BoolVar(&f.jobsCompleted, "completed", false, "Retrieve completed jobs")
 	cmd.Flags().BoolVar(&f.jobsQueued, "queued", false, "Retrieve queued jobs")
 	cmd.Flags().BoolVar(&f.jobsAll, "all", false, "Retrieve all jobs")
-	cmd.Flags().BoolVar(&f.jobsActive, "active", false, "Retrieve active jobs. For v3 API only")
-	cmd.Flags().BoolVar(&f.jobsFailed, "failed", false, "Retrieve failed jobs")
-	cmd.Flags().BoolVar(&f.jobsSucceeded, "succeeded", false, "Retrieve succeeded jobs")
+	cmd.Flags().BoolVar(&f.jobsActive, "active", false, "Retrieve active jobs")
+	cmd.Flags().BoolVar(&f.jobsFailed, "failure", false, "Retrieve failed jobs")
+	cmd.Flags().BoolVar(&f.jobsSucceeded, "success", false, "Retrieve succeeded jobs")
 	cmd.Flags().BoolVar(&f.jobsCancelled, "cancelled", false, "Retrieve cancelled jobs")
 	cmd.Flags().StringVar(&f.jobsRepository, "repository", "", "If specified, only jobs from the specified repository will be returned.")
 	cmd.Flags().StringVar(&f.jobsWorkspace, "workspace", "", "If specified along with repository, only jobs from the specified repository and workspace will be returned.")
@@ -208,8 +195,8 @@ func newJobsCmd() *cobra.Command {
 	cmd.MarkFlagsMutuallyExclusive("id", "queued")
 	cmd.MarkFlagsMutuallyExclusive("id", "all")
 	cmd.MarkFlagsMutuallyExclusive("id", "active")
-	cmd.MarkFlagsMutuallyExclusive("id", "failed")
-	cmd.MarkFlagsMutuallyExclusive("id", "succeeded")
+	cmd.MarkFlagsMutuallyExclusive("id", "failure")
+	cmd.MarkFlagsMutuallyExclusive("id", "success")
 	cmd.MarkFlagsMutuallyExclusive("id", "cancelled")
 	cmd.MarkFlagsMutuallyExclusive("id", "repository")
 	cmd.MarkFlagsMutuallyExclusive("id", "workspace")
@@ -220,8 +207,19 @@ func newJobsCmd() *cobra.Command {
 	cmd.MarkFlagsMutuallyExclusive("id", "queue")
 	cmd.MarkFlagsMutuallyExclusive("id", "sort")
 	cmd.MarkFlagsMutuallyExclusive("id", "user-name")
-	cmd.MarkFlagsMutuallyExclusive("active", "engine-name")
 	cmd.MarkFlagsMutuallyExclusive("queued", "engine-name")
+	cmd.MarkFlagsMutuallyExclusive("active", "running")
+	cmd.MarkFlagsMutuallyExclusive("active", "queued")
+	cmd.MarkFlagsMutuallyExclusive("completed", "success")
+	cmd.MarkFlagsMutuallyExclusive("completed", "failure")
+	cmd.MarkFlagsMutuallyExclusive("completed", "cancelled")
+	cmd.MarkFlagsMutuallyExclusive("all", "active")
+	cmd.MarkFlagsMutuallyExclusive("all", "completed")
+	cmd.MarkFlagsMutuallyExclusive("all", "running")
+	cmd.MarkFlagsMutuallyExclusive("all", "queued")
+	cmd.MarkFlagsMutuallyExclusive("all", "failure")
+	cmd.MarkFlagsMutuallyExclusive("all", "success")
+	cmd.MarkFlagsMutuallyExclusive("all", "cancelled")
 	return cmd
 
 }
@@ -244,8 +242,27 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 		if f.apiVersion == apiVersionFlagV4 {
 			var allJobs JobsV4
 			if f.jobId == -1 {
-				if !f.jobsQueued && !f.jobsRunning && !f.jobsFailed && !f.jobsSucceeded && !f.jobsCancelled && !f.jobsAll {
+				if !f.jobsAll && !f.jobsQueued && !f.jobsRunning && !f.jobsFailed && !f.jobsSucceeded && !f.jobsCancelled && !f.jobsActive && !f.jobsCompleted {
 					f.jobsAll = true
+				}
+
+				if f.jobsAll {
+					if f.engineName != "" {
+						activeStatuses = []string{"running"}
+					}
+					f.jobStatus = append(f.jobStatus, activeStatuses...)
+					f.jobStatus = append(f.jobStatus, completedStatuses...)
+				}
+
+				if f.jobsActive {
+					if f.engineName != "" {
+						activeStatuses = []string{"running"}
+					}
+					f.jobStatus = append(f.jobStatus, activeStatuses...)
+				}
+
+				if f.jobsCompleted {
+					f.jobStatus = append(f.jobStatus, completedStatuses...)
 				}
 
 				if f.jobsQueued {
@@ -268,13 +285,13 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 					f.jobStatus = append(f.jobStatus, "cancelled")
 				}
 
-				err := getJobsV4("/fmeapiv4/jobs", &allJobs, f)
+				err := getJobsV4("/fmeapiv4/jobs", &allJobs, f, false)
 				if err != nil {
 					return err
 				}
 			} else {
 				// get specific job
-				err := getJobsV4("/fmeapiv4/jobs/"+strconv.Itoa(f.jobId), &allJobs, f)
+				err := getJobsV4("/fmeapiv4/jobs/"+strconv.Itoa(f.jobId), &allJobs, f, false)
 				if err != nil {
 					return err
 				}
@@ -511,7 +528,7 @@ func getJobsV3(endpoint string, allJobs *JobsV3, f *jobsFlags) error {
 
 }
 
-func getJobsV4(endpoint string, allJobs *JobsV4, f *jobsFlags) error {
+func getJobsV4(endpoint string, allJobs *JobsV4, f *jobsFlags, grouped bool) error {
 	client := &http.Client{}
 	request, err := buildFmeFlowRequest(endpoint, "GET", nil)
 	if err != nil {
@@ -520,27 +537,42 @@ func getJobsV4(endpoint string, allJobs *JobsV4, f *jobsFlags) error {
 
 	q := request.URL.Query()
 
-	if len(f.jobStatus) > 0 {
-		for _, status := range f.jobStatus {
-			q.Add("status", status)
-		}
-	} else if f.jobId == -1 {
-		if f.engineName != "" {
-			activeStatuses = []string{"running"}
+	if f.jobId == -1 {
+		if !grouped {
+			var activeStatusesInQuery []string
+			var completedStatusesInQuery []string
+
+			for _, status := range f.jobStatus {
+				if status == "queued" || status == "running" {
+					activeStatusesInQuery = append(activeStatusesInQuery, status)
+				} else if status == "success" || status == "failure" || status == "cancelled" {
+					completedStatusesInQuery = append(completedStatusesInQuery, status)
+				}
+			}
+
+			f.jobStatus = activeStatusesInQuery
+			if len(activeStatusesInQuery) > 0 {
+				err := getJobsV4(endpoint, allJobs, f, true)
+				if err != nil {
+					return err
+				}
+			}
+
+			f.jobStatus = completedStatusesInQuery
+			if len(completedStatusesInQuery) > 0 {
+				err = getJobsV4(endpoint, allJobs, f, true)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+
+		} else {
+			for _, status := range f.jobStatus {
+				q.Add("status", status)
+			}
 		}
 
-		f.jobStatus = activeStatuses
-		err := getJobsV4(endpoint, allJobs, f)
-		if err != nil {
-			return err
-		}
-
-		f.jobStatus = completedStatuses
-		err = getJobsV4(endpoint, allJobs, f)
-		if err != nil {
-			return err
-		}
-		return nil
 	}
 
 	if f.jobsRepository != "" {

@@ -37,17 +37,18 @@ fmeflow jobs [flags]
 ### Options
 
 ```
-      --active               V3 Retrieve active jobs
+      --active               Retrieve active jobs, in V4 it is equivalent to [queued; running]
       --all                  Retrieve all jobs
-      --completed            V3 Retrieve completed jobs
+      --cancelled            V4 Retrieve all cancelled jobs
+      --completed            Retrieve completed jobs, in V4 it is equivalent to [success; failure; cancelled]
       --failure              V4 Retrieve failed jobs 
   -h, --help                 help for jobs
       --id int               Specify the job id to display (default -1)
       --no-headers           Don't print column headers
   -o, --output string        Specify the output type. Should be one of table, json, or custom-columns (default "table")
-      --queued               Retrieve queued jobs
+      --queued               V4 Retrieve queued jobs
       --repository string    If specified, only jobs from the specified repository will be returned.
-      --running              Retrieve running jobs
+      --running              V4 Retrieve running jobs
       --source-id string     If specified along with source type, only jobs from the specified type with the specified id will be returned. For Automations, the source id is the automation id. For WorkspaceSubscriber, the source id is the id of the subscription. For Scheduler, the source id is the category and name of the schedule separated by '/'. For example, 'Category/Name'.
       --source-type string   If specified, only jobs run by this source type will be returned.
       --success              V4 Retrieve successful jobs
