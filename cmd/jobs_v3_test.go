@@ -551,14 +551,14 @@ func TestJobs(t *testing.T) {
 			name:        "queued and active can't both be specified",
 			statusCode:  http.StatusOK,
 			args:        []string{"jobs", "--queued", "--active"},
-			wantErrText: "if any flags in the group [queued active] are set none of the others can be; [active queued] were all set",
+			wantErrText: "if any flags in the group [active queued] are set none of the others can be; [active queued] were all set",
 			body:        responseV3Completed,
 		},
 		{
 			name:        "running and active can't both be specified",
 			statusCode:  http.StatusOK,
 			args:        []string{"jobs", "--running", "--active"},
-			wantErrText: "if any flags in the group [running active] are set none of the others can be; [active running] were all set",
+			wantErrText: "if any flags in the group [active running] are set none of the others can be; [active running] were all set",
 			body:        responseV3Completed,
 		},
 		{
