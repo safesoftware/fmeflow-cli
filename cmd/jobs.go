@@ -285,13 +285,35 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 					f.jobStatus = append(f.jobStatus, "cancelled")
 				}
 
-				err := getJobsV4("/fmeapiv4/jobs", &allJobs, f, false)
-				if err != nil {
-					return err
+				var activeStatusesInQuery []string
+				var completedStatusesInQuery []string
+
+				for _, status := range f.jobStatus {
+					if status == "queued" || status == "running" {
+						activeStatusesInQuery = append(activeStatusesInQuery, status)
+					} else if status == "success" || status == "failure" || status == "cancelled" {
+						completedStatusesInQuery = append(completedStatusesInQuery, status)
+					}
 				}
+				f.jobStatus = activeStatusesInQuery
+				if len(activeStatusesInQuery) > 0 {
+					err := getJobsV4("/fmeapiv4/jobs", &allJobs, f)
+					if err != nil {
+						return err
+					}
+				}
+
+				f.jobStatus = completedStatusesInQuery
+				if len(completedStatusesInQuery) > 0 {
+					err := getJobsV4("/fmeapiv4/jobs", &allJobs, f)
+					if err != nil {
+						return err
+					}
+				}
+
 			} else {
 				// get specific job
-				err := getJobsV4("/fmeapiv4/jobs/"+strconv.Itoa(f.jobId), &allJobs, f, false)
+				err := getJobsV4("/fmeapiv4/jobs/"+strconv.Itoa(f.jobId), &allJobs, f)
 				if err != nil {
 					return err
 				}
@@ -528,7 +550,7 @@ func getJobsV3(endpoint string, allJobs *JobsV3, f *jobsFlags) error {
 
 }
 
-func getJobsV4(endpoint string, allJobs *JobsV4, f *jobsFlags, grouped bool) error {
+func getJobsV4(endpoint string, allJobs *JobsV4, f *jobsFlags) error {
 	client := &http.Client{}
 	request, err := buildFmeFlowRequest(endpoint, "GET", nil)
 	if err != nil {
@@ -537,42 +559,10 @@ func getJobsV4(endpoint string, allJobs *JobsV4, f *jobsFlags, grouped bool) err
 
 	q := request.URL.Query()
 
-	if f.jobId == -1 {
-		if !grouped {
-			var activeStatusesInQuery []string
-			var completedStatusesInQuery []string
-
-			for _, status := range f.jobStatus {
-				if status == "queued" || status == "running" {
-					activeStatusesInQuery = append(activeStatusesInQuery, status)
-				} else if status == "success" || status == "failure" || status == "cancelled" {
-					completedStatusesInQuery = append(completedStatusesInQuery, status)
-				}
-			}
-
-			f.jobStatus = activeStatusesInQuery
-			if len(activeStatusesInQuery) > 0 {
-				err := getJobsV4(endpoint, allJobs, f, true)
-				if err != nil {
-					return err
-				}
-			}
-
-			f.jobStatus = completedStatusesInQuery
-			if len(completedStatusesInQuery) > 0 {
-				err = getJobsV4(endpoint, allJobs, f, true)
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-
-		} else {
-			for _, status := range f.jobStatus {
-				q.Add("status", status)
-			}
+	if f.jobStatus != nil {
+		for _, status := range f.jobStatus {
+			q.Add("status", status)
 		}
-
 	}
 
 	if f.jobsRepository != "" {
