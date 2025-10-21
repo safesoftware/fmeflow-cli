@@ -158,7 +158,7 @@ func newJobsCmd() *cobra.Command {
   fmeflow jobs --json
 	
   # List the workspace, CPU time and peak memory usage for a given repository
-  fmeflow jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime,Peak Memory:.peakMemUsage"
+  fmeflow jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime"
 	`,
 		Args: NoArgs,
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -173,9 +173,9 @@ func newJobsCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&f.jobsQueued, "queued", false, "Retrieve queued jobs")
 	cmd.Flags().BoolVar(&f.jobsAll, "all", false, "Retrieve all jobs")
 	cmd.Flags().BoolVar(&f.jobsActive, "active", false, "Retrieve active jobs")
-	cmd.Flags().BoolVar(&f.jobsFailed, "failure", false, "Retrieve failed jobs")
-	cmd.Flags().BoolVar(&f.jobsSucceeded, "success", false, "Retrieve succeeded jobs")
-	cmd.Flags().BoolVar(&f.jobsCancelled, "cancelled", false, "Retrieve cancelled jobs")
+	cmd.Flags().BoolVar(&f.jobsFailed, "failure", false, "V4 only - Retrieve failed jobs")
+	cmd.Flags().BoolVar(&f.jobsSucceeded, "success", false, "V4 only - Retrieve succeeded jobs")
+	cmd.Flags().BoolVar(&f.jobsCancelled, "cancelled", false, "V4 only - Retrieve cancelled jobs")
 	cmd.Flags().StringVar(&f.jobsRepository, "repository", "", "If specified, only jobs from the specified repository will be returned.")
 	cmd.Flags().StringVar(&f.jobsWorkspace, "workspace", "", "If specified along with repository, only jobs from the specified repository and workspace will be returned.")
 	cmd.Flags().StringVar(&f.jobsUserName, "user-name", "", "If specified, only jobs run by the specified user will be returned.")
@@ -184,9 +184,9 @@ func newJobsCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().IntVar(&f.jobId, "id", -1, "Specify the job id to display")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
-	cmd.Flags().StringVar(&f.engineName, "engine-name", "", "If specified, only jobs run by the specified engine will be returned. Queued jobs cannot be filtered by engine. For v4 API only")
-	cmd.Flags().StringVar(&f.queue, "queue", "", "If specified, only jobs routed through the specified queue will be returned. For v4 API only")
-	cmd.Flags().StringVar(&f.sort, "sort", "", "Sort jobs by one of: workspace, timeFinished, timeStarted, status. Append _asc or _desc to specify ascending or descending order. For example: workspace_asc. For v4 API only")
+	cmd.Flags().StringVar(&f.engineName, "engine-name", "", "V4 only - If specified, only jobs run by the specified engine will be returned. Queued jobs cannot be filtered by engine. For v4 API only")
+	cmd.Flags().StringVar(&f.queue, "queue", "", "V4 only - If specified, only jobs routed through the specified queue will be returned. For v4 API only")
+	cmd.Flags().StringVar(&f.sort, "sort", "", "V4 only - Sort jobs by one of: workspace, timeFinished, timeStarted, status. Append _asc or _desc to specify ascending or descending order. For example: workspace_asc. For v4 API only")
 	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
 	cmd.MarkFlagsMutuallyExclusive("queued", "active")
 	cmd.MarkFlagsMutuallyExclusive("running", "active")
@@ -236,6 +236,12 @@ func jobsRun(f *jobsFlags) func(cmd *cobra.Command, args []string) error {
 				f.apiVersion = apiVersionFlagV3
 			} else {
 				f.apiVersion = apiVersionFlagV4
+			}
+		}
+
+		if f.apiVersion == apiVersionFlagV3 {
+			if f.jobsSucceeded || f.jobsFailed || f.jobsCancelled || f.queue != "" || f.sort != "" || f.engineName != "" {
+				return errors.New("flags [--success, --failure, --cancelled, --queue, --sort, --engine-name] are only supported with v4 API")
 			}
 		}
 
