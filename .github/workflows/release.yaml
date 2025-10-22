@@ -94,8 +94,8 @@ jobs:
     - name: Whitelist GitHub Runner IP
       run: |
           $agentIP = (Invoke-WebRequest -Uri https://api.ipify.org/).Content
-          az keyvault network-rule add -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.KEY_VAULT_NAME }}" --ip-address $agentIP
-          az keyvault network-rule wait -n "${{ secrets.KEY_VAULT_NAME }}" --updated
+          az keyvault network-rule add -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.KEY_VAULT_NAME }}" --ip-address $agentIP --output none
+          az keyvault network-rule wait -n "${{ secrets.KEY_VAULT_NAME }}" --updated --output none
 
     - name: Install AzureSignTool
       run: |
@@ -116,7 +116,7 @@ jobs:
     - name: Remove IP from Key Vault firewall
       run: |
           $agentIP = (Invoke-WebRequest -Uri https://api.ipify.org/).Content
-          az keyvault network-rule remove -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.KEY_VAULT_NAME }}" --ip-address $agentIP
+          az keyvault network-rule remove -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.KEY_VAULT_NAME }}" --ip-address $agentIP --output none
     
     - name: Reupload artifact
       uses: actions/upload-artifact@v4
