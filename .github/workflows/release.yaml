@@ -103,7 +103,15 @@ jobs:
 
     - name: Sign
       run: |
-        azuresigntool sign -coe --azure-key-vault-url https://{{ secrets.KEY_VAULT_NAME }}.vault.azure.net/ --azure-key-vault-managed-identity --azure-key-vault-tenant-id ${{ secrets.AZURE_TENANT_ID }} --azure-key-vault-certificate '${{ secrets.AZURE_CERTIFICATE_NAME }}' --file-digest SHA256 --timestamp-rfc3161 http://timestamp.digicert.com --timestamp-digest SHA256 fmeflow.exe
+        azuresigntool sign -coe `
+          --azure-key-vault-url https://${{ secrets.KEY_VAULT_NAME }}.vault.azure.net/ `
+          --azure-key-vault-managed-identity `
+          --azure-key-vault-tenant-id ${{ secrets.AZURE_TENANT_ID }} `
+          --azure-key-vault-certificate '${{ secrets.AZURE_CERTIFICATE_NAME }}' `
+          --file-digest SHA256 `
+          --timestamp-rfc3161 http://timestamp.digicert.com `
+          --timestamp-digest SHA256 `
+          fmeflow.exe
 
     - name: Remove IP from Key Vault firewall
       run: |
