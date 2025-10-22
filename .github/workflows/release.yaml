@@ -83,9 +83,9 @@ jobs:
       with:
         name: fmeflow-windows-amd64
     
-    - name: Install Azure CLI
-      run: |
-        winget install --exact --id Microsoft.AzureCLI --accept-source-agreements --accept-package-agreements
+    #- name: Install Azure CLI
+    #  run: |
+    #    $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; Remove-Item .\AzureCLI.msi
     
     - uses: azure/login@v2
       with:
