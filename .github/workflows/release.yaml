@@ -85,7 +85,7 @@ jobs:
     
     - name: Install Azure CLI
       run: |
-        winget install --exact --id Microsoft.AzureCLI
+        winget install --exact --id Microsoft.AzureCLI --accept-source-agreements --accept-package-agreements
     
     - uses: azure/login@v2
       with:
