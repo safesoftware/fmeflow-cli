@@ -95,10 +95,7 @@ jobs:
       run: |
           set -eu
           $agentIP = (Invoke-WebRequest -Uri https://api.ipify.org/).Content
-          az keyvault network-rule add \
-            -g "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-            -n "${{ secrets.KEY_VAULT_NAME }}" \
-            --ip-address $agentIP
+          az keyvault network-rule add -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.KEY_VAULT_NAME }}" --ip-address $agentIP
           az keyvault network-rule wait -n "${{ secrets.KEY_VAULT_NAME }}" --updated
 
     - name: Install AzureSignTool
@@ -121,10 +118,7 @@ jobs:
       run: |
           set -eu
           $agentIP = (Invoke-WebRequest -Uri https://api.ipify.org/).Content
-          az keyvault network-rule remove \
-            -g "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-            -n "${{ secrets.KEY_VAULT_NAME }}" \
-            --ip-address $agentIP
+          az keyvault network-rule remove -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.KEY_VAULT_NAME }}" --ip-address $agentIP
     
     - name: Reupload artifact
       uses: actions/upload-artifact@v4
