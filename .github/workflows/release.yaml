@@ -93,7 +93,6 @@ jobs:
 
     - name: Whitelist GitHub Runner IP
       run: |
-          set -eu
           $agentIP = (Invoke-WebRequest -Uri https://api.ipify.org/).Content
           az keyvault network-rule add -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.KEY_VAULT_NAME }}" --ip-address $agentIP
           az keyvault network-rule wait -n "${{ secrets.KEY_VAULT_NAME }}" --updated
@@ -116,7 +115,6 @@ jobs:
 
     - name: Remove IP from Key Vault firewall
       run: |
-          set -eu
           $agentIP = (Invoke-WebRequest -Uri https://api.ipify.org/).Content
           az keyvault network-rule remove -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.KEY_VAULT_NAME }}" --ip-address $agentIP
     
