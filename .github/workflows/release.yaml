@@ -83,14 +83,16 @@ jobs:
       with:
         name: fmeflow-windows-amd64
     
+    - name: Install Azure CLI
+      run: |
+        winget install --exact --id Microsoft.AzureCLI
+    
     - uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Whitelist GitHub Runner IP
-      uses: azure/cli@v2
-      with:
-        inlineScript: |
+      run: |
           set -eu
           $agentIP = (Invoke-WebRequest -Uri https://api.ipify.org/).Content
           az keyvault network-rule add \
@@ -98,6 +100,7 @@ jobs:
             -n "${{ secrets.KEY_VAULT_NAME }}" \
             --ip-address $agentIP
           az keyvault network-rule wait -n "${{ secrets.KEY_VAULT_NAME }}" --updated
+
     - name: Install AzureSignTool
       run: |
         dotnet tool install --global AzureSignTool --version 6.0.1
@@ -115,9 +118,7 @@ jobs:
           fmeflow.exe
 
     - name: Remove IP from Key Vault firewall
-      uses: azure/CLI@v1
-      with:
-        inlineScript: |
+      run: |
           set -eu
           $agentIP = (Invoke-WebRequest -Uri https://api.ipify.org/).Content
           az keyvault network-rule remove \
