@@ -40,7 +40,7 @@ jobs:
         CGO_ENABLED=0 go build -o fmeflow${{ matrix.exe-ext }} -ldflags="-X \"github.com/safesoftware/fmeflow-cli/cmd.appVersion=${{ env.APP_VERSION }}\""
 
     - name: Upload artifact for later steps
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: fmeflow-${{ matrix.os }}-${{ matrix.arch }}
         path: fmeflow${{ matrix.exe-ext }}
@@ -78,31 +78,52 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: Download
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: fmeflow-windows-amd64
     
-    - name: Sign
-      env:
-        CERTPASS: ${{secrets.PROD_WIN_CERTIFICATE_PWD}}
-        SIGNCERT: ${{secrets.PROD_WIN_CERTIFICATE}}
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Whitelist GitHub Runner IP
       run: |
-        # Create buffer from the BASE64 string of the PFX stored in the secret
-        $buffer = [System.Convert]::FromBase64String($env:SIGNCERT)
-        # Create new certificate object from the buffer and the certificate pass
-        $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::New($buffer, $env:CERTPASS)
-        Set-AuthenticodeSignature -HashAlgorithm SHA256 -Certificate $certificate -TimestampServer http://timestamp.digicert.com -FilePath fmeflow.exe
+          $agentIP = (Invoke-WebRequest -Uri https://api.ipify.org/).Content
+          az keyvault network-rule add -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.KEY_VAULT_NAME }}" --ip-address $agentIP --output none
+          az keyvault network-rule wait -n "${{ secrets.KEY_VAULT_NAME }}" --updated --output none
+
+    - name: Install AzureSignTool
+      run: |
+        dotnet tool install --global AzureSignTool --version 6.0.1
+
+    - name: Sign
+      run: |
+        azuresigntool sign -coe `
+          --azure-key-vault-url https://${{ secrets.KEY_VAULT_NAME }}.vault.azure.net/ `
+          --azure-key-vault-managed-identity `
+          --azure-key-vault-tenant-id ${{ secrets.AZURE_TENANT_ID }} `
+          --azure-key-vault-certificate '${{ secrets.AZURE_CERTIFICATE_NAME }}' `
+          --file-digest SHA256 `
+          --timestamp-rfc3161 http://timestamp.digicert.com `
+          --timestamp-digest SHA256 `
+          fmeflow.exe
+
+    - name: Remove IP from Key Vault firewall
+      run: |
+          $agentIP = (Invoke-WebRequest -Uri https://api.ipify.org/).Content
+          az keyvault network-rule remove -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.KEY_VAULT_NAME }}" --ip-address $agentIP --output none
     
     - name: Reupload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: fmeflow-windows-amd64
         path: fmeflow.exe
+        overwrite: true
 
   sign-macosx:
     name: Sign Mac Binaries
     needs: build-matrix
-    runs-on: macos-11
+    runs-on: macos-14
     strategy:
       matrix:
         # sign both darwin/amd64, darwin/arm64
@@ -110,7 +131,7 @@ jobs:
         arch: [amd64, arm64]
     steps:
     - name: Download
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: fmeflow-${{ matrix.os }}-${{ matrix.arch }}
 
@@ -169,10 +190,11 @@ jobs:
         xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
 
     - name: Reupload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: fmeflow-${{ matrix.os }}-${{ matrix.arch }}
         path: fmeflow
+        overwrite: true
 
   compress-files:
     name: Compress binaries and release
@@ -200,7 +222,7 @@ jobs:
             type: tar
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download
       uses: actions/download-artifact@v3
       with:
@@ -227,7 +249,7 @@ jobs:
         cat fmeflow-${{ matrix.os }}-${{ matrix.arch }}.${{ matrix.zip-ext }}.md5
 
     # Add compressed files and md5 hashes to the release
-    - uses: AButler/upload-release-assets@v2.0
+    - uses: AButler/upload-release-assets@v3.0
       with:
         files: '*.md5;*.zip;*.tar.gz'
         repo-token: ${{ secrets.GITHUB_TOKEN }}
