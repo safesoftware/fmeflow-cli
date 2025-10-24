@@ -26,6 +26,27 @@ func TestProjectUpload(t *testing.T) {
 		FailureTopic: "MIGRATION_ASYNC_JOB_FAILURE",
 	}
 
+	TaskGetStruct := ProjectTaskV4{
+		ID:                   1,
+		Type:                 "projectImport",
+		Username:             "admin",
+		StartDate:            time.Date(2025, 10, 23, 21, 16, 44, 720000000, time.UTC),
+		FinishedDate:         time.Date(2025, 10, 23, 21, 16, 44, 867000000, time.UTC),
+		Status:               "generatingPreview",
+		ProjectName:          nil,
+		SuccessTopic:         "",
+		FailureTopic:         "",
+		ResourceName:         "",
+		PackagePath:          "",
+		PackageName:          "ProjectPackage.fsproject",
+		ImportMode:           "overwrite",
+		ProjectsImportMode:   "overwrite",
+		PauseNotifications:   false,
+		Result:               "Successful preview import",
+		ExcludeSensitiveInfo: false,
+		DisableProjectItems:  false,
+	}
+
 	ProjectGetStruct := ProjectUploadV4{
 		JobID:     1,
 		Status:    "importing",
@@ -97,7 +118,7 @@ func TestProjectUpload(t *testing.T) {
 
 		if strings.Contains(r.URL.Path, "upload") {
 			// set a location header
-			w.Header().Set("Location", "http://localhost:8080/fmeapiv4/migrations/imports/1")
+			w.Header().Set("Location", "http://localhost:8080/fmeapiv4/projects/imports/1")
 			w.WriteHeader(http.StatusCreated)
 
 			// check if there is a URL argument
@@ -105,25 +126,43 @@ func TestProjectUpload(t *testing.T) {
 			urlParams := r.Form
 			if urlParams.Get("skipPreview") != "" {
 				// set status to generating preview
-				ProjectGetStruct.Status = "generating_preview"
+				TaskGetStruct.Status = "generatingPreview"
 			} else {
-				// set status to ready
-				ProjectGetStruct.Status = "ready"
+				// set status to success
+				ProjectGetStruct.Status = "success"
 			}
 
 		} else if strings.Contains(r.URL.Path, "run") && r.Method == "POST" {
 			w.WriteHeader(http.StatusAccepted)
-			require.Contains(t, r.URL.Path, "migrations/imports/1/run")
+			require.Contains(t, r.URL.Path, "projects/imports/1/run")
 			// set status to importing
 			ProjectGetStruct.Status = "importing"
-		} else if strings.Contains(r.URL.Path, "migrations/imports/1/items") && r.Method == "GET" {
+		} else if strings.Contains(r.URL.Path, "projects/imports/1/items") && r.Method == "GET" {
 			w.WriteHeader(http.StatusOK)
 			// return the test list of selectable items
 			_, err := w.Write([]byte(ProjectItemsJson))
 			require.NoError(t, err)
 			// set status to importing
 			ProjectGetStruct.Status = "importing"
-		} else if strings.Contains(r.URL.Path, "migrations/imports/1") && r.Method == "GET" {
+		} else if strings.Contains(r.URL.Path, "projects/tasks/1") && r.Method == "GET" {
+			w.WriteHeader(http.StatusOK)
+			if getCount < 1 {
+				getCount++
+			} else {
+				if TaskGetStruct.Status == "generatingPreview" {
+					//set status to ready
+					TaskGetStruct.Status = "success"
+				}
+				getCount = 0
+			}
+			// marshal the struct to json
+			projectGetJson, err := json.Marshal(TaskGetStruct)
+			require.NoError(t, err)
+
+			// write the json to the response
+			_, err = w.Write(projectGetJson)
+			require.NoError(t, err)
+		} else if strings.Contains(r.URL.Path, "projects/imports/1") && r.Method == "GET" {
 			w.WriteHeader(http.StatusOK)
 			if getCount < 1 {
 				getCount++
@@ -131,9 +170,6 @@ func TestProjectUpload(t *testing.T) {
 				if ProjectGetStruct.Status == "importing" {
 					// set status to imported
 					ProjectGetStruct.Status = "imported"
-				} else if ProjectGetStruct.Status == "generating_preview" {
-					//set status to ready
-					ProjectGetStruct.Status = "ready"
 				}
 				getCount = 0
 			}
@@ -144,7 +180,8 @@ func TestProjectUpload(t *testing.T) {
 			// write the json to the response
 			_, err = w.Write(projectGetJson)
 			require.NoError(t, err)
-		} else if strings.Contains(r.URL.Path, "migrations/imports/1") && r.Method == "DELETE" {
+
+		} else if strings.Contains(r.URL.Path, "projects/imports/1") && r.Method == "DELETE" {
 			w.WriteHeader(http.StatusNoContent)
 		} else {
 			w.WriteHeader(http.StatusNotFound)

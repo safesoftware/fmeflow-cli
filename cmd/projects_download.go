@@ -38,6 +38,8 @@ type projectExportSelectedItem struct {
 	ID   string `json:"id"`
 }
 
+var projectDownloadV4BuildThreshold = 23766
+
 // backupCmd represents the backup command
 func newProjectDownloadCmd() *cobra.Command {
 	f := projectsDownloadFlags{}
@@ -49,7 +51,7 @@ func newProjectDownloadCmd() *cobra.Command {
 			// get build to decide if we should use v3 or v4
 			if f.apiVersion == "" {
 				fmeflowBuild := viper.GetInt("build")
-				if fmeflowBuild < projectUploadV4BuildThreshold {
+				if fmeflowBuild < projectDownloadV4BuildThreshold {
 					f.apiVersion = apiVersionFlagV3
 				} else {
 					f.apiVersion = apiVersionFlagV4
