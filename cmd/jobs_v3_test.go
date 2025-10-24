@@ -463,24 +463,28 @@ func TestJobs(t *testing.T) {
 			name:               "unknown flag",
 			statusCode:         http.StatusOK,
 			args:               []string{"jobs", "--badflag"},
+			fmeflowBuild:       24733, // Force V3 API usage (<= 25208 threshold)
 			wantErrOutputRegex: "unknown flag: --badflag",
 		},
 		{
-			name:        "500 bad status code",
-			statusCode:  http.StatusInternalServerError,
-			wantErrText: "500 Internal Server Error",
-			args:        []string{"jobs"},
+			name:         "500 bad status code",
+			statusCode:   http.StatusInternalServerError,
+			wantErrText:  "500 Internal Server Error",
+			fmeflowBuild: 24733, // Force V3 API usage (<= 25208 threshold)
+			args:         []string{"jobs"},
 		},
 		{
-			name:        "404 bad status code",
-			statusCode:  http.StatusNotFound,
-			wantErrText: "404 Not Found",
-			args:        []string{"jobs"},
+			name:         "404 bad status code",
+			statusCode:   http.StatusNotFound,
+			wantErrText:  "404 Not Found",
+			fmeflowBuild: 24733, // Force V3 API usage (<= 25208 threshold)
+			args:         []string{"jobs"},
 		},
 		{
 			name:            "get jobs table output",
 			statusCode:      http.StatusOK,
 			args:            []string{"jobs"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "^[\\s]*JOB ID[\\s]*ENGINE NAME[\\s]*WORKSPACE[\\s]*STATUS[\\s]*4[\\s]*10f259e906e5[\\s]*running.fmw[\\s]*PULLED[\\s]*1[\\s]*austinApartments.fmw[\\s]*QUEUED[\\s]*3[\\s]*387f74cd4e1f[\\s]*austinApartments.fmw[\\s]*SUCCESS[\\s]*2[\\s]*10f259e906e5[\\s]*none2none.fmw[\\s]*FME_FAILURE[\\s]*$",
 			httpServer:      httptest.NewServer(http.HandlerFunc(customHttpServerHandler)),
 		},
@@ -488,6 +492,7 @@ func TestJobs(t *testing.T) {
 			name:            "get jobs all table output",
 			statusCode:      http.StatusOK,
 			args:            []string{"jobs", "--all"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "^[\\s]*JOB ID[\\s]*ENGINE NAME[\\s]*WORKSPACE[\\s]*STATUS[\\s]*4[\\s]*10f259e906e5[\\s]*running.fmw[\\s]*PULLED[\\s]*1[\\s]*austinApartments.fmw[\\s]*QUEUED[\\s]*3[\\s]*387f74cd4e1f[\\s]*austinApartments.fmw[\\s]*SUCCESS[\\s]*2[\\s]*10f259e906e5[\\s]*none2none.fmw[\\s]*FME_FAILURE[\\s]*$",
 			httpServer:      httptest.NewServer(http.HandlerFunc(customHttpServerHandler)),
 		},
@@ -496,6 +501,7 @@ func TestJobs(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3Running,
 			args:            []string{"jobs", "--running"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "^[\\s]*JOB ID[\\s]*ENGINE NAME[\\s]*WORKSPACE[\\s]*STATUS[\\s]*4[\\s]*10f259e906e5[\\s]*running.fmw[\\s]*PULLED[\\s]*$",
 		},
 		{
@@ -503,6 +509,7 @@ func TestJobs(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3Active,
 			args:            []string{"jobs", "--active"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "^[\\s]*JOB ID[\\s]*ENGINE NAME[\\s]*WORKSPACE[\\s]*STATUS[\\s]*4[\\s]*10f259e906e5[\\s]*running.fmw[\\s]*PULLED[\\s]*1[\\s]*austinApartments.fmw[\\s]*QUEUED[\\s]*$",
 		},
 		{
@@ -510,6 +517,7 @@ func TestJobs(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3Completed,
 			args:            []string{"jobs", "--completed"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "^[\\s]*JOB ID[\\s]*ENGINE NAME[\\s]*WORKSPACE[\\s]*STATUS[\\s]*3[\\s]*387f74cd4e1f[\\s]*austinApartments.fmw[\\s]*SUCCESS[\\s]*2[\\s]*10f259e906e5[\\s]*none2none.fmw[\\s]*FME_FAILURE[\\s]*$",
 		},
 		{
@@ -517,6 +525,7 @@ func TestJobs(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3Queued,
 			args:            []string{"jobs", "--queued"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "^[\\s]*JOB ID[\\s]*ENGINE NAME[\\s]*WORKSPACE[\\s]*STATUS[\\s]*1[\\s]*austinApartments.fmw[\\s]*QUEUED[\\s]*$",
 		},
 		{
@@ -524,6 +533,7 @@ func TestJobs(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3Queued,
 			args:            []string{"jobs", "--queued", "--no-headers"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "^[\\s]*1[\\s]*austinApartments.fmw[\\s]*QUEUED[\\s]*$",
 		},
 		{
@@ -531,6 +541,7 @@ func TestJobs(t *testing.T) {
 			statusCode:     http.StatusOK,
 			args:           []string{"jobs", "--queued", "--json"},
 			body:           responseV3Queued,
+			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputJson: responseV3Queued,
 		},
 		{
@@ -538,34 +549,39 @@ func TestJobs(t *testing.T) {
 			statusCode:     http.StatusOK,
 			args:           []string{"jobs", "--queued", "--output=json"},
 			body:           responseV3Queued,
+			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputJson: responseV3Queued,
 		},
 		{
-			name:        "workspace flag requires repository",
-			statusCode:  http.StatusOK,
-			args:        []string{"jobs", "--workspace", "austinApartments.fmw"},
-			wantErrText: "required flag(s) \"repository\" not set",
-			body:        responseV3Completed,
+			name:         "workspace flag requires repository",
+			statusCode:   http.StatusOK,
+			args:         []string{"jobs", "--workspace", "austinApartments.fmw"},
+			wantErrText:  "required flag(s) \"repository\" not set",
+			fmeflowBuild: 24733, // Force V3 API usage (<= 25208 threshold)
+			body:         responseV3Completed,
 		},
 		{
-			name:        "queued and active can't both be specified",
-			statusCode:  http.StatusOK,
-			args:        []string{"jobs", "--queued", "--active"},
-			wantErrText: "if any flags in the group [active queued] are set none of the others can be; [active queued] were all set",
-			body:        responseV3Completed,
+			name:         "queued and active can't both be specified",
+			statusCode:   http.StatusOK,
+			args:         []string{"jobs", "--queued", "--active"},
+			wantErrText:  "if any flags in the group [active queued] are set none of the others can be; [active queued] were all set",
+			fmeflowBuild: 24733, // Force V3 API usage (<= 25208 threshold)
+			body:         responseV3Completed,
 		},
 		{
-			name:        "running and active can't both be specified",
-			statusCode:  http.StatusOK,
-			args:        []string{"jobs", "--running", "--active"},
-			wantErrText: "if any flags in the group [active running] are set none of the others can be; [active running] were all set",
-			body:        responseV3Completed,
+			name:         "running and active can't both be specified",
+			statusCode:   http.StatusOK,
+			args:         []string{"jobs", "--running", "--active"},
+			wantErrText:  "if any flags in the group [active running] are set none of the others can be; [active running] were all set",
+			fmeflowBuild: 24733, // Force V3 API usage (<= 25208 threshold)
+			body:         responseV3Completed,
 		},
 		{
 			name:           "get jobs by repository",
 			statusCode:     http.StatusOK,
 			args:           []string{"jobs", "--repository", "Samples"},
 			wantFormParams: map[string]string{"repository": "Samples"},
+			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			body:           responseV3Completed,
 		},
 		{
@@ -573,6 +589,7 @@ func TestJobs(t *testing.T) {
 			statusCode:     http.StatusOK,
 			args:           []string{"jobs", "--repository", "Samples", "--workspace", "austinApartments.fmw"},
 			wantFormParams: map[string]string{"workspace": "austinApartments.fmw", "repository": "Samples"},
+			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			body:           responseV3Completed,
 		},
 		{
@@ -580,6 +597,7 @@ func TestJobs(t *testing.T) {
 			statusCode:     http.StatusOK,
 			args:           []string{"jobs", "--source-id", "some-source-id"},
 			wantFormParams: map[string]string{"sourceID": "some-source-id"},
+			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			body:           responseV3Completed,
 		},
 		{
@@ -587,6 +605,7 @@ func TestJobs(t *testing.T) {
 			statusCode:     http.StatusOK,
 			args:           []string{"jobs", "--user-name", "admin"},
 			wantFormParams: map[string]string{"userName": "admin"},
+			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			body:           responseV3Completed,
 		},
 		{
@@ -594,6 +613,7 @@ func TestJobs(t *testing.T) {
 			statusCode:     http.StatusOK,
 			args:           []string{"jobs", "--source-type", "source"},
 			wantFormParams: map[string]string{"sourceType": "source"},
+			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			body:           responseV3Completed,
 		},
 		{
@@ -601,6 +621,7 @@ func TestJobs(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3Completed,
 			args:            []string{"jobs", "--completed", "--output", "custom-columns=CPU:.cpuTime,FEATURES OUTPUT:.result.numFeaturesOutput"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "^[\\s]*CPU[\\s]*FEATURES OUTPUT[\\s]*994[\\s]*49[\\s]*697[\\s]*0[\\s]*$",
 		},
 		{
@@ -608,6 +629,7 @@ func TestJobs(t *testing.T) {
 			statusCode:      http.StatusOK,
 			args:            []string{"jobs", "--id", "1"},
 			body:            responseV3SingleJob,
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "^[\\s]*JOB ID[\\s]*ENGINE NAME[\\s]*WORKSPACE[\\s]*STATUS[\\s]*1[\\s]*145929514b24[\\s]*none2none.fmw[\\s]*ABORTED[\\s]*$",
 		},
 		{
@@ -615,13 +637,15 @@ func TestJobs(t *testing.T) {
 			statusCode:     http.StatusOK,
 			args:           []string{"jobs", "--id", "1", "--json"},
 			body:           responseV3SingleJob,
+			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputJson: responseV3SingleJobOutput,
 		},
 		{
-			name:        "get single job does not exist",
-			statusCode:  http.StatusNotFound,
-			args:        []string{"jobs", "--id", "243"},
-			wantErrText: "404 Not Found",
+			name:         "get single job does not exist",
+			statusCode:   http.StatusNotFound,
+			args:         []string{"jobs", "--id", "243"},
+			fmeflowBuild: 24733, // Force V3 API usage (<= 25208 threshold)
+			wantErrText:  "404 Not Found",
 		},
 	}
 
