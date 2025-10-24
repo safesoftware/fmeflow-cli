@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type RefreshStatus struct {
@@ -18,8 +19,11 @@ type RefreshStatus struct {
 }
 
 type refreshFlags struct {
-	wait bool
+	wait       bool
+	apiVersion apiVersionFlag
 }
+
+var refreshV4BuildThreshold = 23319
 
 func newRefreshCmd() *cobra.Command {
 	f := refreshFlags{}
@@ -34,6 +38,9 @@ func newRefreshCmd() *cobra.Command {
 		RunE: refreshRun(&f),
 	}
 	cmd.Flags().BoolVar(&f.wait, "wait", false, "Wait for licensing refresh to finish")
+	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
+	cmd.Flags().MarkHidden("api-version")
+	cmd.RegisterFlagCompletionFunc("api-version", apiVersionFlagCompletion)
 	cmd.AddCommand(newRefreshStatusCmd())
 	return cmd
 
@@ -45,7 +52,27 @@ func refreshRun(f *refreshFlags) func(cmd *cobra.Command, args []string) error {
 		client := &http.Client{}
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
-		request, err := buildFmeFlowRequest("/fmerest/v3/licensing/refresh", "POST", nil)
+		// get build to decide if we should use v3 or v4
+		// FME Server 2023.0+ and later can use v4. Otherwise fall back to v3
+		if f.apiVersion == "" {
+			fmeflowBuild := viper.GetInt("build")
+			if fmeflowBuild < refreshV4BuildThreshold {
+				f.apiVersion = apiVersionFlagV3
+			} else {
+				f.apiVersion = apiVersionFlagV4
+			}
+		}
+
+		var refreshEndpoint, statusEndpoint string
+		if f.apiVersion == "v4" {
+			refreshEndpoint = "/fmeapiv4/license/refresh"
+			statusEndpoint = "/fmeapiv4/license/refresh/status"
+		} else {
+			refreshEndpoint = "/fmerest/v3/licensing/refresh"
+			statusEndpoint = "/fmerest/v3/licensing/refresh/status"
+		}
+
+		request, err := buildFmeFlowRequest(refreshEndpoint, "POST", nil)
 		if err != nil {
 			return err
 		}
@@ -68,7 +95,7 @@ func refreshRun(f *refreshFlags) func(cmd *cobra.Command, args []string) error {
 				fmt.Print(".")
 				time.Sleep(1 * time.Second)
 				// call the status endpoint to see if it is finished
-				request, err := buildFmeFlowRequest("/fmerest/v3/licensing/refresh/status", "GET", nil)
+				request, err := buildFmeFlowRequest(statusEndpoint, "GET", nil)
 				if err != nil {
 					return err
 				}
@@ -85,9 +112,13 @@ func refreshRun(f *refreshFlags) func(cmd *cobra.Command, args []string) error {
 				var result RefreshStatus
 				if err := json.Unmarshal(responseData, &result); err != nil {
 					return err
-				} else if result.Status != "REQUESTING" {
-					complete = true
-					fmt.Fprintln(cmd.OutOrStdout(), result.Message)
+				} else {
+					// v3 uses uppercase "REQUESTING", v4 uses lowercase "requesting"
+					isRequesting := result.Status == "REQUESTING" || result.Status == "requesting"
+					if !isRequesting {
+						complete = true
+						fmt.Fprintln(cmd.OutOrStdout(), result.Message)
+					}
 				}
 
 				if complete {
