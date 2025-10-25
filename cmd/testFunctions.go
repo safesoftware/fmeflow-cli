@@ -32,6 +32,7 @@ type testCase struct {
 	wantURLContains    string              // check the URL contains a certain string
 	wantFileContents   fileContents        // check file contents
 	wantBodyRegEx      string              // check the contents of the body sent
+	wantBodyJson       string              // check the JSON body sent
 	fmeflowBuild       int                 // build to pretend we are contacting
 	args               []string            // flags to pass into the command
 	httpServer         *httptest.Server    // custom http test server if needed
@@ -68,6 +69,11 @@ func runTests(tcs []testCase, t *testing.T) {
 						body, err := io.ReadAll(r.Body)
 						require.NoError(t, err)
 						require.Regexp(t, regexp.MustCompile(tc.wantBodyRegEx), string(body))
+					}
+					if tc.wantBodyJson != "" {
+						body, err := io.ReadAll(r.Body)
+						require.NoError(t, err)
+						require.JSONEq(t, tc.wantBodyJson, string(body))
 					}
 					w.WriteHeader(tc.statusCode)
 					_, err := w.Write([]byte(tc.body))

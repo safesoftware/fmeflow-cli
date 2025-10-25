@@ -23,7 +23,7 @@ func TestSystemCode(t *testing.T) {
 			name:         "systemcode not available in newer builds",
 			statusCode:   http.StatusOK,
 			args:         []string{"license", "systemcode"},
-			wantErrText:  "systemcode is not available in this version of FME Flow. The systemcode command was removed in FME Flow 2024.0+",
+			wantErrText:  "systemcode is not available in this version of FME Flow. The systemcode command was removed in FME Flow 2026.1+",
 			fmeflowBuild: 26000, // Use build >= 26000 to trigger deprecation error
 		},
 		{

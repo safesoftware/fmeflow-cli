@@ -9,11 +9,15 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+const requestStatusV4BuildThreshold = 23319
 
 type licenseRequestStatusFlags struct {
 	outputType string
 	noHeaders  bool
+	apiVersion apiVersionFlag
 }
 
 func newLicenseRequestStatusCmd() *cobra.Command {
@@ -36,6 +40,9 @@ func newLicenseRequestStatusCmd() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Flow. Must be one of v3 or v4")
+	cmd.Flags().MarkHidden("api-version")
+	cmd.RegisterFlagCompletionFunc("api-version", apiVersionFlagCompletion)
 	return cmd
 }
 
@@ -46,79 +53,173 @@ func licenseRequestStatusRun(f *licenseRequestStatusFlags) func(cmd *cobra.Comma
 			f.outputType = "json"
 		}
 
-		// set up http
-		client := &http.Client{}
-
-		// call the status endpoint to see if it is finished
-		request, err := buildFmeFlowRequest("/fmerest/v3/licensing/request/status", "GET", nil)
-		if err != nil {
-			return err
-		}
-		response, err := client.Do(&request)
-		if err != nil {
-			return err
-		} else if response.StatusCode != 200 {
-			return errors.New(response.Status)
-		}
-
-		responseData, err := io.ReadAll(response.Body)
-		if err != nil {
-			return err
-		}
-
-		var result RequestStatus
-		if err := json.Unmarshal(responseData, &result); err != nil {
-			return err
-		} else {
-			if f.outputType == "table" {
-				t := createTableWithDefaultColumns(result)
-
-				if f.noHeaders {
-					t.ResetHeaders()
-				}
-				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
-
-			} else if f.outputType == "json" {
-				prettyJSON, err := prettyPrintJSON(responseData)
-				if err != nil {
-					return err
-				}
-				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
-			} else if strings.HasPrefix(f.outputType, "custom-columns") {
-				// parse the columns and json queries
-				columnsString := ""
-				if strings.HasPrefix(f.outputType, "custom-columns=") {
-					columnsString = f.outputType[len("custom-columns="):]
-				}
-				if len(columnsString) == 0 {
-					return errors.New("custom-columns format specified but no custom columns given")
-				}
-
-				// we have to marshal the Items array, then create an array of marshalled items
-				// to pass to the creation of the table.
-				marshalledItems := [][]byte{}
-				mJson, err := json.Marshal(result)
-				if err != nil {
-					return err
-				}
-				marshalledItems = append(marshalledItems, mJson)
-
-				columnsInput := strings.Split(columnsString, ",")
-				t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
-				if err != nil {
-					return err
-				}
-				if f.noHeaders {
-					t.ResetHeaders()
-				}
-				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
-
+		// get build to decide if we should use v3 or v4
+		// FME Server 2023.0+ and later can use v4. Otherwise fall back to v3
+		if f.apiVersion == "" {
+			fmeflowBuild := viper.GetInt("build")
+			if fmeflowBuild < requestStatusV4BuildThreshold {
+				f.apiVersion = apiVersionFlagV3
 			} else {
-				return errors.New("invalid output format specified")
+				f.apiVersion = apiVersionFlagV4
+			}
+		}
+
+		if f.apiVersion == "v4" {
+			return licenseRequestStatusRunV4(f, cmd)
+		} else {
+			return licenseRequestStatusRunV3(f, cmd)
+		}
+	}
+}
+
+func licenseRequestStatusRunV3(f *licenseRequestStatusFlags, cmd *cobra.Command) error {
+	// set up http
+	client := &http.Client{}
+
+	// call the status endpoint to see if it is finished
+	request, err := buildFmeFlowRequest("/fmerest/v3/licensing/request/status", "GET", nil)
+	if err != nil {
+		return err
+	}
+	response, err := client.Do(&request)
+	if err != nil {
+		return err
+	} else if response.StatusCode != 200 {
+		return errors.New(response.Status)
+	}
+
+	responseData, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	var result RequestStatusV3
+	if err := json.Unmarshal(responseData, &result); err != nil {
+		return err
+	} else {
+		if f.outputType == "table" {
+			t := createTableWithDefaultColumns(result)
+
+			if f.noHeaders {
+				t.ResetHeaders()
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+
+		} else if f.outputType == "json" {
+			prettyJSON, err := prettyPrintJSON(responseData)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+		} else if strings.HasPrefix(f.outputType, "custom-columns") {
+			// parse the columns and json queries
+			columnsString := ""
+			if strings.HasPrefix(f.outputType, "custom-columns=") {
+				columnsString = f.outputType[len("custom-columns="):]
+			}
+			if len(columnsString) == 0 {
+				return errors.New("custom-columns format specified but no custom columns given")
 			}
 
+			// we have to marshal the Items array, then create an array of marshalled items
+			// to pass to the creation of the table.
+			marshalledItems := [][]byte{}
+			mJson, err := json.Marshal(result)
+			if err != nil {
+				return err
+			}
+			marshalledItems = append(marshalledItems, mJson)
+
+			columnsInput := strings.Split(columnsString, ",")
+			t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+			if err != nil {
+				return err
+			}
+			if f.noHeaders {
+				t.ResetHeaders()
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+
+		} else {
+			return errors.New("invalid output format specified")
 		}
-		return nil
 
 	}
+	return nil
+}
+
+func licenseRequestStatusRunV4(f *licenseRequestStatusFlags, cmd *cobra.Command) error {
+	// set up http
+	client := &http.Client{}
+
+	// call the status endpoint to see if it is finished
+	request, err := buildFmeFlowRequest("/fmeapiv4/license/request/status", "GET", nil)
+	if err != nil {
+		return err
+	}
+	response, err := client.Do(&request)
+	if err != nil {
+		return err
+	} else if response.StatusCode != 200 {
+		return errors.New(response.Status)
+	}
+
+	responseData, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	var result RequestStatusV4
+	if err := json.Unmarshal(responseData, &result); err != nil {
+		return err
+	} else {
+		if f.outputType == "table" {
+			t := createTableWithDefaultColumns(result)
+
+			if f.noHeaders {
+				t.ResetHeaders()
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+
+		} else if f.outputType == "json" {
+			prettyJSON, err := prettyPrintJSON(responseData)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+		} else if strings.HasPrefix(f.outputType, "custom-columns") {
+			// parse the columns and json queries
+			columnsString := ""
+			if strings.HasPrefix(f.outputType, "custom-columns=") {
+				columnsString = f.outputType[len("custom-columns="):]
+			}
+			if len(columnsString) == 0 {
+				return errors.New("custom-columns format specified but no custom columns given")
+			}
+
+			// we have to marshal the Items array, then create an array of marshalled items
+			// to pass to the creation of the table.
+			marshalledItems := [][]byte{}
+			mJson, err := json.Marshal(result)
+			if err != nil {
+				return err
+			}
+			marshalledItems = append(marshalledItems, mJson)
+
+			columnsInput := strings.Split(columnsString, ",")
+			t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+			if err != nil {
+				return err
+			}
+			if f.noHeaders {
+				t.ResetHeaders()
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+
+		} else {
+			return errors.New("invalid output format specified")
+		}
+
+	}
+	return nil
 }

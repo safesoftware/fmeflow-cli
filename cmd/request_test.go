@@ -11,7 +11,7 @@ import (
 
 func TestLicenseRequest(t *testing.T) {
 	// standard responses for v3
-	responseV3Status := `{
+	responseStatus := `{
 		"message": "Success! Your FME Server has now been licensed.",
 		"status": "SUCCESS"
 	  }`
@@ -26,7 +26,18 @@ func TestLicenseRequest(t *testing.T) {
 		}
 		if strings.Contains(r.URL.Path, "/fmerest/v3/licensing/request/status") {
 			w.WriteHeader(http.StatusOK)
-			_, err := w.Write([]byte(responseV3Status))
+			_, err := w.Write([]byte(responseStatus))
+			require.NoError(t, err)
+		}
+		if strings.Contains(r.URL.Path, "/fmeapiv4/license/request") {
+			w.WriteHeader(http.StatusAccepted)
+			_, err := w.Write([]byte(""))
+			require.NoError(t, err)
+
+		}
+		if strings.Contains(r.URL.Path, "/fmeapiv4/license/request/status") {
+			w.WriteHeader(http.StatusOK)
+			_, err := w.Write([]byte(responseStatus))
 			require.NoError(t, err)
 		}
 
@@ -70,23 +81,42 @@ func TestLicenseRequest(t *testing.T) {
 			wantErrText: "required flag(s) \"first-name\" not set",
 		},
 		{
-			name:            "request license",
-			args:            []string{"license", "request", "--first-name", "Billy", "--last-name", "Bob", "--email", "billy.bob@example.com"},
+			name:            "request license v3",
+			args:            []string{"license", "request", "--first-name", "Billy", "--last-name", "Bob", "--email", "billy.bob@example.com", "--api-version", "v3"},
 			wantOutputRegex: "^License Request Successfully sent\\.[\\s]*$",
 			httpServer:      httptest.NewServer(http.HandlerFunc(customHttpServerHandler)),
 		},
 		{
-			name:            "request license and wait",
+			name:            "request license v4",
+			args:            []string{"license", "request", "--first-name", "Billy", "--last-name", "Bob", "--email", "billy.bob@example.com", "--api-version", "v4"},
+			wantOutputRegex: "^License Request Successfully sent\\.[\\s]*$",
+			httpServer:      httptest.NewServer(http.HandlerFunc(customHttpServerHandler)),
+		},
+		{
+			name:            "request license and wait v3",
 			statusCode:      http.StatusOK,
-			args:            []string{"license", "request", "--first-name", "Billy", "--last-name", "Bob", "--email", "billy.bob@example.com", "--wait"},
+			args:            []string{"license", "request", "--first-name", "Billy", "--last-name", "Bob", "--email", "billy.bob@example.com", "--wait", "--api-version", "v3"},
 			wantOutputRegex: "^License Request Successfully sent\\.[\\s]*Success! Your FME Server has now been licensed\\.[\\s]*$",
 			httpServer:      httptest.NewServer(http.HandlerFunc(customHttpServerHandler)),
 		},
 		{
-			name:           "request license check form params",
+			name:            "request license and wait v4",
+			statusCode:      http.StatusOK,
+			args:            []string{"license", "request", "--first-name", "Billy", "--last-name", "Bob", "--email", "billy.bob@example.com", "--wait", "--api-version", "v4"},
+			wantOutputRegex: "^License Request Successfully sent\\.[\\s]*Success! Your FME Server has now been licensed\\.[\\s]*$",
+			httpServer:      httptest.NewServer(http.HandlerFunc(customHttpServerHandler)),
+		},
+		{
+			name:           "request license check form params v3",
 			statusCode:     http.StatusAccepted,
-			args:           []string{"license", "request", "--first-name", "Billy", "--last-name", "Bob", "--email", "billy.bob@example.com", "--serial-number", "AAAA-AAAA-AAAA", "--company", "Example Inc.", "--industry", "Industry", "--sales-source", "source", "--subscribe-to-updates", "--category", "Category"},
+			args:           []string{"license", "request", "--first-name", "Billy", "--last-name", "Bob", "--email", "billy.bob@example.com", "--serial-number", "AAAA-AAAA-AAAA", "--company", "Example Inc.", "--industry", "Industry", "--sales-source", "source", "--subscribe-to-updates", "--category", "Category", "--api-version", "v3"},
 			wantFormParams: map[string]string{"firstName": "Billy", "lastName": "Bob", "email": "billy.bob@example.com", "serialNumber": "AAAA-AAAA-AAAA", "company": "Example Inc.", "category": "Category", "industry": "Industry", "salesSource": "source", "subscribeToUpdates": "true"},
+		},
+		{
+			name:         "request license check body params v4",
+			statusCode:   http.StatusAccepted,
+			args:         []string{"license", "request", "--first-name", "Billy", "--last-name", "Bob", "--email", "billy.bob@example.com", "--serial-number", "AAAA-AAAA-AAAA", "--company", "Example Inc.", "--industry", "Industry", "--subscribe-to-updates", "--api-version", "v4"},
+			wantBodyJson: `{"firstName":"Billy","lastName":"Bob","email":"billy.bob@example.com","serialNumber":"AAAA-AAAA-AAAA","company":"Example Inc.","industry":"Industry","subscribeToUpdates":true}`,
 		},
 	}
 
