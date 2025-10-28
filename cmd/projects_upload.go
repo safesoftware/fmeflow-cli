@@ -95,7 +95,28 @@ type ProjectUploadV4 struct {
 	Request   ProjectImportRun `json:"request"`
 }
 
-var projectUploadV4BuildThreshold = 23766
+type ProjectTaskV4 struct {
+	ID                   int       `json:"id"`
+	Type                 string    `json:"type"`
+	Username             string    `json:"username"`
+	StartDate            time.Time `json:"startDate"`
+	FinishedDate         time.Time `json:"finishedDate"`
+	Status               string    `json:"status"`
+	ProjectName          any       `json:"projectName"`
+	SuccessTopic         string    `json:"successTopic"`
+	FailureTopic         string    `json:"failureTopic"`
+	ResourceName         string    `json:"resourceName"`
+	PackagePath          string    `json:"packagePath"`
+	PackageName          string    `json:"packageName"`
+	ImportMode           string    `json:"importMode"`
+	ProjectsImportMode   string    `json:"projectsImportMode"`
+	PauseNotifications   bool      `json:"pauseNotifications"`
+	Result               string    `json:"result"`
+	ExcludeSensitiveInfo bool      `json:"excludeSensitiveInfo"`
+	DisableProjectItems  bool      `json:"disableProjectItems"`
+}
+
+var projectUploadV4BuildThreshold = 25049
 
 func newProjectUploadCmd() *cobra.Command {
 	f := projectUploadFlags{}
@@ -109,7 +130,7 @@ func newProjectUploadCmd() *cobra.Command {
 - Using the --selected-items flag will import only the items specified. The default is to import all items in the package.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// get build to decide if we should use v3 or v4
-			// FME Server 2022.0 and later can use v4. Otherwise fall back to v3
+			// FME Server 2025.0 and later can use v4. Otherwise fall back to v3
 			if f.apiVersion == "" {
 				fmeflowBuild := viper.GetInt("build")
 				if fmeflowBuild < projectUploadV4BuildThreshold {
@@ -242,7 +263,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 				return err
 			}
 
-			url = "/fmeapiv4/migrations/imports/upload"
+			url = "/fmeapiv4/projects/imports/upload"
 			request, err = buildFmeFlowRequest(url, "POST", &requestBody)
 			if err != nil {
 				return err
@@ -283,7 +304,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 				// We have to do a get on the import to see if the status is ready
 				ready := false
 				tries := 0
-				url = "/fmeapiv4/migrations/imports/" + taskId
+				url = "/fmeapiv4/projects/tasks/" + taskId
 				request, err = buildFmeFlowRequest(url, "GET", nil)
 				if err != nil {
 					return err
@@ -308,14 +329,14 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 						return err
 					}
 
-					var importStatus ProjectUploadV4
+					var importStatus ProjectTaskV4
 					if err := json.Unmarshal(responseData, &importStatus); err != nil {
 						return err
 					}
 					// check if it is ready
-					if importStatus.Status == "ready" {
+					if importStatus.Status == "success" {
 						ready = true
-					} else if importStatus.Status == "generating_preview" {
+					} else if importStatus.Status == "generatingPreview" || importStatus.Status == "submitted" {
 						// if it is still generating the preview, wait a second and try again
 						if !jsonOutput && !f.getSelectable {
 							fmt.Fprint(cmd.OutOrStdout(), ".")
@@ -333,7 +354,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 				}
 
 				// get the selectable items from the preview
-				url = "/fmeapiv4/migrations/imports/" + taskId + "/items"
+				url = "/fmeapiv4/projects/imports/" + taskId + "/items"
 				// set up the URL to query
 				request, err := buildFmeFlowRequest(url, "GET", nil)
 				if err != nil {
@@ -366,7 +387,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 				// if we are just outputing the selectable items for this package, just output them, delete the import and return
 				if f.getSelectable {
 					// delete the import since we are just getting the selectable items
-					url = "/fmeapiv4/migrations/imports/" + taskId
+					url = "/fmeapiv4/projects/imports/" + taskId
 					request, err = buildFmeFlowRequest(url, "DELETE", nil)
 					if err != nil {
 						return err
@@ -402,6 +423,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 
 				// if we are interactive, we want to prompt the user to select items from the list of selectable ones
 				if f.interactive {
+					fmt.Fprint(cmd.OutOrStdout(), "Prompting User for items...\n")
 					// store the item ids and types in a string array so that we can prompt the user to select items
 					var items []string
 					for _, element := range selectableItems.Items {
@@ -475,7 +497,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 
 			if !f.getSelectable {
 				// finally, we can run the import
-				url = "/fmeapiv4/migrations/imports/" + taskId + "/run"
+				url = "/fmeapiv4/projects/imports/" + taskId + "/run"
 				var run ProjectImportRun
 				// set the run struct
 				run.Overwrite = f.overwrite
@@ -490,7 +512,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 				// if a topic is specified, add that
 				if f.backupFailureTopic != "" || f.backupSuccessTopic != "" {
 					run.Notification = new(ProjectNotification)
-					run.Notification.Type = "TOPIC"
+					run.Notification.Type = "topic"
 					if f.backupSuccessTopic != "" {
 						run.Notification.SuccessTopic = f.backupSuccessTopic
 					}
@@ -524,7 +546,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 						fmt.Fprintln(cmd.OutOrStdout(), "Project Upload task submitted with id: "+taskId)
 					} else if !f.wait {
 						// if we are outputting json and not waiting, do a get on the task and output that
-						url = "/fmeapiv4/migrations/imports/" + taskId
+						url = "/fmeapiv4/projects/imports/" + taskId
 						request, err = buildFmeFlowRequest(url, "GET", nil)
 						if err != nil {
 							return err
@@ -553,7 +575,7 @@ func projectUploadRun(f *projectUploadFlags) func(cmd *cobra.Command, args []str
 				// if we are waiting for the import to complete, we have to loop until it is done
 				if f.wait {
 					finished := false
-					url = "/fmeapiv4/migrations/imports/" + taskId
+					url = "/fmeapiv4/projects/imports/" + taskId
 					request, err = buildFmeFlowRequest(url, "GET", nil)
 					if err != nil {
 						return err

@@ -309,6 +309,7 @@ func TestEngines(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3,
 			args:            []string{"engines"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "NAME[\\s]*HOST[\\s]*BUILD[\\s]*PLATFORM[\\s]*TYPE[\\s]*CURRENT JOB ID[\\s]*REGISTRATION PROPERTIES[\\s]*QUEUES[\\s]*[\\s]*387f74cd4e1f[\\s]*387f74cd4e1f[\\s]*23166[\\s]*linux-x64[\\s]*STANDARD[\\s]*-1[\\s]*\\[Standard 387f74cd4e1f 387f74cd4e1f 23166 linux-x64\\][\\s]*\\[Default\\]",
 		},
 		{
@@ -316,6 +317,7 @@ func TestEngines(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3,
 			args:            []string{"engines", "--no-headers"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "[\\s]*387f74cd4e1f[\\s]*387f74cd4e1f[\\s]*23166[\\s]*linux-x64[\\s]*STANDARD[\\s]*-1[\\s]*\\[Standard 387f74cd4e1f 387f74cd4e1f 23166 linux-x64\\][\\s]*\\[Default\\]",
 		},
 		{
@@ -323,6 +325,7 @@ func TestEngines(t *testing.T) {
 			statusCode:     http.StatusOK,
 			args:           []string{"engines", "--json"},
 			body:           responseV3,
+			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputJson: responseV3,
 		},
 		{
@@ -330,6 +333,7 @@ func TestEngines(t *testing.T) {
 			statusCode:     http.StatusOK,
 			args:           []string{"engines", "--output=json"},
 			body:           responseV3,
+			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputJson: responseV3,
 		},
 		{
@@ -337,6 +341,7 @@ func TestEngines(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3FourEngines,
 			args:            []string{"engines", "--count"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "4",
 		},
 		{
@@ -344,6 +349,7 @@ func TestEngines(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3FourEngines,
 			args:            []string{"engines", "--output=custom-columns=ENGINEMANAGER:.engineManagerNodeName,TRANSACTIONPORT:.transactionPort,CURRENTJOB:.currentJobID"},
+			fmeflowBuild:    24733, // Force V3 API usage (<= 25208 threshold)
 			wantOutputRegex: "[\\s]*ENGINEMANAGER[\\s]*TRANSACTIONPORT[\\s]*CURRENTJOB[\\s]*fmeflowcore[\\s]*40935[\\s]*-1[\\s]*fmeflowcore[\\s]*36883[\\s]*-1[\\s]*fmeflowcore[\\s]*44089[\\s]*-1[\\s]*fmeflowcore[\\s]*44795[\\s]*-1",
 		},
 

@@ -86,7 +86,7 @@ func runTests(tcs []testCase, t *testing.T) {
 				if tc.fmeflowBuild != 0 {
 					viper.Set("build", tc.fmeflowBuild)
 				} else {
-					viper.Set("build", 23776)
+					viper.Set("build", 25645)
 				}
 			}
 
