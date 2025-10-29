@@ -156,6 +156,12 @@ func newJobsCmd() *cobra.Command {
 	
   # List all jobs in JSON format
   fmeflow jobs --json
+
+  # List all jobs run from an automation with id 63f2489a-f3fc-4fa0-8df8-198de602b922
+  fmeflow jobs --source-type automations --source-id 63f2489a-f3fc-4fa0-8df8-198de602b922
+
+  # List all jobs run from a schedule with id 32f819b6-b3dc-4cff-a320-8c56a7c81163 in JSON format
+  fmeflow jobs --source-type schedules --source-id 32f819b6-b3dc-4cff-a320-8c56a7c81163 --json
 	
   # List the workspace, CPU time and peak memory usage for a given repository
   fmeflow jobs --repository Samples --output="custom-columns=WORKSPACE:.workspace,CPU Time:.cpuTime"
@@ -164,6 +170,9 @@ func newJobsCmd() *cobra.Command {
 		PreRun: func(cmd *cobra.Command, args []string) {
 			if f.jobsWorkspace != "" {
 				cmd.MarkFlagRequired("repository")
+			}
+			if f.jobsSourceID != "" {
+				cmd.MarkFlagRequired("source-type")
 			}
 		},
 		RunE: jobsRun(&f),
@@ -179,8 +188,8 @@ func newJobsCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.jobsRepository, "repository", "", "If specified, only jobs from the specified repository will be returned")
 	cmd.Flags().StringVar(&f.jobsWorkspace, "workspace", "", "If specified along with repository, only jobs from the specified repository and workspace will be returned")
 	cmd.Flags().StringVar(&f.jobsUserName, "user-name", "", "If specified, only jobs run by the specified user will be returned")
-	cmd.Flags().StringVar(&f.jobsSourceID, "source-id", "", "If specified along with source type, only jobs from the specified type with the specified id will be returned. For Automations, the source id is the automation id. For WorkspaceSubscriber, the source id is the id of the subscription. For Scheduler, the source id is the category and name of the schedule separated by '/'. For example, 'Category/Name'")
-	cmd.Flags().StringVar(&f.jobsSourceType, "source-type", "", "If specified, only jobs run by this source type will be returned")
+	cmd.Flags().StringVar(&f.jobsSourceID, "source-id", "", "If specified along with source type, only jobs that were run from the source with the specified id will be returned.")
+	cmd.Flags().StringVar(&f.jobsSourceType, "source-type", "", "If specified, only jobs run by this source type will be returned. One of: automations, workspaceSubscriptions, schedules, workspaceApps, automationApps, streams, fmeflow, dataVirtualization.")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().IntVar(&f.jobId, "id", -1, "Specify the job id to display")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")

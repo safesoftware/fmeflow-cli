@@ -401,10 +401,18 @@ func TestJobsV4(t *testing.T) {
 		{
 			name:           "get jobs v4 by source-id",
 			statusCode:     http.StatusOK,
-			args:           []string{"jobs", "--source-id", "some-source-id"},
-			wantFormParams: map[string]string{"sourceID": "some-source-id"},
+			args:           []string{"jobs", "--source-id", "63f2489a-f3fc-4fa0-8df8-198de602b922", "--source-type", "automations"},
+			wantFormParams: map[string]string{"sourceID": "63f2489a-f3fc-4fa0-8df8-198de602b922"},
 			body:           responseV4Active,
 			fmeflowBuild:   25300,
+		},
+		{
+			name:         "get jobs v4 by source-id no source-type",
+			statusCode:   http.StatusOK,
+			args:         []string{"jobs", "--source-id", "63f2489a-f3fc-4fa0-8df8-198de602b922"},
+			wantErrText:  "required flag(s) \"source-type\" not set",
+			body:         responseV4Active,
+			fmeflowBuild: 25300,
 		},
 		{
 			name:           "get jobs v4 success and failure json",
