@@ -595,8 +595,8 @@ func TestJobs(t *testing.T) {
 		{
 			name:           "get jobs by source id",
 			statusCode:     http.StatusOK,
-			args:           []string{"jobs", "--source-id", "some-source-id"},
-			wantFormParams: map[string]string{"sourceID": "some-source-id"},
+			args:           []string{"jobs", "--source-id", "63f2489a-f3fc-4fa0-8df8-198de602b922", "--source-type", "Automations"},
+			wantFormParams: map[string]string{"sourceID": "63f2489a-f3fc-4fa0-8df8-198de602b922"},
 			fmeflowBuild:   24733, // Force V3 API usage (<= 25208 threshold)
 			body:           responseV3Completed,
 		},

@@ -132,12 +132,7 @@ func newJobsCmd() *cobra.Command {
 		Use:   "jobs",
 		Short: "Lists jobs on FME Server",
 		Long:  "Lists running, queued, and/or queued jobs on FME Server. Pass in a job id to get information on a specific job.",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if f.jobsSourceID != "" && f.jobsSourceType == "" {
-				return errors.New("--source-id requires --source-type to be specified")
-			}
-			return nil
-		},
+
 		Example: `
 
   # List all jobs (currently limited to the most recent 1000)
@@ -175,6 +170,9 @@ func newJobsCmd() *cobra.Command {
 		PreRun: func(cmd *cobra.Command, args []string) {
 			if f.jobsWorkspace != "" {
 				cmd.MarkFlagRequired("repository")
+			}
+			if f.jobsSourceID != "" {
+				cmd.MarkFlagRequired("source-type")
 			}
 		},
 		RunE: jobsRun(&f),
