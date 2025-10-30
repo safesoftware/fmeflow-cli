@@ -9,11 +9,13 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type licenseRefreshStatusFlags struct {
 	outputType string
 	noHeaders  bool
+	apiVersion apiVersionFlag
 }
 
 func newRefreshStatusCmd() *cobra.Command {
@@ -36,6 +38,9 @@ func newRefreshStatusCmd() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
+	cmd.Flags().MarkHidden("api-version")
+	cmd.RegisterFlagCompletionFunc("api-version", apiVersionFlagCompletion)
 	return cmd
 
 }
@@ -47,11 +52,29 @@ func refreshStatusRun(f *licenseRefreshStatusFlags) func(cmd *cobra.Command, arg
 			f.outputType = "json"
 		}
 
+		// get build to decide if we should use v3 or v4
+		// FME Server 2023.0+ and later can use v4. Otherwise fall back to v3
+		if f.apiVersion == "" {
+			fmeflowBuild := viper.GetInt("build")
+			if fmeflowBuild < refreshV4BuildThreshold {
+				f.apiVersion = apiVersionFlagV3
+			} else {
+				f.apiVersion = apiVersionFlagV4
+			}
+		}
+
+		var statusEndpoint string
+		if f.apiVersion == "v4" {
+			statusEndpoint = "/fmeapiv4/license/refresh/status"
+		} else {
+			statusEndpoint = "/fmerest/v3/licensing/refresh/status"
+		}
+
 		// set up http
 		client := &http.Client{}
 
 		// call the status endpoint to see if it is finished
-		request, err := buildFmeFlowRequest("/fmerest/v3/licensing/refresh/status", "GET", nil)
+		request, err := buildFmeFlowRequest(statusEndpoint, "GET", nil)
 		if err != nil {
 			return err
 		}

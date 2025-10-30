@@ -102,7 +102,10 @@ func initConfig() {
 	//viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	viper.ReadInConfig()
+	err := viper.ReadInConfig()
+	if err != nil { // Handle errors reading the config file
+		cobra.CheckErr(err)
+	}
 
 }
 

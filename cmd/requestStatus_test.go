@@ -7,7 +7,7 @@ import (
 
 func TestRequestStatus(t *testing.T) {
 	// standard responses for v3
-	statusV3 := `{
+	status := `{
 		"message": "Success! Your FME Server has now been licensed.",
 		"status": "SUCCESS"
 	  }`
@@ -32,18 +32,36 @@ func TestRequestStatus(t *testing.T) {
 			args:        []string{"license", "request", "status"},
 		},
 		{
-			name:            "get request status",
+			name:            "get request status v3",
 			statusCode:      http.StatusOK,
-			args:            []string{"license", "request", "status"},
+			args:            []string{"license", "request", "status", "--api-version", "v3"},
 			wantOutputRegex: "^[\\s]*STATUS[\\s]*MESSAGE[\\s]*SUCCESS[\\s]*Success! Your FME Server has now been licensed\\.[\\s]*$",
-			body:            statusV3,
+			body:            status,
+			fmeflowBuild:    20000, // Force v3
 		},
 		{
-			name:           "get request status json",
+			name:           "get request status v3 json",
 			statusCode:     http.StatusOK,
-			body:           statusV3,
-			args:           []string{"license", "request", "status", "--json"},
-			wantOutputJson: statusV3,
+			body:           status,
+			args:           []string{"license", "request", "status", "--api-version", "v3", "--json"},
+			wantOutputJson: status,
+			fmeflowBuild:   20000, // Force v3
+		},
+		{
+			name:            "get request status v4",
+			statusCode:      http.StatusOK,
+			args:            []string{"license", "request", "status", "--api-version", "v4"},
+			wantOutputRegex: "^[\\s]*STATUS[\\s]*MESSAGE[\\s]*SUCCESS[\\s]*Success! Your FME Server has now been licensed\\.[\\s]*$",
+			body:            status,
+			fmeflowBuild:    25000, // Force v4
+		},
+		{
+			name:           "get request status v4 json",
+			statusCode:     http.StatusOK,
+			body:           status,
+			args:           []string{"license", "request", "status", "--api-version", "v4", "--json"},
+			wantOutputJson: status,
+			fmeflowBuild:   25000, // Force v4
 		},
 	}
 
