@@ -175,6 +175,12 @@ func checkConfigFile(requireToken bool) error {
 	if err != nil {
 		return fmt.Errorf("could not open the config file " + viper.ConfigFileUsed() + ". Have you called the login command? ")
 	}
+	// make sure the config file is parsable
+	err = viper.ReadInConfig()
+	if err != nil {
+		return fmt.Errorf("%w: could not parse the config file "+viper.ConfigFileUsed()+". Have you called the login command? ", err)
+	}
+
 	fmeflowUrl := viper.GetString("url")
 
 	// check the fme server URL is valid
