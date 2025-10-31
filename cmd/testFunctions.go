@@ -111,7 +111,7 @@ func runTests(tcs []testCase, t *testing.T) {
 			}
 
 			// if a config file isn't specified, generate a random file and set the config file flag
-			if !configFlagExists(tc.args) {
+			if !configFlagExists(tc.args) && !tc.omitConfig {
 				f, err := os.CreateTemp("", "config-file*.yaml")
 				require.NoError(t, err)
 				defer os.Remove(f.Name()) // clean up

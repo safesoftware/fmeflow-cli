@@ -102,6 +102,7 @@ token: 5ba5e0fd15c2403bc8b2e3aa1dfb975ca2197fbe
 url: %s
 `, mainHttpServerLogin.URL),
 			},
+			omitConfig: true,
 		},
 		{
 			name:            "login with token",
