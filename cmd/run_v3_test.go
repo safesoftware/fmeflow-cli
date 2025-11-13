@@ -131,25 +131,52 @@ func TestRun(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3ASync,
 			args:            []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--tag", "myqueue"},
+			wantOutputRegex: "Job submitted with id: 1",
+			wantBodyRegEx:   ".*\"TMDirectives\":{.*\"tag\":\"myqueue\".*}.*",
+		},
+		{
+			name:            "queue flag async",
+			statusCode:      http.StatusOK,
+			body:            responseV3ASync,
+			args:            []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--queue", "myqueue"},
 			wantOutputRegex: "^[\\s]*Job submitted with id: 1[\\s]*$",
 			wantBodyRegEx:   ".*\"TMDirectives\":{.*\"tag\":\"myqueue\".*}.*",
 		},
+
 		{
 			name:            "time to live flag async",
 			statusCode:      http.StatusOK,
 			body:            responseV3ASync,
 			args:            []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--time-to-live", "60"},
+			wantOutputRegex: "Job submitted with id: 1",
+			wantBodyRegEx:   ".*\"TMDirectives\":{.*\"ttl\":60.*}.*",
+		},
+		{
+			name:            "max time in queue flag async",
+			statusCode:      http.StatusOK,
+			body:            responseV3ASync,
+			args:            []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--max-time-in-queue", "60"},
 			wantOutputRegex: "^[\\s]*Job submitted with id: 1[\\s]*$",
 			wantBodyRegEx:   ".*\"TMDirectives\":{.*\"ttl\":60.*}.*",
 		},
+
 		{
 			name:            "timeuntil canceled flag async",
 			statusCode:      http.StatusOK,
 			body:            responseV3ASync,
 			args:            []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--time-until-canceled", "60"},
+			wantOutputRegex: "Job submitted with id: 1",
+			wantBodyRegEx:   ".*\"TMDirectives\":{.*\"ttc\":60.*}.*",
+		},
+		{
+			name:            "max job runtime flag async",
+			statusCode:      http.StatusOK,
+			body:            responseV3ASync,
+			args:            []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--max-job-runtime", "60"},
 			wantOutputRegex: "^[\\s]*Job submitted with id: 1[\\s]*$",
 			wantBodyRegEx:   ".*\"TMDirectives\":{.*\"ttc\":60.*}.*",
 		},
+
 		{
 			name:            "published parameter async",
 			statusCode:      http.StatusOK,
@@ -196,7 +223,7 @@ func TestRun(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3Sync,
 			args:            []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--tag", "myqueue", "--file", f.Name()},
-			wantOutputRegex: "^[\\s]*ID[\\s]*STATUS[\\s]*STATUS MESSAGE[\\s]*FEATURES OUTPUT[\\s]*1[\\s]*SUCCESS[\\s]*Translation Successful[\\s]*1539[\\s]*$",
+			wantOutputRegex: "ID[\\s]*STATUS[\\s]*STATUS MESSAGE[\\s]*FEATURES OUTPUT[\\s]*1[\\s]*SUCCESS[\\s]*Translation Successful[\\s]*1539",
 			wantFormParams:  map[string]string{"opt_tag": "myqueue"},
 		},
 		{
@@ -204,7 +231,7 @@ func TestRun(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3Sync,
 			args:            []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--time-to-live", "60", "--file", f.Name()},
-			wantOutputRegex: "^[\\s]*ID[\\s]*STATUS[\\s]*STATUS MESSAGE[\\s]*FEATURES OUTPUT[\\s]*1[\\s]*SUCCESS[\\s]*Translation Successful[\\s]*1539[\\s]*$",
+			wantOutputRegex: "ID[\\s]*STATUS[\\s]*STATUS MESSAGE[\\s]*FEATURES OUTPUT[\\s]*1[\\s]*SUCCESS[\\s]*Translation Successful[\\s]*1539",
 			wantFormParams:  map[string]string{"opt_ttl": "60"},
 		},
 		{
@@ -212,7 +239,7 @@ func TestRun(t *testing.T) {
 			statusCode:      http.StatusOK,
 			body:            responseV3Sync,
 			args:            []string{"run", "--repository", "Samples", "--workspace", "austinApartments.fmw", "--time-until-canceled", "60", "--file", f.Name()},
-			wantOutputRegex: "^[\\s]*ID[\\s]*STATUS[\\s]*STATUS MESSAGE[\\s]*FEATURES OUTPUT[\\s]*1[\\s]*SUCCESS[\\s]*Translation Successful[\\s]*1539[\\s]*$",
+			wantOutputRegex: "ID[\\s]*STATUS[\\s]*STATUS MESSAGE[\\s]*FEATURES OUTPUT[\\s]*1[\\s]*SUCCESS[\\s]*Translation Successful[\\s]*1539",
 			wantFormParams:  map[string]string{"opt_ttc": "60"},
 		},
 		{
