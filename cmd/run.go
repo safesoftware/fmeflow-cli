@@ -102,9 +102,6 @@ type runFlags struct {
 	repository             string
 	wait                   bool
 	rtc                    bool
-	ttc                    int
-	ttl                    int
-	tag                    string
 	description            string
 	sourceData             string
 	successTopics          []string
@@ -135,7 +132,7 @@ func newRunCmd() *cobra.Command {
   fmeflow run --repository Samples --workspace austinApartments.fmw --wait
 	
   # Submit a job to a specific queue and set a time to live in the queue
-  fmeflow run --repository Samples --workspace austinApartments.fmw --tag Queue1 --time-to-live 120
+  fmeflow run --repository Samples --workspace austinApartments.fmw --queue Queue1 --max-time-in-queue 120
 	
   # Submit a job and pass in a few published parameters
   fmeflow run --repository Samples --workspace austinDownload.fmw --published-parameter-list THEMES=railroad,airports --published-parameter COORDSYS=TX83-CF
@@ -152,22 +149,22 @@ func newRunCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.repository, "repository", "", "The name of the repository containing the workspace to run.")
 	cmd.Flags().StringVar(&f.workspace, "workspace", "", "The name of the workspace to run.")
 	cmd.Flags().BoolVar(&f.wait, "wait", false, "Submit job and wait for it to finish.")
-	cmd.Flags().StringVar(&f.tag, "tag", "", "The job routing tag for the request. For v3 API only.")
 	cmd.Flags().StringArrayVar(&f.publishedParameter, "published-parameter", []string{}, "Published parameters defined for this workspace. Specify as Key=Value. Can be passed in multiple times. For list parameters, use the --list-published-parameter flag.")
 	cmd.Flags().StringArrayVar(&f.listPublishedParameter, "published-parameter-list", []string{}, "A List-type published parameters defined for this workspace. Specify as Key=Value1,Value2. Can be passed in multiple times.")
 	cmd.Flags().StringVar(&f.sourceData, "file", "", "Upload a local file Source dataset to use to run the workspace. Note this causes the translation to run in synchonous mode whether the --wait flag is passed in or not. For v3 API only.")
 	cmd.Flags().BoolVar(&f.rtc, "run-until-canceled", false, "Runs a job until it is explicitly canceled. The job will run again regardless of whether the job completed successfully, failed, or the server crashed or was shut down. For v3 API only.")
-	cmd.Flags().IntVar(&f.ttc, "time-until-canceled", -1, "Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored. For v3 API only.")
-	cmd.Flags().IntVar(&f.ttl, "time-to-live", -1, "Time to live in the job queue (in seconds). For v3 API only.")
 	cmd.Flags().StringVar(&f.description, "description", "", "Description of the request. For v3 API only.")
 	cmd.Flags().StringArrayVar(&f.successTopics, "success-topic", []string{}, "Topics to notify when the job succeeds. Can be specified more than once.")
 	cmd.Flags().StringArrayVar(&f.failureTopics, "failure-topic", []string{}, "Topics to notify when the job fails. Can be specified more than once.")
 	cmd.Flags().StringArrayVar(&f.nodeManagerDirective, "node-manager-directive", []string{}, "Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times. For v3 API only.")
 	cmd.Flags().StringArrayVar(&f.directive, "directive", []string{}, "Additional directives to pass to the job submission. Specify as Key=Value. Can be passed in multiple times. For v4 API only.")
-	cmd.Flags().StringVar(&f.queue, "queue", "", "Queue of the job to submit. For v4 API only.")
-	cmd.Flags().IntVar(&f.maxJobRuntime, "max-job-runtime", 0, "Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored. For v4 API only.")
-	cmd.Flags().IntVar(&f.maxTimeInQueue, "max-time-in-queue", 0, "Time to live in the job queue (in seconds). For v4 API only.")
-	cmd.Flags().IntVar(&f.maxTotalLifeTime, "max-total-life-time", 0, "Time to live including both time in the queue and run time (in seconds). The maximum value is 86400 and the minimum value is 1. For v4 API only.")
+	cmd.Flags().StringVar(&f.queue, "queue", "", "Queue of the job to submit.")
+	cmd.Flags().StringVar(&f.queue, "tag", "", "The queue (job routing tag) for the request.")
+	cmd.Flags().IntVar(&f.maxJobRuntime, "max-job-runtime", -1, "Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored.")
+	cmd.Flags().IntVar(&f.maxJobRuntime, "time-until-canceled", -1, "Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored.")
+	cmd.Flags().IntVar(&f.maxTimeInQueue, "max-time-in-queue", -1, "Time to live in the job queue (in seconds).")
+	cmd.Flags().IntVar(&f.maxTimeInQueue, "time-to-live", -1, "Time to live in the job queue (in seconds).")
+	cmd.Flags().IntVar(&f.maxTotalLifeTime, "max-total-life-time", -1, "Time to live including both time in the queue and run time (in seconds). The maximum value is 86400 and the minimum value is 1. For v4 API only.")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
 
@@ -180,6 +177,16 @@ func newRunCmd() *cobra.Command {
 	//node manager directives and run until canceled do not work with transactdata
 	cmd.MarkFlagsMutuallyExclusive("file", "node-manager-directive")
 	cmd.MarkFlagsMutuallyExclusive("file", "run-until-canceled")
+
+	// deprecated flags can't be used with the equavalent new flags
+	cmd.MarkFlagsMutuallyExclusive("tag", "queue")
+	cmd.MarkFlagsMutuallyExclusive("time-until-canceled", "max-job-runtime")
+	cmd.MarkFlagsMutuallyExclusive("time-to-live", "max-time-in-queue")
+
+	// mark v3 deprecated flags
+	cmd.Flags().MarkDeprecated("tag", "please use --queue instead")
+	cmd.Flags().MarkDeprecated("time-until-canceled", "please use --max-job-runtime instead")
+	cmd.Flags().MarkDeprecated("time-to-live", "please use --max-time-in-queue instead")
 
 	return cmd
 }
@@ -387,15 +394,15 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 					job.NMDirectives.Directives = append(job.NMDirectives.Directives, a)
 				}
 
-				if f.ttc != -1 {
-					job.TMDirectives.Ttc = f.ttc
+				if f.maxJobRuntime != -1 {
+					job.TMDirectives.Ttc = f.maxJobRuntime
 				}
-				if f.ttl != -1 {
-					job.TMDirectives.TTL = f.ttl
+				if f.maxTimeInQueue != -1 {
+					job.TMDirectives.TTL = f.maxTimeInQueue
 				}
 
-				if f.tag != "" {
-					job.TMDirectives.Tag = f.tag
+				if f.queue != "" {
+					job.TMDirectives.Tag = f.queue
 				}
 
 				job.TMDirectives.Rtc = f.rtc
@@ -498,16 +505,16 @@ func runRun(f *runFlags) func(cmd *cobra.Command, args []string) error {
 					endpoint += "opt_description=" + f.description
 				}
 
-				if f.tag != "" {
-					q.Add("opt_tag", f.tag)
+				if f.queue != "" {
+					q.Add("opt_tag", f.queue)
 				}
 
-				if f.ttl != -1 {
-					q.Add("opt_ttl", strconv.Itoa(f.ttl))
+				if f.maxTimeInQueue != -1 {
+					q.Add("opt_ttl", strconv.Itoa(f.maxTimeInQueue))
 				}
 
-				if f.ttc != -1 {
-					q.Add("opt_ttc", strconv.Itoa(f.ttc))
+				if f.maxJobRuntime != -1 {
+					q.Add("opt_ttc", strconv.Itoa(f.maxJobRuntime))
 				}
 
 				for _, parameter := range f.publishedParameter {
