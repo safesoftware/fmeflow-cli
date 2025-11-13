@@ -48,9 +48,9 @@ fmeflow run [flags]
       --failure-topic stringArray              Topics to notify when the job fails. Can be specified more than once.
       --node-manager-directive stringArray     Additional NM Directives, which can include client-configured keys, to pass to the notification service for custom use by subscriptions. Specify as Key=Value Can be passed in multiple times. For v3 API only.
       --directive stringArray                  Additional directives to pass to the job submission. Specify as Key=Value. Can be passed in multiple times. For v4 API only.
-      --queue string                           Queue of the job to submit.
-      --max-job-runtime int                    Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored. (default -1)
-      --max-time-in-queue int                  Time to live in the job queue (in seconds). (default -1)
+      --queue string                           Queue of the job to submit. Equavalent to --tag (deprecated).
+      --max-job-runtime int                    Time (in seconds) elapsed for a running job before it's cancelled. The minimum value is 1 second, values less than 1 second are ignored. Equavalent to --time-until-canceled (deprecated). (default -1)
+      --max-time-in-queue int                  Time to live in the job queue (in seconds). Equavalent to --time-to-live (deprecated). (default -1)
       --max-total-life-time int                Time to live including both time in the queue and run time (in seconds). The maximum value is 86400 and the minimum value is 1. For v4 API only. (default -1)
   -o, --output string                          Specify the output type. Should be one of table, json, or custom-columns (default "table")
       --no-headers                             Don't print column headers
