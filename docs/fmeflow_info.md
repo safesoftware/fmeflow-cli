@@ -20,17 +20,18 @@ fmeflow info [flags]
   # Output FME Server information in json
   fmeflow info --json
 
-  # Output just the build string with no column headers
-  fmeflow info --output=custom-columns="BUILD:.build" --no-headers
+  # Output just the build number string with no column headers
+  fmeflow info --output=custom-columns="BUILD NUMBER:.buildNumber" --no-headers
 	
 ```
 
 ### Options
 
 ```
-  -h, --help            help for info
-      --no-headers      Don't print column headers
-  -o, --output string   Specify the output type. Should be one of table, json, or custom-columns (default "table")
+      --api-version string   The api version to use when contacting FME Server. Must be one of v3 or v4
+  -h, --help                 help for info
+      --no-headers           Don't print column headers
+  -o, --output string        Specify the output type. Should be one of table, json, or custom-columns (default "table")
 ```
 
 ### Options inherited from parent commands
