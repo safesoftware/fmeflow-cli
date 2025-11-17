@@ -41,28 +41,28 @@ type JobStatusV4 struct {
 }
 
 type JobStatusV3 struct {
-	Request       JobRequest `json:"request"`
-	TimeDelivered time.Time  `json:"timeDelivered"`
-	Workspace     string     `json:"workspace"`
-	NumErrors     int        `json:"numErrors"`
-	NumLines      int        `json:"numLines"`
-	EngineHost    string     `json:"engineHost"`
-	TimeQueued    time.Time  `json:"timeQueued"`
-	CPUPct        float64    `json:"cpuPct"`
-	Description   string     `json:"description"`
-	TimeStarted   time.Time  `json:"timeStarted"`
-	Repository    string     `json:"repository"`
-	UserName      string     `json:"userName"`
-	Result        JobResult  `json:"result"`
-	CPUTime       int        `json:"cpuTime"`
-	ID            int        `json:"id"`
-	TimeFinished  time.Time  `json:"timeFinished"`
-	EngineName    string     `json:"engineName"`
-	NumWarnings   int        `json:"numWarnings"`
-	TimeSubmitted time.Time  `json:"timeSubmitted"`
-	ElapsedTime   int        `json:"elapsedTime"`
-	PeakMemUsage  int        `json:"peakMemUsage"`
-	Status        string     `json:"status"`
+	Request       JobRequestV3 `json:"request"`
+	TimeDelivered time.Time    `json:"timeDelivered"`
+	Workspace     string       `json:"workspace"`
+	NumErrors     int          `json:"numErrors"`
+	NumLines      int          `json:"numLines"`
+	EngineHost    string       `json:"engineHost"`
+	TimeQueued    time.Time    `json:"timeQueued"`
+	CPUPct        float64      `json:"cpuPct"`
+	Description   string       `json:"description"`
+	TimeStarted   time.Time    `json:"timeStarted"`
+	Repository    string       `json:"repository"`
+	UserName      string       `json:"userName"`
+	Result        JobResultV3  `json:"result"`
+	CPUTime       int          `json:"cpuTime"`
+	ID            int          `json:"id"`
+	TimeFinished  time.Time    `json:"timeFinished"`
+	EngineName    string       `json:"engineName"`
+	NumWarnings   int          `json:"numWarnings"`
+	TimeSubmitted time.Time    `json:"timeSubmitted"`
+	ElapsedTime   int          `json:"elapsedTime"`
+	PeakMemUsage  int          `json:"peakMemUsage"`
+	Status        string       `json:"status"`
 }
 
 type JobsV4 struct {

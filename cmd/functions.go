@@ -48,8 +48,8 @@ func buildFmeFlowRequest(endpoint string, method string, body io.Reader) (http.R
 }
 
 // since the JSON for published parameters has subtypes, we need to implement this ourselves
-func (f *JobRequest) UnmarshalJSON(b []byte) error {
-	type job JobRequest
+func (f *JobRequestV3) UnmarshalJSON(b []byte) error {
+	type job JobRequestV3
 	err := json.Unmarshal(b, (*job)(f))
 	if err != nil {
 		return err
@@ -85,9 +85,9 @@ func (f *JobRequest) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (f *JobRequest) MarshalJSON() ([]byte, error) {
+func (f *JobRequestV3) MarshalJSON() ([]byte, error) {
 
-	type job JobRequest
+	type job JobRequestV3
 	if f.PublishedParameters != nil {
 		for _, v := range f.PublishedParameters {
 			b, err := json.Marshal(v)
