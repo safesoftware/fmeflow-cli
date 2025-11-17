@@ -9,9 +9,19 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-type FMEFlowInfo struct {
+type FMEFlowInfoV4 struct {
+	BuildNumber   int    `json:"buildNumber"`
+	BuildString   string `json:"buildString"`
+	ReleaseYear   int    `json:"releaseYear"`
+	MajorVersion  int    `json:"majorVersion"`
+	MinorVersion  int    `json:"minorVersion"`
+	HotfixVersion int    `json:"hotfixVersion"`
+}
+
+type FMEFlowInfoV3 struct {
 	CurrentTime       string `json:"currentTime"`
 	LicenseManagement bool   `json:"licenseManagement"`
 	Build             string `json:"build"`
@@ -22,7 +32,10 @@ type FMEFlowInfo struct {
 type infoFlags struct {
 	outputType string
 	noHeaders  bool
+	apiVersion apiVersionFlag
 }
+
+var infoV4BuildThreshold = 25208
 
 func newInfoCmd() *cobra.Command {
 	f := infoFlags{}
@@ -37,14 +50,15 @@ func newInfoCmd() *cobra.Command {
   # Output FME Server information in json
   fmeflow info --json
 
-  # Output just the build string with no column headers
-  fmeflow info --output=custom-columns="BUILD:.build" --no-headers
+  # Output just the build number string with no column headers
+  fmeflow info --output=custom-columns="BUILD NUMBER:.buildNumber" --no-headers
 	`,
 		Args: NoArgs,
 		RunE: infoRun(&f),
 	}
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
 	return cmd
 }
 
@@ -55,11 +69,25 @@ func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
 			f.outputType = "json"
 		}
 
+		if f.apiVersion == "" {
+			if viper.GetInt("build") < infoV4BuildThreshold {
+				f.apiVersion = apiVersionFlagV3
+			} else {
+				f.apiVersion = apiVersionFlagV4
+			}
+		}
+
 		// set up http
 		client := &http.Client{}
+		request := http.Request{}
+		err := error(nil)
 
-		// call the status endpoint to see if it is finished
-		request, err := buildFmeFlowRequest("/fmerest/v3/info", "GET", nil)
+		if f.apiVersion == "v4" {
+			request, err = buildFmeFlowRequest("/fmeinfo/version", "GET", nil)
+		} else if f.apiVersion == "v3" {
+			// call the status endpoint to see if it is finished
+			request, err = buildFmeFlowRequest("/fmerest/v3/info", "GET", nil)
+		}
 		if err != nil {
 			return err
 		}
@@ -75,60 +103,70 @@ func infoRun(f *infoFlags) func(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		var result FMEFlowInfo
-		if err := json.Unmarshal(responseData, &result); err != nil {
-			return err
+		var result any
+		if f.apiVersion == "v4" {
+			var v4Result FMEFlowInfoV4
+			if err := json.Unmarshal(responseData, &v4Result); err != nil {
+				return err
+			}
+			result = v4Result
 		} else {
-			if f.outputType == "table" {
+			var v3Result FMEFlowInfoV3
+			if err := json.Unmarshal(responseData, &v3Result); err != nil {
+				return err
+			}
+			result = v3Result
+		}
 
-				// output all values returned by the JSON in a table
-				t := createTableWithDefaultColumns(result)
+		if f.outputType == "table" {
 
-				if f.noHeaders {
-					t.ResetHeaders()
-				}
-				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+			// output all values returned by the JSON in a table
+			t := createTableWithDefaultColumns(result)
 
-			} else if f.outputType == "json" {
-				prettyJSON, err := prettyPrintJSON(responseData)
-				if err != nil {
-					return err
-				}
-				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
-			} else if strings.HasPrefix(f.outputType, "custom-columns") {
-				// parse the columns and json queries
-				columnsString := ""
-				if strings.HasPrefix(f.outputType, "custom-columns=") {
-					columnsString = f.outputType[len("custom-columns="):]
-				}
-				if len(columnsString) == 0 {
-					return errors.New("custom-columns format specified but no custom columns given")
-				}
+			if f.noHeaders {
+				t.ResetHeaders()
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
 
-				// we have to marshal the Items array, then create an array of marshalled items
-				// to pass to the creation of the table.
-				marshalledItems := [][]byte{}
-				mJson, err := json.Marshal(result)
-				if err != nil {
-					return err
-				}
-				marshalledItems = append(marshalledItems, mJson)
-
-				columnsInput := strings.Split(columnsString, ",")
-				t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
-				if err != nil {
-					return err
-				}
-				if f.noHeaders {
-					t.ResetHeaders()
-				}
-				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
-
-			} else {
-				return errors.New("invalid output format specified")
+		} else if f.outputType == "json" {
+			prettyJSON, err := prettyPrintJSON(responseData)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+		} else if strings.HasPrefix(f.outputType, "custom-columns") {
+			// parse the columns and json queries
+			columnsString := ""
+			if strings.HasPrefix(f.outputType, "custom-columns=") {
+				columnsString = f.outputType[len("custom-columns="):]
+			}
+			if len(columnsString) == 0 {
+				return errors.New("custom-columns format specified but no custom columns given")
 			}
 
+			// we have to marshal the Items array, then create an array of marshalled items
+			// to pass to the creation of the table.
+			marshalledItems := [][]byte{}
+			mJson, err := json.Marshal(result)
+			if err != nil {
+				return err
+			}
+			marshalledItems = append(marshalledItems, mJson)
+
+			columnsInput := strings.Split(columnsString, ",")
+			t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+			if err != nil {
+				return err
+			}
+			if f.noHeaders {
+				t.ResetHeaders()
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+
+		} else {
+			return errors.New("invalid output format specified")
 		}
+
 		return nil
 	}
 }

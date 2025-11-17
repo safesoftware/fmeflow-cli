@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInfo(t *testing.T) {
-	// standard responses for v3 and v4
+func TestInfoV3(t *testing.T) {
+	// standard responses for v3
 	responseV3 := `{
 		"currentTime": "Mon-14-Nov-2022 07:20:24 PM",
 		"licenseManagement": true,
@@ -29,18 +29,21 @@ func TestInfo(t *testing.T) {
 			statusCode:         http.StatusOK,
 			args:               []string{"info", "--badflag"},
 			wantErrOutputRegex: "unknown flag: --badflag",
+			fmeflowBuild:       23166,
 		},
 		{
-			name:        "500 bad status code",
-			statusCode:  http.StatusInternalServerError,
-			wantErrText: "500 Internal Server Error",
-			args:        []string{"info"},
+			name:         "500 bad status code",
+			statusCode:   http.StatusInternalServerError,
+			wantErrText:  "500 Internal Server Error",
+			args:         []string{"info"},
+			fmeflowBuild: 23166,
 		},
 		{
-			name:        "404 bad status code",
-			statusCode:  http.StatusNotFound,
-			wantErrText: "404 Not Found",
-			args:        []string{"info"},
+			name:         "404 bad status code",
+			statusCode:   http.StatusNotFound,
+			wantErrText:  "404 Not Found",
+			args:         []string{"info"},
+			fmeflowBuild: 23166,
 		},
 		{
 			name:            "get info table output",
@@ -48,6 +51,7 @@ func TestInfo(t *testing.T) {
 			body:            responseV3,
 			args:            []string{"info"},
 			wantOutputRegex: "[\\s]*CURRENT TIME[\\s]*LICENSE MANAGEMENT[\\s]*BUILD[\\s]*TIME ZONE[\\s]*VERSION[\\s]*Mon-14-Nov-2022 07:20:24 PM[\\s]*true[\\s]*FME Server 2023.0 - Build 23166 - linux-x64[\\s]*\\+0000[\\s]*FME Server[\\s]*",
+			fmeflowBuild:    23166,
 		},
 		{
 			name:            "get info no headers",
@@ -55,6 +59,7 @@ func TestInfo(t *testing.T) {
 			body:            responseV3,
 			args:            []string{"info", "--no-headers"},
 			wantOutputRegex: "[\\s]*Mon-14-Nov-2022 07:20:24 PM[\\s]*true[\\s]*FME Server 2023.0 - Build 23166 - linux-x64[\\s]*\\+0000[\\s]*FME Server[\\s]*",
+			fmeflowBuild:    23166,
 		},
 		{
 			name:           "get info json",
@@ -62,6 +67,7 @@ func TestInfo(t *testing.T) {
 			args:           []string{"info", "--json"},
 			body:           responseV3,
 			wantOutputJson: responseV3,
+			fmeflowBuild:   23166,
 		},
 		{
 			name:           "get info json via output type",
@@ -69,6 +75,7 @@ func TestInfo(t *testing.T) {
 			args:           []string{"info", "--output=json"},
 			body:           responseV3,
 			wantOutputJson: responseV3,
+			fmeflowBuild:   23166,
 		},
 		{
 			name:            "get info custom columns",
@@ -76,6 +83,7 @@ func TestInfo(t *testing.T) {
 			body:            responseV3,
 			args:            []string{"info", "--output=custom-columns=TIME:.currentTime,BUILD:.build"},
 			wantOutputRegex: "[\\s]*TIME[\\s]*BUILD[\\s]*Mon-14-Nov-2022 07:20:24 PM[\\s]*FME Server 2023.0 - Build 23166 - linux-x64[\\s]*",
+			fmeflowBuild:    23166,
 		},
 	}
 
