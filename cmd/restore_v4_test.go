@@ -8,8 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRestore(t *testing.T) {
-	// standard responses for v3 and v4
+func TestRestoreV4(t *testing.T) {
 	response := `{
 		"id": 1
 	  }`
@@ -28,23 +27,35 @@ func TestRestore(t *testing.T) {
 			statusCode:         http.StatusOK,
 			args:               []string{"restore", "--file", f.Name(), "--badflag"},
 			wantErrOutputRegex: "unknown flag: --badflag",
+			fmeflowBuild:       26000,
 		},
 		{
-			name:        "500 bad status code",
-			statusCode:  http.StatusInternalServerError,
-			wantErrText: "500 Internal Server Error: check that the file specified is a valid backup file",
-			args:        []string{"restore", "--file", f.Name()},
+			name:         "500 bad status code",
+			statusCode:   http.StatusInternalServerError,
+			wantErrText:  "500 Internal Server Error",
+			args:         []string{"restore", "--file", f.Name()},
+			fmeflowBuild: 26000,
 		},
 		{
-			name:        "422 bad status code",
-			statusCode:  http.StatusNotFound,
-			wantErrText: "404 Not Found",
-			args:        []string{"restore", "--file", f.Name()},
+			name:         "422 bad status code",
+			statusCode:   http.StatusNotFound,
+			wantErrText:  "404 Not Found",
+			args:         []string{"restore", "--file", f.Name()},
+			fmeflowBuild: 26000,
 		},
 		{
-			name:        "missing required flags",
-			wantErrText: "required flag \"file\" or \"resource\" not set",
-			args:        []string{"restore"},
+			name:         "missing required flags",
+			wantErrText:  "required flag \"file\" or \"resource\" not set",
+			args:         []string{"restore"},
+			fmeflowBuild: 26000,
+		},
+		{
+			name:            "resource without file",
+			statusCode:      http.StatusAccepted,
+			args:            []string{"restore", "--resource"},
+			body:            response,
+			wantOutputRegex: "Restore task submitted with id: 1",
+			fmeflowBuild:    26000,
 		},
 		{
 			name:            "restore from file",
@@ -52,13 +63,15 @@ func TestRestore(t *testing.T) {
 			args:            []string{"restore", "--file", f.Name()},
 			body:            response,
 			wantOutputRegex: "Restore task submitted with id: 1",
+			fmeflowBuild:    26000,
 		},
 		{
 			name:            "restore from resource",
 			statusCode:      http.StatusAccepted,
-			args:            []string{"restore", "--resource"},
+			args:            []string{"restore", "--resource", "--file", "ServerConfigPackage.fsconfig"},
 			body:            response,
 			wantOutputRegex: "Restore task submitted with id: 1",
+			fmeflowBuild:    26000,
 		},
 		{
 			name:            "restore from resource specific file",
@@ -66,7 +79,7 @@ func TestRestore(t *testing.T) {
 			args:            []string{"restore", "--resource", "--file", "ServerConfigPackage.fsconfig"},
 			body:            response,
 			wantOutputRegex: "Restore task submitted with id: 1",
-			wantFormParams:  map[string]string{"importPackage": "ServerConfigPackage.fsconfig"},
+			fmeflowBuild:    26000,
 		},
 		{
 			name:            "restore from resource specific file failure and success topics",
@@ -74,7 +87,8 @@ func TestRestore(t *testing.T) {
 			args:            []string{"restore", "--resource", "--file", "ServerConfigPackage.fsconfig", "--success-topic", "SUCCESS", "--failure-topic", "FAILURE"},
 			body:            response,
 			wantOutputRegex: "Restore task submitted with id: 1",
-			wantFormParams:  map[string]string{"importPackage": "ServerConfigPackage.fsconfig", "successTopic": "SUCCESS", "failureTopic": "FAILURE"},
+			wantBodyRegEx:   `.*"successTopic":"SUCCESS".*"failureTopic":"FAILURE".*`,
+			fmeflowBuild:    26000,
 		},
 		{
 			name:            "restore from resource specific file and specific shared resource",
@@ -82,35 +96,36 @@ func TestRestore(t *testing.T) {
 			args:            []string{"restore", "--resource", "--file", "ServerConfigPackage.fsconfig", "--resource-name", "OTHER_RESOURCE"},
 			body:            response,
 			wantOutputRegex: "Restore task submitted with id: 1",
-			wantFormParams:  map[string]string{"importPackage": "ServerConfigPackage.fsconfig", "resourceName": "OTHER_RESOURCE"},
+			wantBodyRegEx:   `.*"resourceName":"OTHER_RESOURCE".*"packagePath":"ServerConfigPackage.fsconfig".*`,
+			fmeflowBuild:    26000,
 		},
 		{
-			name:            "import mode",
+			name:            "pause-notifications false",
 			statusCode:      http.StatusOK,
-			args:            []string{"restore", "--file", f.Name(), "--import-mode", "UPDATE"},
+			args:            []string{"restore", "--file", f.Name(), "--pause-notifications=false"},
 			body:            response,
 			wantOutputRegex: "Restore task submitted with id: 1",
-			wantFormParams:  map[string]string{"importMode": "UPDATE"},
+			wantBodyRegEx:   `.*"pauseNotifications":false.*`,
+			fmeflowBuild:    26000,
 		},
 		{
-			name:            "projects import mode",
+			name:            "overwrite true",
 			statusCode:      http.StatusOK,
-			args:            []string{"restore", "--file", f.Name(), "--projects-import-mode", "UPDATE"},
+			args:            []string{"restore", "--file", f.Name(), "--overwrite"},
 			body:            response,
 			wantOutputRegex: "Restore task submitted with id: 1",
-			wantFormParams:  map[string]string{"projectsImportMode": "UPDATE"},
-			wantBodyRegEx:   backupContents,
+			wantBodyRegEx:   `.*"overwrite":true.*`,
+			fmeflowBuild:    26000,
 		},
 		{
-			name:            "pause-notifications",
+			name:            "json output",
 			statusCode:      http.StatusOK,
-			args:            []string{"restore", "--file", f.Name(), "--pause-notifications"},
+			args:            []string{"restore", "--file", f.Name(), "--json"},
 			body:            response,
-			wantOutputRegex: "Restore task submitted with id: 1",
-			wantFormParams:  map[string]string{"pauseNotifications": "true"},
+			wantOutputRegex: `"id": 1`,
+			fmeflowBuild:    26000,
 		},
 	}
 
 	runTests(cases, t)
-
 }
