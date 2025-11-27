@@ -13,17 +13,43 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // generated using https://mholt.github.io/json-to-go/
-type migrationTasks struct {
+type migrationTasksV4 struct {
 	Offset     int `json:"offset"`
 	Limit      int `json:"limit"`
 	TotalCount int `json:"totalCount"`
-	Items      []migrationTask
+	Items      []migrationTaskV4
 }
 
-type migrationTask struct {
+type migrationTasksV3 struct {
+	Offset     int `json:"offset"`
+	Limit      int `json:"limit"`
+	TotalCount int `json:"totalCount"`
+	Items      []migrationTaskV3
+}
+
+type migrationTaskV4 struct {
+	ID                 int       `json:"id"`
+	Type               string    `json:"type"`
+	Username           string    `json:"username"`
+	UserID             string    `json:"userID"`
+	StartDate          time.Time `json:"startDate"`
+	FinishedDate       time.Time `json:"finishedDate"`
+	Status             string    `json:"status"`
+	SuccessTopic       string    `json:"successTopic"`
+	FailureTopic       string    `json:"failureTopic"`
+	ResourceName       string    `json:"resourceName"`
+	PackagePath        string    `json:"packagePath"`
+	PackageName        string    `json:"packageName"`
+	ImportMode         string    `json:"importMode"`
+	PauseNotifications bool      `json:"pauseNotifications"`
+	Result             string    `json:"result"`
+}
+
+type migrationTaskV3 struct {
 	DisableProjectItems  bool      `json:"disableProjectItems"`
 	Result               string    `json:"result"`
 	ImportMode           string    `json:"importMode"`
@@ -51,7 +77,10 @@ type migrationTasksFlags struct {
 	migrationTaskFile string
 	outputType        string
 	noHeaders         bool
+	apiVersion        apiVersionFlag
 }
+
+var migrationTasksV4BuildThreshold = 25208
 
 func newMigrationTasksCmd() *cobra.Command {
 	f := migrationTasksFlags{}
@@ -74,7 +103,13 @@ func newMigrationTasksCmd() *cobra.Command {
 	
   # Output the migration log for a given id to a local file
   fmeflow migration tasks --id 1 --log --file my-backup-log.txt
-	
+
+  # Output the migration log for a given id parsed as JSON to the console
+  fmeflow migration tasks --id 1 --log --json
+
+  # Output the migration log for a given id parsed as JSON to a local file
+  fmeflow migration tasks --id 1 --log --json --file my-backup-log.txt
+
   # Output just the start and end time of the a given id
   fmeflow migration tasks --id 1 --output="custom-columns=Start Time:.startDate,End Time:.finishedDate"`,
 		Args: NoArgs,
@@ -91,6 +126,7 @@ func newMigrationTasksCmd() *cobra.Command {
 	cmd.Flags().StringVar(&f.migrationTaskFile, "file", "", "File to save the log to.")
 	cmd.Flags().StringVarP(&f.outputType, "output", "o", "table", "Specify the output type. Should be one of table, json, or custom-columns")
 	cmd.Flags().BoolVar(&f.noHeaders, "no-headers", false, "Don't print column headers")
+	cmd.Flags().Var(&f.apiVersion, "api-version", "The api version to use when contacting FME Server. Must be one of v3 or v4")
 
 	return cmd
 }
@@ -106,156 +142,351 @@ func migrationTasksRun(f *migrationTasksFlags) func(cmd *cobra.Command, args []s
 		// set up http
 		client := &http.Client{}
 
-		var outputTasks []migrationTask
-
-		if !f.migrationTaskLog { // output one or more tasks
-			var responseData []byte
-			if f.migrationTaskId == -1 {
-				request, err := buildFmeFlowRequest("/fmerest/v3/migration/tasks", "GET", nil)
-				if err != nil {
-					return err
-				}
-				response, err := client.Do(&request)
-				if err != nil {
-					return err
-				} else if response.StatusCode != 200 {
-					return errors.New(response.Status)
-				}
-
-				responseData, err = io.ReadAll(response.Body)
-				if err != nil {
-					return err
-				}
-
-				var result migrationTasks
-				if err := json.Unmarshal(responseData, &result); err != nil {
-					return err
-				} else {
-					outputTasks = result.Items
-				}
+		if f.apiVersion == "" {
+			if viper.GetInt("build") < migrationTasksV4BuildThreshold {
+				f.apiVersion = apiVersionFlagV3
 			} else {
-				endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(f.migrationTaskId)
-				request, err := buildFmeFlowRequest(endpoint, "GET", nil)
-				if err != nil {
-					return err
-				}
-				response, err := client.Do(&request)
-				if err != nil {
-					return err
-				} else if response.StatusCode != 200 {
-					return errors.New(response.Status)
-				}
-
-				responseData, err = io.ReadAll(response.Body)
-				if err != nil {
-					return err
-				}
-
-				var result migrationTask
-				if err := json.Unmarshal(responseData, &result); err != nil {
-					return err
-				} else {
-					outputTasks = []migrationTask{result}
-				}
+				f.apiVersion = apiVersionFlagV4
 			}
+		}
 
-			if f.outputType == "table" {
-				t := table.NewWriter()
-				t.SetStyle(defaultStyle)
+		if f.apiVersion == apiVersionFlagV4 {
+			var outputTasks []migrationTaskV4
 
-				t.AppendHeader(table.Row{"ID", "Type", "Username", "Start Time", "End Time", "Status"})
-
-				for _, element := range outputTasks {
-					t.AppendRow(table.Row{element.ID, element.Type, element.UserName, element.StartDate, element.FinishedDate, element.Status})
-				}
-				if f.noHeaders {
-					t.ResetHeaders()
-				}
-				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
-				// output the raw json but formatted
-			} else if f.outputType == "json" {
-				prettyJSON, err := prettyPrintJSON(responseData)
-				if err != nil {
-					return err
-				}
-				fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
-			} else if strings.HasPrefix(f.outputType, "custom-columns") {
-				// parse the columns and json queries
-				columnsString := ""
-				if strings.HasPrefix(f.outputType, "custom-columns=") {
-					columnsString = f.outputType[len("custom-columns="):]
-				}
-
-				if len(columnsString) == 0 {
-					return errors.New("custom-columns format specified but no custom columns given")
-				}
-
-				// we have to marshal the Items array, then create an array of marshalled items
-				// to pass to the creation of the table.
-				marshalledItems := [][]byte{}
-				for _, element := range outputTasks {
-					mJson, err := json.Marshal(element)
+			if !f.migrationTaskLog { // output one or more tasks
+				var responseData []byte
+				if f.migrationTaskId == -1 {
+					request, err := buildFmeFlowRequest("/fmeapiv4/migrations/tasks", "GET", nil)
+					if err != nil {
+						return err
+					}
+					response, err := client.Do(&request)
+					if err != nil {
+						return err
+					} else if response.StatusCode != 200 {
+						return errors.New(response.Status)
+					}
+					responseData, err = io.ReadAll(response.Body)
 					if err != nil {
 						return err
 					}
 
-					marshalledItems = append(marshalledItems, mJson)
+					var result migrationTasksV4
+					if err := json.Unmarshal(responseData, &result); err != nil {
+						return err
+					} else {
+						outputTasks = result.Items
+					}
+				} else {
+					endpoint := "/fmeapiv4/migrations/tasks/" + strconv.Itoa(f.migrationTaskId)
+					request, err := buildFmeFlowRequest(endpoint, "GET", nil)
+					if err != nil {
+						return err
+					}
+					response, err := client.Do(&request)
+					if err != nil {
+						return err
+					} else if response.StatusCode != 200 {
+						return errors.New(response.Status)
+					}
+
+					responseData, err = io.ReadAll(response.Body)
+					if err != nil {
+						return err
+					}
+
+					var result migrationTaskV4
+					if err := json.Unmarshal(responseData, &result); err != nil {
+						return err
+					} else {
+						outputTasks = []migrationTaskV4{result}
+					}
 				}
 
-				columnsInput := strings.Split(columnsString, ",")
-				t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+				if f.outputType == "table" {
+					t := table.NewWriter()
+					t.SetStyle(defaultStyle)
+
+					t.AppendHeader(table.Row{"ID", "Type", "Username", "Start Time", "End Time", "Status"})
+
+					for _, element := range outputTasks {
+						t.AppendRow(table.Row{element.ID, element.Type, element.Username, element.StartDate, element.FinishedDate, element.Status})
+					}
+					if f.noHeaders {
+						t.ResetHeaders()
+					}
+					fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+					// output the raw json but formatted
+				} else if f.outputType == "json" {
+					prettyJSON, err := prettyPrintJSON(responseData)
+					if err != nil {
+						return err
+					}
+					fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+				} else if strings.HasPrefix(f.outputType, "custom-columns") {
+					// parse the columns and json queries
+					columnsString := ""
+					if strings.HasPrefix(f.outputType, "custom-columns=") {
+						columnsString = f.outputType[len("custom-columns="):]
+					}
+
+					if len(columnsString) == 0 {
+						return errors.New("custom-columns format specified but no custom columns given")
+					}
+
+					// we have to marshal the Items array, then create an array of marshalled items
+					// to pass to the creation of the table.
+					marshalledItems := [][]byte{}
+					for _, element := range outputTasks {
+						mJson, err := json.Marshal(element)
+						if err != nil {
+							return err
+						}
+
+						marshalledItems = append(marshalledItems, mJson)
+					}
+
+					columnsInput := strings.Split(columnsString, ",")
+					t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+					if err != nil {
+						return err
+					}
+					if f.noHeaders {
+						t.ResetHeaders()
+					}
+					fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+				} else {
+					return errors.New("invalid output format specified")
+				}
+			} else if f.migrationTaskId != -1 && f.migrationTaskLog && f.outputType != "json" {
+				endpoint := "/fmeapiv4/migrations/tasks/" + strconv.Itoa(f.migrationTaskId) + "/log"
+				request, err := buildFmeFlowRequest(endpoint, "GET", nil)
 				if err != nil {
 					return err
 				}
-				if f.noHeaders {
-					t.ResetHeaders()
-				}
-				fmt.Fprintln(cmd.OutOrStdout(), t.Render())
-			} else {
-				return errors.New("invalid output format specified")
-			}
 
-		} else if f.migrationTaskId != -1 && f.migrationTaskLog {
-			endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(f.migrationTaskId) + "/log"
-			request, err := buildFmeFlowRequest(endpoint, "GET", nil)
-			if err != nil {
-				return err
-			}
-
-			request.Header.Add("Accept", "application/octet-stream")
-			response, err := client.Do(&request)
-			if err != nil {
-				return err
-			} else if response.StatusCode != 200 {
-				return errors.New(response.Status)
-			}
-
-			responseData, err := io.ReadAll(response.Body)
-			if err != nil {
-				return err
-			}
-
-			if f.migrationTaskFile == "" {
-				fmt.Fprintln(cmd.OutOrStdout(), string(responseData))
-			} else {
-				// Create the output file
-				out, err := os.Create(f.migrationTaskFile)
+				request.Header.Add("Accept", "application/octet-stream")
+				response, err := client.Do(&request)
 				if err != nil {
 					return err
+				} else if response.StatusCode != 200 {
+					return errors.New(response.Status)
 				}
-				defer out.Close()
 
-				// use Copy so that it doesn't store the entire file in memory
-				_, err = io.Copy(out, strings.NewReader(string(responseData)))
+				responseData, err := io.ReadAll(response.Body)
 				if err != nil {
 					return err
 				}
 
-				fmt.Fprintln(cmd.OutOrStdout(), "Log file downloaded to "+f.migrationTaskFile)
+				if f.migrationTaskFile == "" {
+					fmt.Fprintln(cmd.OutOrStdout(), string(responseData))
+				} else {
+					// Create the output file
+					out, err := os.Create(f.migrationTaskFile)
+					if err != nil {
+						return err
+					}
+					defer out.Close()
+
+					// use Copy so that it doesn't store the entire file in memory
+					_, err = io.Copy(out, strings.NewReader(string(responseData)))
+					if err != nil {
+						return err
+					}
+
+					fmt.Fprintln(cmd.OutOrStdout(), "Log file downloaded to "+f.migrationTaskFile)
+				}
+
+			} else if f.migrationTaskId != -1 && f.migrationTaskLog && f.outputType == "json" {
+				endpoint := "/fmeapiv4/migrations/tasks/" + strconv.Itoa(f.migrationTaskId) + "/log/parsed"
+				request, err := buildFmeFlowRequest(endpoint, "GET", nil)
+				if err != nil {
+					return err
+				}
+				request.Header.Add("Accept", "application/json")
+				response, err := client.Do(&request)
+				if err != nil {
+					return err
+				} else if response.StatusCode != 200 {
+					return errors.New(response.Status)
+				}
+				responseData, err := io.ReadAll(response.Body)
+				if err != nil {
+					return err
+				}
+
+				if f.migrationTaskFile == "" {
+					fmt.Fprintln(cmd.OutOrStdout(), string(responseData))
+				} else {
+					// Create the output file
+					out, err := os.Create(f.migrationTaskFile)
+					if err != nil {
+						return err
+					}
+					defer out.Close()
+
+					// use Copy so that it doesn't store the entire file in memory
+					_, err = io.Copy(out, strings.NewReader(string(responseData)))
+					if err != nil {
+						return err
+					}
+
+					fmt.Fprintln(cmd.OutOrStdout(), "Log file downloaded to "+f.migrationTaskFile)
+				}
+
 			}
 
+		} else if f.apiVersion == apiVersionFlagV3 {
+			var outputTasks []migrationTaskV3
+
+			if !f.migrationTaskLog { // output one or more tasks
+				var responseData []byte
+				if f.migrationTaskId == -1 {
+					request, err := buildFmeFlowRequest("/fmerest/v3/migration/tasks", "GET", nil)
+					if err != nil {
+						return err
+					}
+					response, err := client.Do(&request)
+					if err != nil {
+						return err
+					} else if response.StatusCode != 200 {
+						return errors.New(response.Status)
+					}
+
+					responseData, err = io.ReadAll(response.Body)
+					if err != nil {
+						return err
+					}
+
+					var result migrationTasksV3
+					if err := json.Unmarshal(responseData, &result); err != nil {
+						return err
+					} else {
+						outputTasks = result.Items
+					}
+				} else {
+					endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(f.migrationTaskId)
+					request, err := buildFmeFlowRequest(endpoint, "GET", nil)
+					if err != nil {
+						return err
+					}
+					response, err := client.Do(&request)
+					if err != nil {
+						return err
+					} else if response.StatusCode != 200 {
+						return errors.New(response.Status)
+					}
+
+					responseData, err = io.ReadAll(response.Body)
+					if err != nil {
+						return err
+					}
+
+					var result migrationTaskV3
+					if err := json.Unmarshal(responseData, &result); err != nil {
+						return err
+					} else {
+						outputTasks = []migrationTaskV3{result}
+					}
+				}
+
+				if f.outputType == "table" {
+					t := table.NewWriter()
+					t.SetStyle(defaultStyle)
+
+					t.AppendHeader(table.Row{"ID", "Type", "Username", "Start Time", "End Time", "Status"})
+
+					for _, element := range outputTasks {
+						t.AppendRow(table.Row{element.ID, element.Type, element.UserName, element.StartDate, element.FinishedDate, element.Status})
+					}
+					if f.noHeaders {
+						t.ResetHeaders()
+					}
+					fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+					// output the raw json but formatted
+				} else if f.outputType == "json" {
+					prettyJSON, err := prettyPrintJSON(responseData)
+					if err != nil {
+						return err
+					}
+					fmt.Fprintln(cmd.OutOrStdout(), prettyJSON)
+				} else if strings.HasPrefix(f.outputType, "custom-columns") {
+					// parse the columns and json queries
+					columnsString := ""
+					if strings.HasPrefix(f.outputType, "custom-columns=") {
+						columnsString = f.outputType[len("custom-columns="):]
+					}
+
+					if len(columnsString) == 0 {
+						return errors.New("custom-columns format specified but no custom columns given")
+					}
+
+					// we have to marshal the Items array, then create an array of marshalled items
+					// to pass to the creation of the table.
+					marshalledItems := [][]byte{}
+					for _, element := range outputTasks {
+						mJson, err := json.Marshal(element)
+						if err != nil {
+							return err
+						}
+
+						marshalledItems = append(marshalledItems, mJson)
+					}
+
+					columnsInput := strings.Split(columnsString, ",")
+					t, err := createTableFromCustomColumns(marshalledItems, columnsInput)
+					if err != nil {
+						return err
+					}
+					if f.noHeaders {
+						t.ResetHeaders()
+					}
+					fmt.Fprintln(cmd.OutOrStdout(), t.Render())
+				} else {
+					return errors.New("invalid output format specified")
+				}
+
+			} else if f.migrationTaskId != -1 && f.migrationTaskLog {
+				endpoint := "/fmerest/v3/migration/tasks/id/" + strconv.Itoa(f.migrationTaskId) + "/log"
+				request, err := buildFmeFlowRequest(endpoint, "GET", nil)
+				if err != nil {
+					return err
+				}
+
+				request.Header.Add("Accept", "application/octet-stream")
+				response, err := client.Do(&request)
+				if err != nil {
+					return err
+				} else if response.StatusCode != 200 {
+					return errors.New(response.Status)
+				}
+
+				responseData, err := io.ReadAll(response.Body)
+				if err != nil {
+					return err
+				}
+
+				if f.migrationTaskFile == "" {
+					fmt.Fprintln(cmd.OutOrStdout(), string(responseData))
+				} else {
+					// Create the output file
+					out, err := os.Create(f.migrationTaskFile)
+					if err != nil {
+						return err
+					}
+					defer out.Close()
+
+					// use Copy so that it doesn't store the entire file in memory
+					_, err = io.Copy(out, strings.NewReader(string(responseData)))
+					if err != nil {
+						return err
+					}
+
+					fmt.Fprintln(cmd.OutOrStdout(), "Log file downloaded to "+f.migrationTaskFile)
+				}
+
+			}
 		}
-
 		return nil
 	}
 }
