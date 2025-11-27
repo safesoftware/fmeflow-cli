@@ -28,7 +28,13 @@ fmeflow migration tasks [flags]
 	
   # Output the migration log for a given id to a local file
   fmeflow migration tasks --id 1 --log --file my-backup-log.txt
-	
+
+  # Output the migration log for a given id parsed as JSON to the console
+  fmeflow migration tasks --id 1 --log --json
+
+  # Output the migration log for a given id parsed as JSON to a local file
+  fmeflow migration tasks --id 1 --log --json --file my-backup-log.txt
+
   # Output just the start and end time of the a given id
   fmeflow migration tasks --id 1 --output="custom-columns=Start Time:.startDate,End Time:.finishedDate"
 ```
@@ -36,12 +42,13 @@ fmeflow migration tasks [flags]
 ### Options
 
 ```
-      --file string     File to save the log to.
-  -h, --help            help for tasks
-      --id int          Retrieves the record for a migration task according to the given ID. (default -1)
-      --log             Downloads the log file of a migration task.
-      --no-headers      Don't print column headers
-  -o, --output string   Specify the output type. Should be one of table, json, or custom-columns (default "table")
+      --api-version string   The api version to use when contacting FME Server. Must be one of v3 or v4
+      --file string          File to save the log to.
+  -h, --help                 help for tasks
+      --id int               Retrieves the record for a migration task according to the given ID. (default -1)
+      --log                  Downloads the log file of a migration task.
+      --no-headers           Don't print column headers
+  -o, --output string        Specify the output type. Should be one of table, json, or custom-columns (default "table")
 ```
 
 ### Options inherited from parent commands
