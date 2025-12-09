@@ -66,7 +66,7 @@ func newBackupCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&f.outputBackupFile, "file", "f", "ServerConfigPackage.fsconfig", "Path to file to download the backup to.")
 	cmd.Flags().BoolVar(&f.backupResource, "resource", false, "Backup to a shared resource instead of downloading.")
 	cmd.Flags().StringVar(&f.backupResourceName, "resource-name", "FME_SHAREDRESOURCE_BACKUP", "Shared Resource Name where the exported package is saved.")
-	cmd.Flags().StringVar(&f.backupExportPackage, "export-package", "ServerConfigPackage.fsconfig", "Path and name of the export package.")
+	cmd.Flags().StringVar(&f.backupExportPackage, "export-package", "ServerConfigPackage.fsconfig", "Path and name of the export package when backing up to a shared resource. Must be used with --resource.")
 	cmd.Flags().StringVar(&f.backupFailureTopic, "failure-topic", "", "Topic to notify on failure of the backup. In V3, default is MIGRATION_ASYNC_JOB_FAILURE")
 	cmd.Flags().StringVar(&f.backupSuccessTopic, "success-topic", "", "Topic to notify on success of the backup. In V3, default is MIGRATION_ASYNC_JOB_SUCCESS")
 	cmd.Flags().BoolVar(&f.suppressFileRename, "suppress-file-rename", false, "Specify this flag to not add .fsconfig to the output file automatically")

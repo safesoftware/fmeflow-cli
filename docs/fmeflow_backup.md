@@ -25,7 +25,7 @@ fmeflow backup [flags]
 
 ```
       --api-version string      The api version to use when contacting FME Server. Must be one of v3 or v4
-      --export-package string   Path and name of the export package. (default "ServerConfigPackage.fsconfig")
+      --export-package string   Path and name of the export package when backing up to a shared resource. Must be used with --resource. (default "ServerConfigPackage.fsconfig")
       --failure-topic string    Topic to notify on failure of the backup. In V3, default is MIGRATION_ASYNC_JOB_FAILURE
   -f, --file string             Path to file to download the backup to. (default "ServerConfigPackage.fsconfig")
   -h, --help                    help for backup
