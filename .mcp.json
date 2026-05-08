@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "fmeflow": {
+      "command": "node",
+      "args": ["/Users/matthew.deabreu/code/fmeflow-cli/mcp/dist/index.js"]
+    }
+  }
+}
